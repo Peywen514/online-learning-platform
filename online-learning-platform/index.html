@@ -43,7 +43,7 @@
           <i class="fa-solid fa-users-gear"></i> 名師庫
         </button>
 
-        <!-- Dynamic Permission Protected Nav Links (Controlled by Login Credentials) -->
+        <!-- Dynamic Permission Protected Nav Links -->
         <button class="nav-link admin-only-link" data-target="admin-dashboard" id="navAdminLink" style="display: none;">
           <i class="fa-solid fa-sliders text-pink"></i> 後台管理中心
         </button>
@@ -61,9 +61,9 @@
           <i class="fa-solid fa-book-bookmark"></i> 我的課程
         </button>
         
-        <!-- Login / User Auth Dropdown Area -->
+        <!-- Login / User Auth Area -->
         <div id="authArea">
-          <!-- Rendered dynamically by JS (Login button or User Profile Dropdown) -->
+          <!-- Rendered dynamically by JS -->
         </div>
       </div>
     </div>
@@ -77,47 +77,303 @@
 
     <!-- VIEW 1: HOME VIEW -->
     <section id="view-home" class="view-section active">
-      <!-- Hero Section -->
+      <!-- Rich Hero Section -->
       <div class="hero-section">
         <div class="hero-backdrop"></div>
-        <div class="hero-content">
-          <div class="hero-badge">
-            <i class="fa-solid fa-sparkles"></i> 累積近10年知名電腦教育機構師資資源 • 突破傳統補習班與線上課痛點
-          </div>
-          <h1 class="hero-title">
-            不只看影片！<br>
-            <span class="gradient-text">「錄播自學 + 名師 1-on-1 個教陪跑」</span><br>
-            幫你真正學會並做出實戰作品
-          </h1>
-          <p class="hero-desc">
-            告別看完影片依然不會做的窘境。結合 50+ 業界頂尖導師，為你量身打造「3至6人精緻小班」與「高效率個人教練」，從code批改、作品集輔導到接案媒合，全程高濃度陪跑。
-          </p>
+        
+        <div class="hero-layout container">
+          <!-- Left Hero Text -->
+          <div class="hero-main-text">
+            <div class="hero-badge">
+              <i class="fa-solid fa-sparkles"></i> 累積近10年知名教育體系金牌師資 • 突破線上課痛點
+            </div>
+            <h1 class="hero-title">
+              不只看影片！<br>
+              <span class="gradient-text">「錄播自學 + 名師 1-on-1 個教陪跑」</span><br>
+              帶你真正學會並做出星級作品
+            </h1>
+            <p class="hero-desc">
+              告別看完影片依然不會做的窘境。結合 50+ 業界頂尖明星導師，為你量身打造「3至6人精緻小班」與「高效率個人教練」，從code批改、作品集輔導到接案媒合，全程高濃度陪跑。
+            </p>
 
-          <div class="hero-buttons">
-            <button class="btn btn-primary btn-lg" onclick="switchView('marketplace')">
-              <i class="fa-solid fa-rocket"></i> 瀏覽熱門課程組合
-            </button>
-            <button class="btn btn-glass btn-lg manager-only-btn" onclick="switchView('business-plan')" style="display: none;">
-              <i class="fa-solid fa-chess"></i> 查看創業差異化規劃
-            </button>
+            <div class="hero-buttons">
+              <button class="btn btn-primary btn-lg" onclick="switchView('marketplace')">
+                <i class="fa-solid fa-rocket"></i> 瀏覽熱門課程組合
+              </button>
+              <button class="btn btn-glass btn-lg manager-only-btn" onclick="switchView('business-plan')" style="display: none;">
+                <i class="fa-solid fa-chess"></i> 查看創業差異化規劃
+              </button>
+            </div>
+
+            <div class="hero-stats">
+              <div class="stat-card">
+                <div class="stat-num">近 10 年</div>
+                <div class="stat-label">教育訓練與講師儲備經驗</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num">94.8%</div>
+                <div class="stat-label">完課與作業實作通過率</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num">1 對 1</div>
+                <div class="stat-label">精緻個教 & 專屬 Code/作品 批改</div>
+              </div>
+            </div>
           </div>
 
-          <div class="hero-stats">
-            <div class="stat-card">
-              <div class="stat-num">近 10 年</div>
-              <div class="stat-label">教育訓練與講師儲備經驗</div>
+          <!-- Right Floating Mentor Cards -->
+          <div class="hero-instructors-floating">
+            <div class="floating-title">
+              <i class="fa-solid fa-crown text-yellow"></i> 明星金牌導師陣容 (實時個教中)
             </div>
-            <div class="stat-card">
-              <div class="stat-num">94.8%</div>
-              <div class="stat-label">完課與作業實作通過率</div>
+
+            <!-- Floating Card 1: 帥哥技術導師 (張哲銘) -->
+            <div class="floating-mentor-card card-float-1" onclick="openInstructorModal('inst-1')">
+              <div class="mentor-avatar-box">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80" alt="張哲銘">
+                <span class="online-indicator"></span>
+              </div>
+              <div class="mentor-info">
+                <div class="m-name">張哲銘 (Ethan) <span class="tag-badge bg-purple">型男架構師</span></div>
+                <div class="m-role">Full-Stack & AI 技術專家</div>
+                <div class="m-rate"><i class="fa-solid fa-star text-yellow"></i> 4.9 (1850學員) • 可預約 1-on-1</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-num">1 對 1</div>
-              <div class="stat-label">精緻個教 & 專屬 Code/作品 批改</div>
+
+            <!-- Floating Card 2: 美女設計導師 (陳婷俐) -->
+            <div class="floating-mentor-card card-float-2" onclick="openInstructorModal('inst-2')">
+              <div class="mentor-avatar-box">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="陳婷俐">
+                <span class="online-indicator"></span>
+              </div>
+              <div class="mentor-info">
+                <div class="m-name">陳婷俐 (Tina) <span class="tag-badge bg-pink">設計女神</span></div>
+                <div class="m-role">UI/UX 與 Figma 系統總監</div>
+                <div class="m-rate"><i class="fa-solid fa-star text-yellow"></i> 5.0 (2200學員) • 1對1作品集診斷</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-num">100%</div>
-              <div class="stat-label">實務業界名師親授 (職業培訓積澱)</div>
+
+            <!-- Floating Card 3: 帥哥數據導師 (歐陽翔) -->
+            <div class="floating-mentor-card card-float-3" onclick="openInstructorModal('inst-3')">
+              <div class="mentor-avatar-box">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80" alt="歐陽翔">
+                <span class="online-indicator"></span>
+              </div>
+              <div class="mentor-info">
+                <div class="m-name">歐陽翔 (Shawn) <span class="tag-badge bg-blue">數據帥哥</span></div>
+                <div class="m-role">Python & AI 數據分析顧問</div>
+                <div class="m-rate"><i class="fa-solid fa-star text-yellow"></i> 4.8 (1400學員) • 自動化腳本教練</div>
+              </div>
+            </div>
+
+            <!-- Floating Card 4: 美女行銷導師 (林雅涵) -->
+            <div class="floating-mentor-card card-float-4" onclick="openInstructorModal('inst-4')">
+              <div class="mentor-avatar-box">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="林雅涵">
+                <span class="online-indicator"></span>
+              </div>
+              <div class="mentor-info">
+                <div class="m-name">林雅涵 (Hannah) <span class="tag-badge bg-green">電商爆款師</span></div>
+                <div class="m-role">短影音與數位整合行銷總監</div>
+                <div class="m-rate"><i class="fa-solid fa-star text-yellow"></i> 4.9 (1950學員) • 廣告文案批改</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: FULL-BODY INSTRUCTOR SHOWCASE STAGE (明星講師全身形象照專區) -->
+        <div class="container margin-top-xl">
+          <div class="fullbody-stage-box">
+            <div class="stage-header text-center">
+              <span class="badge-tag">STAR INSTRUCTORS SHOWCASE</span>
+              <h2>明星金牌導師 • 全身專業形象畫廊</h2>
+              <p>嚴選近10年知名電腦教育體系實戰派名師，點擊卡片即可預約 1-on-1 專屬個教陪跑</p>
+            </div>
+
+            <div class="grid grid-4 gap-md margin-top-lg">
+              <!-- Full Body Card 1: 帥哥技術總監 (張哲銘) -->
+              <div class="fullbody-card" onclick="openInstructorModal('inst-1')">
+                <div class="fullbody-img-wrapper">
+                  <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80" alt="張哲銘 講師全身照">
+                  <div class="fullbody-overlay">
+                    <span class="status-chip"><i class="fa-solid fa-circle text-green"></i> 實時連線中</span>
+                    <button class="btn btn-sm btn-primary fullbody-btn"><i class="fa-solid fa-calendar-check"></i> 預約 Ethan 個教</button>
+                  </div>
+                </div>
+                <div class="fullbody-card-body">
+                  <div class="fb-name">張哲銘 (Ethan) <span class="tag-badge bg-purple">型男總監</span></div>
+                  <div class="fb-title">Full-Stack & AI 技術專家</div>
+                  <div class="fb-exp">近10年教育體系金牌講師 • 1850+ 學員好評</div>
+                </div>
+              </div>
+
+              <!-- Full Body Card 2: 美女設計總監 (陳婷俐) -->
+              <div class="fullbody-card" onclick="openInstructorModal('inst-2')">
+                <div class="fullbody-img-wrapper">
+                  <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80" alt="陳婷俐 講師全身照">
+                  <div class="fullbody-overlay">
+                    <span class="status-chip"><i class="fa-solid fa-circle text-green"></i> 實時連線中</span>
+                    <button class="btn btn-sm btn-primary fullbody-btn"><i class="fa-solid fa-calendar-check"></i> 預約 Tina 個教</button>
+                  </div>
+                </div>
+                <div class="fullbody-card-body">
+                  <div class="fb-name">陳婷俐 (Tina) <span class="tag-badge bg-pink">設計女神</span></div>
+                  <div class="fb-title">UI/UX 與 Figma 系統總監</div>
+                  <div class="fb-exp">前知名電腦機構高級講師 • 矽谷新創顧問</div>
+                </div>
+              </div>
+
+              <!-- Full Body Card 3: 帥哥數據專家 (歐陽翔) -->
+              <div class="fullbody-card" onclick="openInstructorModal('inst-3')">
+                <div class="fullbody-img-wrapper">
+                  <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80" alt="歐陽翔 講師全身照">
+                  <div class="fullbody-overlay">
+                    <span class="status-chip"><i class="fa-solid fa-circle text-green"></i> 實時連線中</span>
+                    <button class="btn btn-sm btn-primary fullbody-btn"><i class="fa-solid fa-calendar-check"></i> 預約 Shawn 個教</button>
+                  </div>
+                </div>
+                <div class="fullbody-card-body">
+                  <div class="fb-name">歐陽翔 (Shawn) <span class="tag-badge bg-blue">數據帥哥</span></div>
+                  <div class="fb-title">Python 數據分析與 AI 顧問</div>
+                  <div class="fb-exp">資深數據金融分析師 • 1400+ 學員輔導</div>
+                </div>
+              </div>
+
+              <!-- Full Body Card 4: 美女行銷總監 (林雅涵) -->
+              <div class="fullbody-card" onclick="openInstructorModal('inst-4')">
+                <div class="fullbody-img-wrapper">
+                  <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=600&q=80" alt="林雅涵 講師全身照">
+                  <div class="fullbody-overlay">
+                    <span class="status-chip"><i class="fa-solid fa-circle text-green"></i> 實時連線中</span>
+                    <button class="btn btn-sm btn-primary fullbody-btn"><i class="fa-solid fa-calendar-check"></i> 預約 Hannah 個教</button>
+                  </div>
+                </div>
+                <div class="fullbody-card-body">
+                  <div class="fb-name">林雅涵 (Hannah) <span class="tag-badge bg-green">電商女神</span></div>
+                  <div class="fb-title">短影音與數位整合行銷總監</div>
+                  <div class="fb-exp">品牌電商營運總監 • 累計輔導 200+ 品牌</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- POPULAR COURSES CAROUSEL -->
+        <div class="container margin-top-xl">
+          <div class="carousel-section-box">
+            <div class="carousel-header">
+              <div>
+                <span class="badge-tag">FEATURED COURSES</span>
+                <h3>🔥 本月熱門精選課程 • 動態輪播圖展演</h3>
+              </div>
+              <div class="carousel-controls">
+                <button class="c-arrow-btn" onclick="prevCarousel()"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="c-arrow-btn" onclick="nextCarousel()"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+
+            <!-- Carousel Slides Wrapper -->
+            <div class="carousel-viewport">
+              <div class="carousel-track" id="heroCarouselTrack">
+                <!-- Slide 1 -->
+                <div class="carousel-slide">
+                  <div class="c-slide-content">
+                    <div class="c-slide-img">
+                      <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80" alt="AI 驅動 Full-Stack">
+                      <span class="c-badge">🔥 熱銷首選</span>
+                    </div>
+                    <div class="c-slide-body">
+                      <span class="pill">網頁開發 / AI</span>
+                      <h2>AI 驅動 Full-Stack Web 開發實戰營</h2>
+                      <p>結合 React 19, Node.js 與 OpenAI API，從 0 獨立打造可商業上線的 AI SaaS 工具！搭配 4 次帥哥導師張哲銘 1-on-1 Code Review。</p>
+                      
+                      <div class="c-slide-meta">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                        <div>
+                          <strong>張哲銘 (Ethan) 導師親授</strong>
+                          <div class="text-sm text-muted">32 小時錄播 + 4次線上個教實戰</div>
+                        </div>
+                      </div>
+
+                      <div class="c-slide-actions margin-top-md">
+                        <span class="c-price">NT$ 12,800 <small>/ 個教陪跑包</small></span>
+                        <button class="btn btn-primary" onclick="openCheckoutModal('course-1', 'combo')">
+                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="carousel-slide">
+                  <div class="c-slide-content">
+                    <div class="c-slide-img">
+                      <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80" alt="UI/UX 設計">
+                      <span class="c-badge bg-pink">👑 名師陪跑</span>
+                    </div>
+                    <div class="c-slide-body">
+                      <span class="pill">UI/UX 與 設計</span>
+                      <h2>UI/UX 產品設計與 Figma 設計系統實力班</h2>
+                      <p>掌握 Figma Auto-Layout、Design System 與高保真 Prototype。由美女總監陳婷俐進行 1 對 1 作品集精細重構，直通求職面試！</p>
+                      
+                      <div class="c-slide-meta">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                        <div>
+                          <strong>陳婷俐 (Tina) 導師親授</strong>
+                          <div class="text-sm text-muted">28 小時錄播 + 4次 Figma 個教微調</div>
+                        </div>
+                      </div>
+
+                      <div class="c-slide-actions margin-top-md">
+                        <span class="c-price">NT$ 14,800 <small>/ 個教陪跑包</small></span>
+                        <button class="btn btn-primary" onclick="openCheckoutModal('course-2', 'combo')">
+                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="carousel-slide">
+                  <div class="c-slide-content">
+                    <div class="c-slide-img">
+                      <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Python 數據">
+                      <span class="c-badge bg-blue">⚡ 實務高效</span>
+                    </div>
+                    <div class="c-slide-body">
+                      <span class="pill">網頁開發 / AI</span>
+                      <h2>Python 數據分析與自動化爬蟲實務</h2>
+                      <p>學會 Pandas, BeautifulSoup, Selenium 與數據視覺化。幫助您打造自動化工作腳本，更有導師歐陽翔 1 對 1 模型診斷！</p>
+                      
+                      <div class="c-slide-meta">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                        <div>
+                          <strong>歐陽翔 (Shawn) 導師親授</strong>
+                          <div class="text-sm text-muted">24 小時錄播 + 3次自動化腳本診斷</div>
+                        </div>
+                      </div>
+
+                      <div class="c-slide-actions margin-top-md">
+                        <span class="c-price">NT$ 9,800 <small>/ 個教陪跑包</small></span>
+                        <button class="btn btn-primary" onclick="openCheckoutModal('course-3', 'combo')">
+                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Dots Indicator -->
+            <div class="carousel-dots" id="carouselDots">
+              <span class="dot active" onclick="goToSlide(0)"></span>
+              <span class="dot" onclick="goToSlide(1)"></span>
+              <span class="dot" onclick="goToSlide(2)"></span>
             </div>
           </div>
         </div>
@@ -267,7 +523,7 @@
                     <div class="code-line">}</div>
                   </div>
                   <div class="instructor-cam-pip">
-                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
                     <span class="pip-name">張哲銘 導師</span>
                   </div>
                 </div>
@@ -477,10 +733,10 @@
                 <div class="form-group">
                   <label><i class="fa-solid fa-user-ninja"></i> 選擇名師 (來自近10年專業教育儲備)</label>
                   <select id="bookingInstructor" class="form-control" onchange="updateAvailableSlots()">
-                    <option value="張哲銘">張哲銘 導師 (Full-Stack & AI 技術專家)</option>
-                    <option value="陳婷俐">陳婷俐 導師 (UI/UX 與 Figma 系統總監)</option>
-                    <option value="林威宏">林威宏 導師 (Python 數據分析與自動化顧問)</option>
-                    <option value="黃佩珊">黃佩珊 導師 (數位整合行銷與電商教練)</option>
+                    <option value="張哲銘 (Ethan)">張哲銘 導師 (Full-Stack & AI 技術專家)</option>
+                    <option value="陳婷俐 (Tina)">陳婷俐 導師 (UI/UX 與 Figma 系統總監)</option>
+                    <option value="歐陽翔 (Shawn)">歐陽翔 導師 (Python 數據分析與 AI 顧問)</option>
+                    <option value="林雅涵 (Hannah)">林雅涵 導師 (數位整合行銷與短影音教練)</option>
                   </select>
                 </div>
 
@@ -536,8 +792,8 @@
       <div class="container section-padding">
         <div class="section-header text-center">
           <div class="sub-title">MENTOR NETWORK</div>
-          <h2>近10年職業培訓名師積澱 • 頂尖實戰名師陣容</h2>
-          <p>嚴選經驗豐富、評鑑極高的專業導師，提供高品質錄播與 1-on-1 個教輔導</p>
+          <h2>近10年職業培訓名師積澱 • 頂尖明星實戰導師陣容</h2>
+          <p>嚴選經驗豐富、高顏值高評價的專業導師，提供高品質錄播與 1-on-1 個教輔導</p>
         </div>
 
         <div class="grid grid-4 gap-md" id="instructorGrid">
@@ -546,7 +802,7 @@
       </div>
     </section>
 
-    <!-- VIEW 6: BACK-OFFICE DASHBOARD (受登入帳號密碼保護) -->
+    <!-- VIEW 6: BACK-OFFICE DASHBOARD -->
     <section id="view-admin-dashboard" class="view-section">
       <div class="container section-padding">
         <div class="admin-header-box">
@@ -581,7 +837,7 @@
           </button>
         </div>
 
-        <!-- Admin Tab Content 1: User Account Management (Manager Only) -->
+        <!-- Admin Tab Content 1 -->
         <div class="admin-content-pane active manager-only-pane" id="atab-users">
           <div class="plan-card margin-top-md">
             <div class="card-header-flex">
@@ -609,7 +865,7 @@
           </div>
         </div>
 
-        <!-- Admin Tab Content 2: Course Management (Manager & Staff) -->
+        <!-- Admin Tab Content 2 -->
         <div class="admin-content-pane" id="atab-courses">
           <div class="plan-card margin-top-md">
             <div class="card-header-flex">
@@ -638,7 +894,7 @@
           </div>
         </div>
 
-        <!-- Admin Tab Content 3: Instructor Management (Manager & Staff) -->
+        <!-- Admin Tab Content 3 -->
         <div class="admin-content-pane" id="atab-instructors">
           <div class="plan-card margin-top-md">
             <div class="card-header-flex">
@@ -666,7 +922,7 @@
           </div>
         </div>
 
-        <!-- Admin Tab Content 4: Chapter & Video Management (Manager & Staff) -->
+        <!-- Admin Tab Content 4 -->
         <div class="admin-content-pane" id="atab-chapters">
           <div class="plan-card margin-top-md">
             <div class="card-header-flex">
@@ -683,7 +939,7 @@
       </div>
     </section>
 
-    <!-- VIEW 7: COMPLETE BUSINESS STRATEGY & STARTUP PLAN (MANAGER ONLY) -->
+    <!-- VIEW 7: COMPLETE BUSINESS STRATEGY & STARTUP PLAN -->
     <section id="view-business-plan" class="view-section">
       <div class="container section-padding">
         <div class="plan-hero">
@@ -729,7 +985,7 @@
                       <tr>
                         <td><strong>課堂趴 (ClassParty)</strong></td>
                         <td>「課堂 Buddy / 夥伴」</td>
-                        <td>主打小班溫暖互動與輕鬆練習氛圍</td>
+                        <td>強調小班個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</td>
                         <td><span class="badge badge-info">備選</span></td>
                       </tr>
                     </tbody>
@@ -893,7 +1149,17 @@
 
   </main>
 
-  <!-- MODAL: LOGIN / AUTHENTICATION MODAL -->
+  <!-- MODAL 1: FLOATING INSTRUCTOR BIO PREVIEW MODAL -->
+  <div id="instructorBioModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeInstructorBioModal()">&times;</button>
+      <div id="instructorBioContent">
+        <!-- JS populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: LOGIN MODAL -->
   <div id="loginModal" class="modal-backdrop">
     <div class="modal-box">
       <button class="modal-close" onclick="closeLoginModal()">&times;</button>
@@ -921,7 +1187,6 @@
           </button>
         </form>
 
-        <!-- Quick Demo Fill Chips inside Login Modal -->
         <div class="quick-demo-fill margin-top-md">
           <div class="text-xs text-muted" style="font-size:0.75rem; margin-bottom:0.4rem;">💡 測試展示快速填入：</div>
           <div class="grid grid-3 gap-xs">
@@ -940,7 +1205,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Add/Edit User Account Modal (Manager Only) -->
+  <!-- MODAL 3: Add/Edit User Account Modal -->
   <div id="addUserModal" class="modal-backdrop">
     <div class="modal-box">
       <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
@@ -978,7 +1243,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Add/Edit Course Modal (Manager & Staff) -->
+  <!-- MODAL 4: Add/Edit Course Modal -->
   <div id="addCourseModal" class="modal-backdrop">
     <div class="modal-box">
       <button class="modal-close" onclick="closeAddCourseModal()">&times;</button>
@@ -1029,7 +1294,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Add Chapter/Video Modal (Manager & Staff) -->
+  <!-- MODAL 5: Add Chapter Modal -->
   <div id="addChapterModal" class="modal-backdrop">
     <div class="modal-box">
       <button class="modal-close" onclick="closeAddChapterModal()">&times;</button>

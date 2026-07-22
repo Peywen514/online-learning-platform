@@ -2,9 +2,12 @@
 
 let currentView = 'home';
 let cart = [];
-// Default initial user (Student for initial public view)
-let currentUser = mockUsers[2]; // student@skillsync.com
+let currentUser = mockUsers[2]; // Default Student for initial public view
 let activeAdminTab = 'users';
+
+// Carousel State
+let currentSlideIndex = 0;
+let carouselTimer = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavbar();
@@ -15,7 +18,95 @@ document.addEventListener('DOMContentLoaded', () => {
   renderChapters();
   setupFilterEvents();
   setupTabEvents();
+  initCarousel();
 });
+
+// Carousel Logic
+function initCarousel() {
+  startCarouselTimer();
+}
+
+function startCarouselTimer() {
+  if (carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(() => {
+    nextCarousel();
+  }, 5000);
+}
+
+function updateCarouselTransform() {
+  const track = document.getElementById('heroCarouselTrack');
+  const dots = document.querySelectorAll('#carouselDots .dot');
+  if (!track) return;
+
+  track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle('active', idx === currentSlideIndex);
+  });
+}
+
+function nextCarousel() {
+  const totalSlides = 3;
+  currentSlideIndex = (currentSlideIndex + 1) % totalSlides;
+  updateCarouselTransform();
+}
+
+function prevCarousel() {
+  const totalSlides = 3;
+  currentSlideIndex = (currentSlideIndex - 1 + totalSlides) % totalSlides;
+  updateCarouselTransform();
+}
+
+function goToSlide(index) {
+  currentSlideIndex = index;
+  updateCarouselTransform();
+  startCarouselTimer(); // Reset autoplay timer on manual click
+}
+
+// Floating Mentor Modal Preview
+function openInstructorModal(instId) {
+  const inst = mockInstructors.find(i => i.id === instId);
+  if (!inst) return;
+
+  const content = document.getElementById('instructorBioContent');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div style="text-align: center;">
+      <img src="${inst.avatar}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); box-shadow: var(--shadow-glow);">
+      <h3 class="margin-top-sm">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '名師'}</span></h3>
+      <div class="text-sm text-cyan margin-top-xs"><strong>${inst.role}</strong></div>
+      <div class="text-xs text-muted margin-top-xs">${inst.exp}</div>
+
+      <div class="skills-tags margin-top-md" style="justify-content:center;">
+        ${inst.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+      </div>
+
+      <div class="fin-calc-box margin-top-md" style="text-align:left;">
+        <div class="calc-row">
+          <span>1-on-1 個教費率</span>
+          <strong class="text-purple">${inst.rate1on1}</strong>
+        </div>
+        <div class="calc-row">
+          <span>累積學生評鑑</span>
+          <strong class="text-yellow">⭐ ${inst.rating} (${inst.studentCount} 位學員)</strong>
+        </div>
+      </div>
+
+      <p class="text-sm text-muted margin-top-md" style="font-style: italic;">${inst.quote}</p>
+
+      <button class="btn btn-primary btn-block margin-top-md" onclick="quickBookInstructor('${inst.name}'); closeInstructorBioModal();">
+        <i class="fa-solid fa-calendar-check"></i> 立即預約 ${inst.name} 導師個教
+      </button>
+    </div>
+  `;
+
+  document.getElementById('instructorBioModal').classList.add('active');
+}
+
+function closeInstructorBioModal() {
+  document.getElementById('instructorBioModal').classList.remove('active');
+}
 
 // Render Login / User Profile Dropdown in Top Header
 function renderAuthArea() {
@@ -108,12 +199,9 @@ function handleLoginSubmit(e) {
     renderAuthArea();
     updateUIPermissions();
 
-    showToast(`🎉 歡迎回來，${currentUser.name}！已根據您的帳號載入【${currentUser.roleLabel}】專屬介面`);
+    showToast(`🎉 歡迎回來，${currentUser.name}！已載入【${currentUser.roleLabel}】專屬介面`);
 
-    // Smart redirect based on role
-    if (currentUser.role === 'manager') {
-      switchView('admin-dashboard');
-    } else if (currentUser.role === 'staff') {
+    if (currentUser.role === 'manager' || currentUser.role === 'staff') {
       switchView('admin-dashboard');
     } else {
       switchView('marketplace');
@@ -156,7 +244,7 @@ function updateUIPermissions() {
     btn.style.display = (role === 'manager' || role === 'staff') ? 'inline-flex' : 'none';
   });
 
-  // 4. Admin Dashboard Tabs (Manager gets User Accounts Tab, Staff does not)
+  // 4. Admin Dashboard Tabs
   const userTabBtn = document.querySelector('.manager-only-tab');
   if (userTabBtn) {
     userTabBtn.style.display = role === 'manager' ? 'inline-block' : 'none';
@@ -171,7 +259,7 @@ function updateUIPermissions() {
   if (adminBadge) {
     if (role === 'manager') {
       adminBadge.className = 'badge-tag badge-manager';
-      adminBadge.innerText = '👑 平台主管最高權限 (包含帳號/密碼/課程/創業規劃)';
+      adminBadge.innerText = '👑 Wen總監 最高權限 (包含帳號/密碼/課程/創業規劃)';
     } else if (role === 'staff') {
       adminBadge.className = 'badge-tag badge-staff';
       adminBadge.innerText = '🧑‍💼 營運員工權限 (課程/導師/影片增修編輯)';
@@ -181,7 +269,6 @@ function updateUIPermissions() {
     }
   }
 
-  // Refresh Admin tables if currently viewing admin dashboard
   if (currentView === 'admin-dashboard') {
     renderAdminTables();
   }
@@ -189,9 +276,8 @@ function updateUIPermissions() {
 
 // Navigation View Switcher with Permission Guards
 function switchView(viewId) {
-  // Permission Guard Check
   if (viewId === 'business-plan' && currentUser.role !== 'manager') {
-    showToast('⚠️ 權限不足：【創業完整規劃書】僅供 👑 平台主管 查閱');
+    showToast('⚠️ 權限不足：【創業完整規劃書】僅供 👑 Wen總監 查閱');
     return;
   }
   if (viewId === 'admin-dashboard' && currentUser.role === 'student') {
@@ -306,7 +392,7 @@ function setupFilterEvents() {
 // Admin Dashboard Tabs & Tables
 function switchAdminTab(tabKey) {
   if (tabKey === 'users' && currentUser.role !== 'manager') {
-    showToast('⚠️ 帳號密碼與權限管理僅供 👑 平台主管 操作');
+    showToast('⚠️ 帳號密碼與權限管理僅供 👑 Wen總監 操作');
     return;
   }
 
@@ -397,16 +483,19 @@ function renderInstructorAdminTable() {
     <tr>
       <td>
         <div style="display:flex; align-items:center; gap:0.5rem;">
-          <img src="${inst.avatar}" style="width:32px;height:32px;border-radius:50%;">
-          <strong>${inst.name}</strong>
+          <img src="${inst.avatar}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">
+          <div>
+            <strong>${inst.name}</strong>
+            <div class="text-xs text-muted">${inst.tag || ''}</div>
+          </div>
         </div>
       </td>
       <td>${inst.role}</td>
       <td class="text-sm text-muted">${inst.exp}</td>
       <td class="text-purple"><strong>${inst.rate1on1}</strong></td>
-      <td>⭐ ${inst.rating}</td>
+      <td>⭐ ${inst.rating} (${inst.studentCount}學員)</td>
       <td>
-        <button class="btn btn-sm btn-outline" onclick="showToast('導師 ${inst.name} 資料編輯功能已載入')"><i class="fa-solid fa-pen"></i> 編輯</button>
+        <button class="btn btn-sm btn-outline" onclick="openInstructorModal('${inst.id}')"><i class="fa-solid fa-eye"></i> 預覽名師</button>
       </td>
     </tr>
   `).join('');
@@ -439,7 +528,7 @@ function renderChapterAdminList() {
 // Account Creation / Password Edit (Manager Only)
 function openAddUserModal() {
   if (currentUser.role !== 'manager') {
-    showToast('⚠️ 僅有 👑 平台主管 可以新增帳號密碼');
+    showToast('⚠️ 僅有 👑 Wen總監 可以新增帳號密碼');
     return;
   }
   document.getElementById('editUserId').value = '';
@@ -577,8 +666,8 @@ function handleSaveCourse(e) {
     const newCourse = {
       id: `course-${Date.now()}`,
       title, category, categoryLabel, instructor,
-      instructorTitle: '近10年資深講師',
-      instructorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
+      instructorTitle: '近10年資深名師導師',
+      instructorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
       priceRecordOnly, priceWith1on1,
       rating: 5.0, reviewCount: 1,
@@ -684,15 +773,15 @@ function setupTabEvents() {
   });
 }
 
-// Instructors Directory
+// Instructors Directory Rendering
 function renderInstructors() {
   const grid = document.getElementById('instructorGrid');
   if (!grid) return;
 
   grid.innerHTML = mockInstructors.map(inst => `
-    <div class="instructor-card">
+    <div class="instructor-card" onclick="openInstructorModal('${inst.id}')" style="cursor:pointer;">
       <img class="inst-img" src="${inst.avatar}" alt="${inst.name}">
-      <div class="inst-name">${inst.name}</div>
+      <div class="inst-name">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '名師'}</span></div>
       <div class="inst-role">${inst.role}</div>
       <div class="inst-exp">${inst.exp}</div>
       
@@ -706,7 +795,7 @@ function renderInstructors() {
       
       <p class="text-sm text-muted margin-top-sm" style="font-style: italic;">${inst.quote}</p>
 
-      <button class="btn btn-outline btn-sm btn-block margin-top-md" onclick="quickBookInstructor('${inst.name}')">
+      <button class="btn btn-outline btn-sm btn-block margin-top-md" onclick="event.stopPropagation(); quickBookInstructor('${inst.name}')">
         <i class="fa-solid fa-calendar-check"></i> 預約導師個教
       </button>
     </div>
@@ -861,7 +950,7 @@ function closeAssignmentModal() {
 function handleAssignmentSubmit(e) {
   e.preventDefault();
   closeAssignmentModal();
-  showToast('🚀 個教作業已成功送出！導師張哲銘將於 24 小時內完成審查並給予影音評語。');
+  showToast('🚀 個教作業已成功送出！導師將於 24 小時內完成審查並給予影音評語。');
 }
 
 function openAddLessonModal() {
