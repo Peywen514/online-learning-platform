@@ -21,6 +21,27 @@ document.addEventListener('DOMContentLoaded', () => {
   initCarousel();
 });
 
+// Mobile Hamburger Menu Toggle
+function toggleMobileMenu() {
+  const menu = document.getElementById('mainNavMenu');
+  const icon = document.getElementById('hamburgerIcon');
+  if (!menu) return;
+
+  const isActive = menu.classList.toggle('active');
+  if (icon) {
+    icon.className = isActive ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+  }
+}
+
+function closeMobileMenu() {
+  const menu = document.getElementById('mainNavMenu');
+  const icon = document.getElementById('hamburgerIcon');
+  if (menu && menu.classList.contains('active')) {
+    menu.classList.remove('active');
+    if (icon) icon.className = 'fa-solid fa-bars';
+  }
+}
+
 // Carousel Logic
 function initCarousel() {
   startCarouselTimer();
@@ -60,7 +81,7 @@ function prevCarousel() {
 function goToSlide(index) {
   currentSlideIndex = index;
   updateCarouselTransform();
-  startCarouselTimer(); // Reset autoplay timer on manual click
+  startCarouselTimer();
 }
 
 // Floating Mentor Modal Preview
@@ -122,7 +143,7 @@ function renderAuthArea() {
       <div class="user-profile-menu">
         <div class="user-profile-btn" onclick="toggleUserDropdown()">
           <img src="${currentUser.avatar}" class="avatar-img" alt="${currentUser.name}">
-          <div class="user-info-text">
+          <div class="user-info-text mobile-hide">
             <span class="user-name">${currentUser.name}</span>
             <span class="badge-role ${roleBadgeClass}">${currentUser.roleLabel}</span>
           </div>
@@ -286,6 +307,7 @@ function switchView(viewId) {
   }
 
   currentView = viewId;
+  closeMobileMenu();
 
   document.querySelectorAll('.nav-link').forEach(link => {
     if (link.getAttribute('data-target') === viewId) {
@@ -525,7 +547,7 @@ function renderChapterAdminList() {
   `).join('');
 }
 
-// Account Creation / Password Edit (Manager Only)
+// Account Creation / Password Edit
 function openAddUserModal() {
   if (currentUser.role !== 'manager') {
     showToast('⚠️ 僅有 👑 Wen總監 可以新增帳號密碼');

@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>練課室 SkillSync | 錄播 + 實戰個教小班 創新型線上學習平台</title>
   <meta name="description" content="結合近10年資深名師資源，打造業界首創「錄播知識打底 + 1對1個教深耕 + 同步小班直播實戰」的次世代技能學習平台。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +26,7 @@
         </div>
       </div>
 
+      <!-- Main Responsive Nav Menu -->
       <nav class="nav-menu" id="mainNavMenu">
         <button class="nav-link active" data-target="home">
           <i class="fa-solid fa-compass"></i> 平台首頁
@@ -57,7 +58,7 @@
           <i class="fa-solid fa-cart-shopping"></i>
           <span class="badge" id="cartCount">0</span>
         </button>
-        <button class="btn btn-outline" id="myCoursesBtn" onclick="switchView('video-player')">
+        <button class="btn btn-outline mobile-hide" id="myCoursesBtn" onclick="switchView('video-player')">
           <i class="fa-solid fa-book-bookmark"></i> 我的課程
         </button>
         
@@ -65,6 +66,11 @@
         <div id="authArea">
           <!-- Rendered dynamically by JS -->
         </div>
+
+        <!-- Mobile Hamburger Toggle Button -->
+        <button class="icon-btn mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+          <i class="fa-solid fa-bars" id="hamburgerIcon"></i>
+        </button>
       </div>
     </div>
   </header>
@@ -127,7 +133,7 @@
               <i class="fa-solid fa-crown text-yellow"></i> 明星金牌導師陣容 (實時個教中)
             </div>
 
-            <!-- Floating Card 1: 帥哥技術導師 (張哲銘) -->
+            <!-- Floating Card 1 -->
             <div class="floating-mentor-card card-float-1" onclick="openInstructorModal('inst-1')">
               <div class="mentor-avatar-box">
                 <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80" alt="張哲銘">
@@ -140,7 +146,7 @@
               </div>
             </div>
 
-            <!-- Floating Card 2: 美女設計導師 (陳婷俐) -->
+            <!-- Floating Card 2 -->
             <div class="floating-mentor-card card-float-2" onclick="openInstructorModal('inst-2')">
               <div class="mentor-avatar-box">
                 <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="陳婷俐">
@@ -153,7 +159,7 @@
               </div>
             </div>
 
-            <!-- Floating Card 3: 帥哥數據導師 (歐陽翔) -->
+            <!-- Floating Card 3 -->
             <div class="floating-mentor-card card-float-3" onclick="openInstructorModal('inst-3')">
               <div class="mentor-avatar-box">
                 <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80" alt="歐陽翔">
@@ -166,7 +172,7 @@
               </div>
             </div>
 
-            <!-- Floating Card 4: 美女行銷導師 (林雅涵) -->
+            <!-- Floating Card 4 -->
             <div class="floating-mentor-card card-float-4" onclick="openInstructorModal('inst-4')">
               <div class="mentor-avatar-box">
                 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="林雅涵">
@@ -181,7 +187,7 @@
           </div>
         </div>
 
-        <!-- NEW: FULL-BODY INSTRUCTOR SHOWCASE STAGE (明星講師全身形象照專區) -->
+        <!-- FULL-BODY INSTRUCTOR SHOWCASE STAGE -->
         <div class="container margin-top-xl">
           <div class="fullbody-stage-box">
             <div class="stage-header text-center">
@@ -191,7 +197,7 @@
             </div>
 
             <div class="grid grid-4 gap-md margin-top-lg">
-              <!-- Full Body Card 1: 帥哥技術總監 (張哲銘) -->
+              <!-- Full Body Card 1 -->
               <div class="fullbody-card" onclick="openInstructorModal('inst-1')">
                 <div class="fullbody-img-wrapper">
                   <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80" alt="張哲銘 講師全身照">
@@ -207,7 +213,7 @@
                 </div>
               </div>
 
-              <!-- Full Body Card 2: 美女設計總監 (陳婷俐) -->
+              <!-- Full Body Card 2 -->
               <div class="fullbody-card" onclick="openInstructorModal('inst-2')">
                 <div class="fullbody-img-wrapper">
                   <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80" alt="陳婷俐 講師全身照">
@@ -223,7 +229,7 @@
                 </div>
               </div>
 
-              <!-- Full Body Card 3: 帥哥數據專家 (歐陽翔) -->
+              <!-- Full Body Card 3 -->
               <div class="fullbody-card" onclick="openInstructorModal('inst-3')">
                 <div class="fullbody-img-wrapper">
                   <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80" alt="歐陽翔 講師全身照">
@@ -239,7 +245,7 @@
                 </div>
               </div>
 
-              <!-- Full Body Card 4: 美女行銷總監 (林雅涵) -->
+              <!-- Full Body Card 4 -->
               <div class="fullbody-card" onclick="openInstructorModal('inst-4')">
                 <div class="fullbody-img-wrapper">
                   <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=600&q=80" alt="林雅涵 講師全身照">
