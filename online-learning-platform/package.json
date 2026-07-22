@@ -1,0 +1,13 @@
+{
+  "name": "online-learning-platform",
+  "version": "1.0.0",
+  "description": "SkillSync 練課室 - 錄播 + 實戰 1-on-1 個教與小班創新型線上學習平台",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve .",
+    "start": "npx -y serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

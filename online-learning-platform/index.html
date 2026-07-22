@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>練課室 SkillSync | 錄播 + 實戰個教小班 創新型線上學習平台</title>
+  <meta name="description" content="結合近10年資深名師資源，打造業界首創「錄播知識打底 + 1對1個教深耕 + 同步小班直播實戰」的次世代技能學習平台。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+  <!-- Global Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-logo" id="logoBtn">
+        <div class="logo-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="logo-text">
+          <span class="brand-name">練課室 <small class="brand-en">SkillSync</small></span>
+          <span class="brand-tagline">全台名師陣容 • 實戰陪跑個教</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" id="mainNavMenu">
+        <button class="nav-link active" data-target="home">
+          <i class="fa-solid fa-compass"></i> 平台首頁
+        </button>
+        <button class="nav-link" data-target="marketplace">
+          <i class="fa-solid fa-store"></i> 課程商城
+        </button>
+        <button class="nav-link" data-target="video-player">
+          <i class="fa-solid fa-circle-play"></i> 錄播學習中心
+        </button>
+        <button class="nav-link" data-target="live-classroom">
+          <i class="fa-solid fa-video"></i> 同步直播教室 & 個教預約
+        </button>
+        <button class="nav-link" data-target="instructors">
+          <i class="fa-solid fa-users-gear"></i> 名師庫
+        </button>
+
+        <!-- Dynamic Permission Protected Nav Links (Controlled by Login Credentials) -->
+        <button class="nav-link admin-only-link" data-target="admin-dashboard" id="navAdminLink" style="display: none;">
+          <i class="fa-solid fa-sliders text-pink"></i> 後台管理中心
+        </button>
+        <button class="nav-link highlight manager-only-link" data-target="business-plan" id="navBusinessPlanLink" style="display: none;">
+          <i class="fa-solid fa-chart-line"></i> 創業完整規劃書
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="cartBtn" title="購物車">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="badge" id="cartCount">0</span>
+        </button>
+        <button class="btn btn-outline" id="myCoursesBtn" onclick="switchView('video-player')">
+          <i class="fa-solid fa-book-bookmark"></i> 我的課程
+        </button>
+        
+        <!-- Login / User Auth Dropdown Area -->
+        <div id="authArea">
+          <!-- Rendered dynamically by JS (Login button or User Profile Dropdown) -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Main View Container -->
+  <main id="app">
+
+    <!-- VIEW 1: HOME VIEW -->
+    <section id="view-home" class="view-section active">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-backdrop"></div>
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="fa-solid fa-sparkles"></i> 累積近10年知名電腦教育機構師資資源 • 突破傳統補習班與線上課痛點
+          </div>
+          <h1 class="hero-title">
+            不只看影片！<br>
+            <span class="gradient-text">「錄播自學 + 名師 1-on-1 個教陪跑」</span><br>
+            幫你真正學會並做出實戰作品
+          </h1>
+          <p class="hero-desc">
+            告別看完影片依然不會做的窘境。結合 50+ 業界頂尖導師，為你量身打造「3至6人精緻小班」與「高效率個人教練」，從code批改、作品集輔導到接案媒合，全程高濃度陪跑。
+          </p>
+
+          <div class="hero-buttons">
+            <button class="btn btn-primary btn-lg" onclick="switchView('marketplace')">
+              <i class="fa-solid fa-rocket"></i> 瀏覽熱門課程組合
+            </button>
+            <button class="btn btn-glass btn-lg manager-only-btn" onclick="switchView('business-plan')" style="display: none;">
+              <i class="fa-solid fa-chess"></i> 查看創業差異化規劃
+            </button>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-card">
+              <div class="stat-num">近 10 年</div>
+              <div class="stat-label">教育訓練與講師儲備經驗</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">94.8%</div>
+              <div class="stat-label">完課與作業實作通過率</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">1 對 1</div>
+              <div class="stat-label">精緻個教 & 專屬 Code/作品 批改</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">100%</div>
+              <div class="stat-label">實務業界名師親授 (職業培訓積澱)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Naming & Differentiating Features Grid -->
+      <div class="container section-padding">
+        <div class="section-header text-center">
+          <div class="sub-title">BRAND STRATEGY & DIFFERENTIATION</div>
+          <h2>為什麼同行做不到？三大創新模式解密</h2>
+          <p>針對 Hahow/PressPlay (純錄播無服務) 與 傳統實體補習班 (學費昂貴人數多) 的市場缺口</p>
+        </div>
+
+        <div class="grid grid-3 gap-lg">
+          <div class="feature-card">
+            <div class="feature-icon bg-purple">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <h3>1. 三階融合學習法 (Tri-Learning)</h3>
+            <p>
+              【錄播】打底基礎理論與範例演練 ➔ 【個教/小班】每週 1 小時精準解惑與 Code/作品專屬批改 ➔ 【同步直播】小組專案實作攻堅。完課率從 8% 提升至 92%！
+            </p>
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-check"></i> 彈性時間觀看高畫質錄播</li>
+              <li><i class="fa-solid fa-check"></i> 預約導師 1-on-1 診斷與優化</li>
+            </ul>
+          </div>
+
+          <div class="feature-card border-glow">
+            <div class="feature-icon bg-pink">
+              <i class="fa-solid fa-hand-holding-hand"></i>
+            </div>
+            <h3>2. 資深導師陪跑 (Mentor Network)</h3>
+            <p>
+              運用您在職業培訓領域近10年累積的優質講師資料庫，邀請頂尖 10% 業界實戰派講師加入。「非一般素人，全是經過市場多年驗證的口碑名師」。
+            </p>
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-check"></i> 講師獲得公平高分潤 (60~75%)</li>
+              <li><i class="fa-solid fa-check"></i> 學員享有極優質輔導體驗</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon bg-blue">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <h3>3. 結果導向與副業接案媒合</h3>
+            <p>
+              學員完成個教作品集後，可直接進入平台「接案人才庫」。導師主動推薦商業案源或企業職缺，讓學員「學完就能變現」。
+            </p>
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-check"></i> 業界真實專案磨練</li>
+              <li><i class="fa-solid fa-check"></i> 導師背書推薦信與履歷健檢</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Brand Naming Showcase Section -->
+        <div class="naming-box margin-top-xl">
+          <div class="naming-header">
+            <div>
+              <span class="badge-tag">品牌取名靈感</span>
+              <h3>好記順口 • 創意諧音品牌提案</h3>
+            </div>
+            <button class="btn btn-outline manager-only-btn" onclick="switchView('business-plan')" style="display: none;">查看完整的命名與經營規劃 <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+
+          <div class="grid grid-4 gap-md margin-top-md">
+            <div class="name-card selected">
+              <div class="name-title">練課室 <small>SkillSync</small></div>
+              <div class="name-puns">諧音：「練客室 / 連課」</div>
+              <div class="name-desc">【推薦首選】強烈傳達實戰演練與持續連結導師的概念，語意專業且親切。</div>
+            </div>
+            <div class="name-card">
+              <div class="name-title">聯課 Hub <small>LinkClass</small></div>
+              <div class="name-puns">諧音：「聯客 / 名師資源連結」</div>
+              <div class="name-desc">突顯連結近10年累積的名師大師資源與學員，形成強大的聯課生態圈。</div>
+            </div>
+            <div class="name-card">
+              <div class="name-title">練功房 <small>SkillGong</small></div>
+              <div class="name-puns">諧音：「連功 / 練功」</div>
+              <div class="name-desc">充滿遊戲化打怪升級感，吸引想在職涯升級、鍛鍊硬實力的年輕學員。</div>
+            </div>
+            <div class="name-card">
+              <div class="name-title">課堂趴 <small>ClassParty</small></div>
+              <div class="name-puns">諧音：「課堂Buddy / 夥伴」</div>
+              <div class="name-desc">強調小班個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: COURSE MARKETPLACE & E-COMMERCE -->
+    <section id="view-marketplace" class="view-section">
+      <div class="container section-padding">
+        <div class="section-header">
+          <div class="header-with-actions">
+            <div>
+              <div class="sub-title">COURSE STORE</div>
+              <h2>線上課程商城與雙軌訂購</h2>
+              <p>選購包含「錄播全套視訊」與「專屬導師 1-on-1 個教陪跑」的創新課程</p>
+            </div>
+            <div class="filter-pills" id="courseCategoryFilters">
+              <button class="pill active" data-category="all">全部課程</button>
+              <button class="pill" data-category="frontend">網頁開發 / AI</button>
+              <button class="pill" data-category="design">UI/UX 與 設計</button>
+              <button class="pill" data-category="marketing">數位行銷 / 商業</button>
+              <button class="pill" data-category="individual">1對1專屬個教專案</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Cards Grid -->
+        <div class="grid grid-3 gap-lg" id="courseGrid">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: RECORDED VIDEO PLAYER PLATFORM -->
+    <section id="view-video-player" class="view-section">
+      <div class="container-fluid section-padding">
+        <div class="video-platform-layout">
+          <!-- Left: Video Player & Controls -->
+          <div class="video-main-column">
+            <div class="player-wrapper">
+              <div class="video-screen-mock" id="videoContainer">
+                <div class="video-overlay-badge">
+                  <span class="live-tag"><i class="fa-solid fa-play"></i> 4K 錄播單元</span>
+                  <span id="currentChapterTitle">第 2 章：Full-Stack React & AI 專案架構拆解</span>
+                </div>
+                <!-- Video Mock Element -->
+                <div class="video-content-display">
+                  <div class="code-editor-preview">
+                    <div class="code-line"><span class="c-keyword">import</span> React, { useState, useEffect } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;</div>
+                    <div class="code-line"><span class="c-keyword">import</span> { SkillSyncAI } <span class="c-keyword">from</span> <span class="c-string">'@skillsync/ai-sdk'</span>;</div>
+                    <div class="code-line">&nbsp;</div>
+                    <div class="code-line"><span class="c-comment">// 張哲銘 講師範例：AI 智慧課程輔導模組</span></div>
+                    <div class="code-line"><span class="c-keyword">export default function</span> <span class="c-func">LearningDashboard</span>() {</div>
+                    <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">const</span> [chapter, setChapter] = <span class="c-func">useState</span>(<span class="c-string">'AI Agent Deployment'</span>);</div>
+                    <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">return</span> (</div>
+                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">div</span> className=<span class="c-string">"classroom-container"</span>&gt;</div>
+                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;實用小班 1-on-1 個教作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
+                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="c-tag">div</span>&gt;</div>
+                    <div class="code-line">&nbsp;&nbsp;);</div>
+                    <div class="code-line">}</div>
+                  </div>
+                  <div class="instructor-cam-pip">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
+                    <span class="pip-name">張哲銘 導師</span>
+                  </div>
+                </div>
+
+                <!-- Interactive Controls Bar -->
+                <div class="video-controls-bar">
+                  <div class="progress-bar-container" id="progressBar">
+                    <div class="progress-filled" style="width: 38%;"></div>
+                  </div>
+                  <div class="controls-row">
+                    <div class="controls-left">
+                      <button class="ctrl-btn" id="playPauseBtn"><i class="fa-solid fa-pause"></i></button>
+                      <button class="ctrl-btn"><i class="fa-solid fa-rotate-left"></i> 10s</button>
+                      <button class="ctrl-btn"><i class="fa-solid fa-rotate-right"></i> 10s</button>
+                      <span class="time-display">14:20 / 38:00</span>
+                    </div>
+                    <div class="controls-right">
+                      <button class="ctrl-btn pill-btn staff-manager-btn" onclick="openAddLessonModal()" style="display: none;">
+                        <i class="fa-solid fa-plus-circle text-yellow"></i> 編輯/新增此影片單元
+                      </button>
+                      <button class="ctrl-btn pill-btn" onclick="openAssignmentModal()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 繳交個教作業
+                      </button>
+                      <button class="ctrl-btn pill-btn highlight" onclick="switchView('live-classroom')">
+                        <i class="fa-solid fa-calendar-check"></i> 預約此單元個教 1-on-1
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Tabs & Information -->
+            <div class="video-info-box">
+              <div class="video-tab-nav">
+                <button class="v-tab active" data-vtab="overview">單元簡介 & 範例檔</button>
+                <button class="v-tab" data-vtab="assignment">本章個教作業批改 (1對1)</button>
+                <button class="v-tab" data-vtab="notes">我的個人筆記</button>
+              </div>
+
+              <div class="v-tab-content active" id="vtab-overview">
+                <h3>Full-Stack React + Node.js 企業級開發與 AI API 串接實務</h3>
+                <p class="margin-top-xs">
+                  在本章節中，您將學習如何將大型語言模型 (LLM) 整合至 React 前端項目。影片觀看後，請務必完成下方作業，並點擊右上角「預約個教 1-on-1」，導師將為您線上進行 20 分鐘的代码審查 (Code Review)。
+                </p>
+                <div class="download-files margin-top-md">
+                  <h4><i class="fa-solid fa-paperclip"></i> 隨課下載資源 (名師獨家提供)</h4>
+                  <div class="file-list grid grid-2 gap-sm margin-top-xs">
+                    <div class="file-item">
+                      <i class="fa-solid fa-file-code text-purple"></i>
+                      <span>Chapter2_Starter_Template.zip</span>
+                      <button class="btn btn-sm btn-outline">下載 4.2MB</button>
+                    </div>
+                    <div class="file-item">
+                      <i class="fa-solid fa-file-pdf text-pink"></i>
+                      <span>近10年實務經驗累積_專案開發Cheatsheet.pdf</span>
+                      <button class="btn btn-sm btn-outline">下載 1.8MB</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="v-tab-content" id="vtab-assignment">
+                <div class="assignment-status-box">
+                  <div class="status-header">
+                    <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> 待個教導師批改</span>
+                    <h4>作業題目：完成 AI 聊天對話框與 Error Boundary 機制</h4>
+                  </div>
+                  <p class="text-sm">您已於 2026-07-20 18:30 繳交 GitHub 倉庫連結。導師張哲銘預計於明日 14:00 個教時段進行實時 Code Review。</p>
+                  <button class="btn btn-primary btn-sm margin-top-sm" onclick="openAssignmentModal()">重新上傳 / 更新專案檔</button>
+                </div>
+              </div>
+
+              <div class="v-tab-content" id="vtab-notes">
+                <textarea id="studentNoteText" class="form-control" rows="4" placeholder="在這裡記下時間軸 14:20 的導師重點..."></textarea>
+                <button class="btn btn-primary btn-sm margin-top-sm" onclick="saveNote()">儲存時間戳記筆記</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Chapters & AI Companion -->
+          <div class="video-sidebar-column">
+            <!-- AI Tutor Box -->
+            <div class="ai-assistant-card">
+              <div class="ai-header">
+                <div class="ai-avatar">
+                  <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                  <div class="ai-title">SkillSync AI 陪讀小幫手</div>
+                  <div class="ai-status">即時檢視 14:20 播放內容...</div>
+                </div>
+              </div>
+              <div class="ai-chat-body" id="aiChatBody">
+                <div class="ai-msg bot">
+                  你好！我是這堂課的 AI 助教。這段影片 14:20 處張老師正在解說 <code>useState</code> 與 API 異步處理的細節。有不懂的地方隨時問我！
+                </div>
+              </div>
+              <div class="ai-input-group">
+                <input type="text" id="aiInput" placeholder="詢問關於此影片的問題..." onkeypress="handleAiKeyPress(event)">
+                <button class="btn btn-primary btn-icon" onclick="sendAiMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+              </div>
+            </div>
+
+            <!-- Chapter List Accordion -->
+            <div class="chapters-card">
+              <div class="chapters-header">
+                <h3><i class="fa-solid fa-list-check"></i> 課程大綱目錄</h3>
+                <button class="btn btn-sm btn-outline staff-manager-btn" onclick="openAddChapterModal()" style="display: none;">
+                  <i class="fa-solid fa-plus"></i> 新增章節
+                </button>
+              </div>
+              <div class="chapter-accordion" id="chapterList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: SYNCHRONOUS LIVE CLASSROOM & 1-ON-1 SCHEDULING -->
+    <section id="view-live-classroom" class="view-section">
+      <div class="container section-padding">
+        <div class="section-header text-center">
+          <div class="sub-title">SYNCHRONOUS LEARNING & 1-ON-1 APPOINTMENT</div>
+          <h2>同步線上直播教室 & 1對1個教預約中心</h2>
+          <p>獨家亮點：告別大班淹沒感，3~6人極致小班與專屬 1-on-1 導師現場陪跑批改</p>
+        </div>
+
+        <div class="grid grid-12 gap-lg">
+          <div class="col-span-7">
+            <div class="live-room-card">
+              <div class="room-header">
+                <div class="room-badge"><span class="pulse-dot"></span> LIVE 直播中</div>
+                <h3>【小班攻堅】UI/UX Figma 設計系統與元件庫 1:4 現場指導</h3>
+                <span class="room-timer"><i class="fa-regular fa-clock"></i> 剩餘 45 分鐘</span>
+              </div>
+
+              <div class="live-video-grid">
+                <div class="video-box main-instructor">
+                  <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" alt="導師">
+                  <div class="user-label">
+                    <i class="fa-solid fa-crown text-yellow"></i> 導師：陳婷俐 (資深職業培訓設計總監)
+                  </div>
+                  <div class="speaking-wave"><span></span><span></span><span></span></div>
+                </div>
+
+                <div class="video-box student">
+                  <div class="avatar-ph">學員 A</div>
+                  <div class="user-label">Alex (你)</div>
+                </div>
+                <div class="video-box student">
+                  <div class="avatar-ph">學員 B</div>
+                  <div class="user-label">Jessica</div>
+                </div>
+                <div class="video-box student">
+                  <div class="avatar-ph">學員 C</div>
+                  <div class="user-label">David</div>
+                </div>
+              </div>
+
+              <div class="whiteboard-mock">
+                <div class="whiteboard-toolbar">
+                  <span><i class="fa-solid fa-pen-ruler"></i> 導師共享畫布 (實時連線中)</span>
+                  <div class="tools">
+                    <button class="tool-btn active"><i class="fa-solid fa-mouse-pointer"></i></button>
+                    <button class="tool-btn"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="tool-btn"><i class="fa-solid fa-comment-dots"></i> 留言標記</button>
+                  </div>
+                </div>
+                <div class="canvas-area">
+                  <div class="mock-figma-card">
+                    <div class="mock-btn-design">Primary Button Style (Feedback: Corner Radius 8px)</div>
+                    <div class="instructor-cursor">
+                      <i class="fa-solid fa-arrow-pointer text-pink"></i> 陳婷俐 導師正在為你的 Auto-Layout 進行批改...
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="room-controls">
+                <button class="btn btn-outline" id="micBtn" onclick="toggleControl('micBtn', '話筒')">
+                  <i class="fa-solid fa-microphone"></i> 麥克風已開
+                </button>
+                <button class="btn btn-outline" id="camBtn" onclick="toggleControl('camBtn', '視訊')">
+                  <i class="fa-solid fa-video"></i> 視訊鏡頭已開
+                </button>
+                <button class="btn btn-secondary" onclick="triggerHandUp()">
+                  <i class="fa-solid fa-hand"></i> 舉手提問 (個教批改)
+                </button>
+                <button class="btn btn-primary" onclick="openShareScreenModal()">
+                  <i class="fa-solid fa-desktop"></i> 共享螢幕給導師
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-5">
+            <div class="booking-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-calendar-plus text-purple"></i> 預約專屬 1-on-1 個教時段</h3>
+                <p class="text-sm text-muted">根據您的學習進度，預約導師進行 1 對 1 作品診斷與職涯導導</p>
+              </div>
+
+              <form id="bookingForm" onsubmit="handleBooking(event)">
+                <div class="form-group">
+                  <label><i class="fa-solid fa-user-ninja"></i> 選擇名師 (來自近10年專業教育儲備)</label>
+                  <select id="bookingInstructor" class="form-control" onchange="updateAvailableSlots()">
+                    <option value="張哲銘">張哲銘 導師 (Full-Stack & AI 技術專家)</option>
+                    <option value="陳婷俐">陳婷俐 導師 (UI/UX 與 Figma 系統總監)</option>
+                    <option value="林威宏">林威宏 導師 (Python 數據分析與自動化顧問)</option>
+                    <option value="黃佩珊">黃佩珊 導師 (數位整合行銷與電商教練)</option>
+                  </select>
+                </div>
+
+                <div class="form-group margin-top-sm">
+                  <label><i class="fa-solid fa-bullseye"></i> 個教輔導主題</label>
+                  <select id="bookingTopic" class="form-control">
+                    <option value="code-review">專案 Code Review 與 架構診斷 (30min)</option>
+                    <option value="portfolio">UI/UX 作品集 1 對 1 精細批改 (45min)</option>
+                    <option value="career">職涯履歷面試健檢 & 轉職諮詢 (30min)</option>
+                    <option value="freelance">副業接案定價與合約教練 (45min)</option>
+                  </select>
+                </div>
+
+                <div class="form-group margin-top-sm">
+                  <label><i class="fa-solid fa-calendar-days"></i> 選擇日期與可預約時段</label>
+                  <input type="date" id="bookingDate" class="form-control" value="2026-07-25">
+                  <div class="slots-grid margin-top-xs" id="slotsGrid">
+                    <div class="slot-chip active">14:00 - 14:30</div>
+                    <div class="slot-chip">15:00 - 15:30</div>
+                    <div class="slot-chip">19:30 - 20:00</div>
+                    <div class="slot-chip">20:30 - 21:00</div>
+                  </div>
+                </div>
+
+                <div class="form-group margin-top-sm">
+                  <label><i class="fa-solid fa-message"></i> 留言給導師 (附上專案連結或問題)</label>
+                  <textarea id="bookingNotes" class="form-control" rows="3" placeholder="例如：我想針對第二章作業的 React State 傳遞問題進行檢討..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block margin-top-md">
+                  <i class="fa-solid fa-circle-check"></i> 確認預約 1-on-1 個教時段
+                </button>
+              </form>
+
+              <div class="upcoming-bookings margin-top-lg">
+                <h4><i class="fa-solid fa-clock-rotate-left"></i> 您已預約的個教行程</h4>
+                <div class="booking-item">
+                  <div class="b-info">
+                    <div class="b-title">張哲銘 導師 • Code Review</div>
+                    <div class="b-time"><i class="fa-regular fa-clock"></i> 2026-07-24 (五) 19:30 - 20:00</div>
+                  </div>
+                  <button class="btn btn-sm btn-outline" onclick="joinUpcomingRoom()">進入教室</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: INSTRUCTOR DIRECTORY -->
+    <section id="view-instructors" class="view-section">
+      <div class="container section-padding">
+        <div class="section-header text-center">
+          <div class="sub-title">MENTOR NETWORK</div>
+          <h2>近10年職業培訓名師積澱 • 頂尖實戰名師陣容</h2>
+          <p>嚴選經驗豐富、評鑑極高的專業導師，提供高品質錄播與 1-on-1 個教輔導</p>
+        </div>
+
+        <div class="grid grid-4 gap-md" id="instructorGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: BACK-OFFICE DASHBOARD (受登入帳號密碼保護) -->
+    <section id="view-admin-dashboard" class="view-section">
+      <div class="container section-padding">
+        <div class="admin-header-box">
+          <div>
+            <span class="badge-tag" id="adminRoleBadge">👑 平台主管權限</span>
+            <h2>後台權限管理與課程營運中心</h2>
+            <p>權限說明：系統已根據您登入的帳號，開通相對應的管理介面與功能模組。</p>
+          </div>
+          <div class="admin-quick-actions">
+            <button class="btn btn-primary manager-only-btn" onclick="openAddUserModal()" style="display: none;">
+              <i class="fa-solid fa-user-plus"></i> 新增帳號密碼 (Wen總監)
+            </button>
+            <button class="btn btn-secondary staff-manager-btn" onclick="openAddCourseModal()" style="display: none;">
+              <i class="fa-solid fa-folder-plus"></i> 新增線上課程
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Sub Tabs -->
+        <div class="admin-tab-bar margin-top-lg">
+          <button class="admin-tab active manager-only-tab" data-atab="users" onclick="switchAdminTab('users')">
+            <i class="fa-solid fa-users-gear"></i> 帳號密碼與權限設定 (Wen總監專屬)
+          </button>
+          <button class="admin-tab" data-atab="courses" onclick="switchAdminTab('courses')">
+            <i class="fa-solid fa-book-open"></i> 課程上架與價格管理
+          </button>
+          <button class="admin-tab" data-atab="instructors" onclick="switchAdminTab('instructors')">
+            <i class="fa-solid fa-chalkboard-user"></i> 導師師資團隊管理
+          </button>
+          <button class="admin-tab" data-atab="chapters" onclick="switchAdminTab('chapters')">
+            <i class="fa-solid fa-film"></i> 錄播章節與影片增修
+          </button>
+        </div>
+
+        <!-- Admin Tab Content 1: User Account Management (Manager Only) -->
+        <div class="admin-content-pane active manager-only-pane" id="atab-users">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <h3><i class="fa-solid fa-users-viewfinder text-purple"></i> 全站成員帳號、密碼與權限清單</h3>
+              <span class="text-sm text-muted">目前共有 <strong id="userTotalCount">3</strong> 個使用者帳號</span>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>姓名</th>
+                    <th>電子郵件 (登入帳號)</th>
+                    <th>登入密碼</th>
+                    <th>授權權限角色</th>
+                    <th>介面存取權限說明</th>
+                    <th>設定與操作</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tab Content 2: Course Management (Manager & Staff) -->
+        <div class="admin-content-pane" id="atab-courses">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <h3><i class="fa-solid fa-boxes-stacked text-pink"></i> 線上課程與雙軌價格列表</h3>
+              <button class="btn btn-primary btn-sm" onclick="openAddCourseModal()"><i class="fa-solid fa-plus"></i> 新增課程</button>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>課程名稱</th>
+                    <th>分類</th>
+                    <th>主講導師</th>
+                    <th>純錄播價</th>
+                    <th>個教陪跑價</th>
+                    <th>狀態</th>
+                    <th>編輯操作</th>
+                  </tr>
+                </thead>
+                <tbody id="courseTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tab Content 3: Instructor Management (Manager & Staff) -->
+        <div class="admin-content-pane" id="atab-instructors">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <h3><i class="fa-solid fa-user-tie text-cyan"></i> 師資團隊與 1-on-1 個教鐘點費管理</h3>
+              <button class="btn btn-primary btn-sm" onclick="openAddInstructorModal()"><i class="fa-solid fa-plus"></i> 新增導師</button>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>導師姓名</th>
+                    <th>專業領域/頭銜</th>
+                    <th>實務資歷說明</th>
+                    <th>個教 1-on-1 費率</th>
+                    <th>評價分數</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="instructorTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tab Content 4: Chapter & Video Management (Manager & Staff) -->
+        <div class="admin-content-pane" id="atab-chapters">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <h3><i class="fa-solid fa-video text-green"></i> 錄播章節影片與隨課教材上架</h3>
+              <button class="btn btn-primary btn-sm" onclick="openAddChapterModal()"><i class="fa-solid fa-plus"></i> 新增影片章節</button>
+            </div>
+
+            <div class="margin-top-md" id="chapterAdminList">
+              <!-- JS populated -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 7: COMPLETE BUSINESS STRATEGY & STARTUP PLAN (MANAGER ONLY) -->
+    <section id="view-business-plan" class="view-section">
+      <div class="container section-padding">
+        <div class="plan-hero">
+          <div class="badge-tag">👑 Wen總監 權限限定 • 商業機密</div>
+          <h2>近10年培訓機構資源轉化：創新型小班與個教 platform 完整商業計劃書</h2>
+          <p>這是一套專門為您量身打造的創業行動藍圖，全面解決「錄播課完課率低」與「傳統補習班昂貴」的市場痛點。</p>
+        </div>
+
+        <div class="grid grid-12 gap-lg margin-top-xl">
+          <div class="col-span-8">
+            <div class="plan-card">
+              <h3><i class="fa-solid fa-bullseye text-purple"></i> 1. 品牌定位與諧音命名策略 (Naming & Positioning)</h3>
+              <div class="plan-content">
+                <div class="table-responsive">
+                  <table class="styled-table">
+                    <thead>
+                      <tr>
+                        <th>擬定品牌名稱</th>
+                        <th>諧音與記憶點</th>
+                        <th>品牌定位與訴求</th>
+                        <th>建議評估</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="highlight-row">
+                        <td><strong>練課室 (SkillSync)</strong></td>
+                        <td>「練客 / 連課」</td>
+                        <td>主打實戰演練、1-on-1 個教與連貫學習</td>
+                        <td><span class="badge badge-success">⭐ 首選推薦</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>聯課 Hub (LinkClass)</strong></td>
+                        <td>「聯客 / 名師資源」</td>
+                        <td>突顯連結近10年累積的大師講師陣容與優質學生</td>
+                        <td><span class="badge badge-info">備選</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>練功房 (SkillGong)</strong></td>
+                        <td>「連功 / 練功」</td>
+                        <td>遊戲化升級感，吸引職涯技能轉職青年</td>
+                        <td><span class="badge badge-info">備選</span></td>
+                      </tr>
+                      <tr>
+                        <td><strong>課堂趴 (ClassParty)</strong></td>
+                        <td>「課堂 Buddy / 夥伴」</td>
+                        <td>主打小班溫暖互動與輕鬆練習氛圍</td>
+                        <td><span class="badge badge-info">備選</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-card margin-top-lg">
+              <h3><i class="fa-solid fa-scale-balanced text-pink"></i> 2. 競品分析與三大差異化優勢 (Competitive Advantage)</h3>
+              <div class="plan-content">
+                <div class="table-responsive">
+                  <table class="styled-table">
+                    <thead>
+                      <tr>
+                        <th>對比維度</th>
+                        <th>大型錄播平台 (Hahow / Udemy)</th>
+                        <th>傳統實體連鎖補習班</th>
+                        <th><strong>我們的「練課室 SkillSync」</strong></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>學習模式</strong></td>
+                        <td>純看影片，遇到問題無人解答</td>
+                        <td>大班面授，團體進度無法兼顧個體</td>
+                        <td><strong class="text-purple">「錄播打底 + 1對1個教 + 小班攻堅」</strong></td>
+                      </tr>
+                      <tr>
+                        <td><strong>完課率</strong></td>
+                        <td>極低 (&lt; 10%)</td>
+                        <td>中等 (~ 60%)</td>
+                        <td><strong class="text-purple">極高 (預期 85% ~ 95%)</strong></td>
+                      </tr>
+                      <tr>
+                        <td><strong>學費定價</strong></td>
+                        <td>NT$ 2,000 - 4,000</td>
+                        <td>NT$ 40,000 - 90,000 (壓力大)</td>
+                        <td><strong class="text-purple">NT$ 9,800 - 24,800 (高性價比)</strong></td>
+                      </tr>
+                      <tr>
+                        <td><strong>講師拆帳與合作</strong></td>
+                        <td>30% - 50% 平台抽成高</td>
+                        <td>時薪制固定，優秀講師留不住</td>
+                        <td><strong class="text-purple">導師得 65-75%，共享個教訂閱收益</strong></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-card margin-top-lg">
+              <h3><i class="fa-solid fa-diagram-project text-blue"></i> 3. 產品與服務三大套裝設計 (Product Packaging)</h3>
+              <div class="grid grid-3 gap-md margin-top-md">
+                <div class="pkg-card">
+                  <div class="pkg-head">入門套組</div>
+                  <h4>全套錄播 + AI 答疑</h4>
+                  <div class="price">NT$ 3,600</div>
+                  <ul>
+                    <li>高畫質完整單元視訊</li>
+                    <li>AI 隨課 24h 答疑助教</li>
+                    <li>隨課實戰 Code / 檔下載</li>
+                  </ul>
+                </div>
+                <div class="pkg-card featured">
+                  <div class="pkg-head">主打陪跑套組</div>
+                  <h4>錄播 + 4堂 1-on-1 個教</h4>
+                  <div class="price">NT$ 12,800</div>
+                  <ul>
+                    <li>包含全套錄播資源</li>
+                    <li><strong>4 次名師 1-on-1 Code/作品批改</strong></li>
+                    <li>小班同步直播研討會權限</li>
+                    <li>專案求職與接案背書</li>
+                  </ul>
+                </div>
+                <div class="pkg-card">
+                  <div class="pkg-head">尊榮轉職套組</div>
+                  <h4>1-on-1 全程個教到就業</h4>
+                  <div class="price">NT$ 28,800</div>
+                  <ul>
+                    <li>包含主打套組全部內容</li>
+                    <li><strong>12 次 1-on-1 個教實務演練</strong></li>
+                    <li>無限次履歷健檢與模擬面試</li>
+                    <li>獨家外包專案優先媒合</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-4">
+            <div class="plan-card highlight-card">
+              <h3><i class="fa-solid fa-calculator text-yellow"></i> 4. 財務試算與創收模型</h3>
+              <p class="text-sm">假設首月招募 30 名學生（善用您近10年累積之舊生與社群資源）：</p>
+              
+              <div class="fin-calc-box margin-top-md">
+                <div class="calc-row">
+                  <span>主打陪跑包 (NT$ 12,800 x 20人)</span>
+                  <strong>NT$ 256,000</strong>
+                </div>
+                <div class="calc-row">
+                  <span>尊榮轉職包 (NT$ 28,800 x 5人)</span>
+                  <strong>NT$ 144,000</strong>
+                </div>
+                <div class="calc-row">
+                  <span>入門錄播包 (NT$ 3,600 x 10人)</span>
+                  <strong>NT$ 36,000</strong>
+                </div>
+                <hr>
+                <div class="calc-row total">
+                  <span>首月預估總營收</span>
+                  <strong class="text-purple">NT$ 436,000</strong>
+                </div>
+                <div class="calc-row text-sm text-muted">
+                  <span>- 講師拆帳及個教鐘點 (約 60%)</span>
+                  <span>- NT$ 261,600</span>
+                </div>
+                <div class="calc-row text-sm text-muted">
+                  <span>- 平台營運與 Server 成本 (~ 10%)</span>
+                  <span>- NT$ 43,600</span>
+                </div>
+                <hr>
+                <div class="calc-row net">
+                  <span><strong>創辦人首月淨利估計</strong></span>
+                  <strong class="text-green">NT$ 130,800</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-card margin-top-lg">
+              <h3><i class="fa-solid fa-road text-purple"></i> 5. 90 天創業落地 Roadmap</h3>
+              <div class="timeline margin-top-md">
+                <div class="t-item">
+                  <div class="t-badge">Day 1-15</div>
+                  <div class="t-text">
+                    <strong>資深講師資源激活與簽約</strong>
+                    <p>篩選前 10 位最受歡迎的資深講師，鎖定 UI/UX、React/AI、數據分析三門熱門首發課。</p>
+                  </div>
+                </div>
+                <div class="t-item">
+                  <div class="t-badge">Day 16-45</div>
+                  <div class="t-text">
+                    <strong>錄播課程錄製與平台上線</strong>
+                    <p>上線「練課室 SkillSync」網站，包含線上金流購買、影片播放與 1-on-1 預約系統。</p>
+                  </div>
+                </div>
+                <div class="t-item">
+                  <div class="t-badge">Day 46-90</div>
+                  <div class="t-text">
+                    <strong>首批種子學員招募與小班運行</strong>
+                    <p>利用舊生口碑回饋、FB/LINE 社群推廣，提供「1-on-1 免費體驗 20 分鐘」，達成高轉化率。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: LOGIN / AUTHENTICATION MODAL -->
+  <div id="loginModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      <div class="modal-header text-center">
+        <div class="logo-icon margin-top-xs" style="margin: 0 auto 0.75rem auto;">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h3>帳號密碼安全登入</h3>
+        <p class="text-sm text-muted">登入後系統將根據主管設定之權限，開啟相對應的操作介面</p>
+      </div>
+
+      <div class="modal-body margin-top-sm">
+        <form onsubmit="handleLoginSubmit(event)">
+          <div class="form-group">
+            <label><i class="fa-solid fa-envelope"></i> 電子郵件 (帳號)</label>
+            <input type="email" id="loginEmail" class="form-control" placeholder="user@skillsync.com" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-lock"></i> 登入密碼</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            <i class="fa-solid fa-right-to-bracket"></i> 驗證密碼並登入
+          </button>
+        </form>
+
+        <!-- Quick Demo Fill Chips inside Login Modal -->
+        <div class="quick-demo-fill margin-top-md">
+          <div class="text-xs text-muted" style="font-size:0.75rem; margin-bottom:0.4rem;">💡 測試展示快速填入：</div>
+          <div class="grid grid-3 gap-xs">
+            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('pey514514@gmail.com', 'admin514')">
+              👑 Wen總監登入
+            </button>
+            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('staff@skillsync.com', 'staff123')">
+              🧑‍💼 員工登入
+            </button>
+            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('student@skillsync.com', 'user123')">
+              🎓 學員登入
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit User Account Modal (Manager Only) -->
+  <div id="addUserModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus text-purple"></i> 新增 / 編輯帳號與密碼 (Wen總監專屬)</h3>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveUser(event)">
+          <input type="hidden" id="editUserId">
+          <div class="form-group">
+            <label>使用者姓名</label>
+            <input type="text" id="inputUserName" class="form-control" placeholder="例如：張營運專員" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>電子郵件 (登入帳號)</label>
+            <input type="email" id="inputUserEmail" class="form-control" placeholder="user@skillsync.com" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>設定登入密碼</label>
+            <input type="text" id="inputUserPassword" class="form-control" placeholder="例如：pass1234" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>設定該帳號之權限角色</label>
+            <select id="inputUserRole" class="form-control">
+              <option value="staff">🧑‍💼 營運員工 (可新增修改課程/導師/影片)</option>
+              <option value="manager">👑 平台主管 (全權限 + 帳號密碼管理 + 創業規劃)</option>
+              <option value="student">🎓 消費者學員 (僅瀏覽官網與觀看購買課程)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            儲存帳號密碼與權限設定
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit Course Modal (Manager & Staff) -->
+  <div id="addCourseModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeAddCourseModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-folder-plus text-pink"></i> 新增 / 修改線上課程</h3>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveCourse(event)">
+          <input type="hidden" id="editCourseId">
+          <div class="form-group">
+            <label>課程名稱</label>
+            <input type="text" id="inputCourseTitle" class="form-control" placeholder="例如：AIGC 商業設計與實務應用" required>
+          </div>
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>課程分類</label>
+              <select id="inputCourseCategory" class="form-control">
+                <option value="frontend">網頁開發 / AI</option>
+                <option value="design">UI/UX 與 設計</option>
+                <option value="marketing">數位行銷 / 商業</option>
+                <option value="individual">實務個教</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>主講導師</label>
+              <input type="text" id="inputCourseInstructor" class="form-control" placeholder="張哲銘" required>
+            </div>
+          </div>
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>純錄播價格 (NT$)</label>
+              <input type="number" id="inputPriceRecord" class="form-control" placeholder="3600" required>
+            </div>
+            <div class="form-group">
+              <label>個教陪跑包價格 (NT$)</label>
+              <input type="number" id="inputPriceCombo" class="form-control" placeholder="12800" required>
+            </div>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>課程簡介與重點</label>
+            <textarea id="inputCourseDesc" class="form-control" rows="3" placeholder="簡述本課程的學習效益..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            發布並更新課程資訊
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Chapter/Video Modal (Manager & Staff) -->
+  <div id="addChapterModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeAddChapterModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-film text-green"></i> 上架錄播章節與影片單元</h3>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveChapter(event)">
+          <div class="form-group">
+            <label>章節大綱名稱</label>
+            <input type="text" id="inputChapterTitle" class="form-control" placeholder="例如：第 4 章：全端部署與 CI/CD 自動化" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>影片單元標題</label>
+            <input type="text" id="inputLessonTitle" class="form-control" placeholder="例如：4-1 Vercel 部署與 Domain 設定" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>影片連結 URL / 檔案碼</label>
+            <input type="text" id="inputVideoUrl" class="form-control" placeholder="https://cdn.skillsync.com/video-ch4-1.mp4" value="https://cdn.skillsync.com/demo.mp4">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            確認新增影片單元
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchase Modal -->
+  <div id="checkoutModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-cart-arrow-down text-purple"></i> 訂購與開通學習權限</h3>
+      </div>
+      <div class="modal-body" id="checkoutModalBody">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Assignment Upload Modal -->
+  <div id="assignmentModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeAssignmentModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-arrow-up text-pink"></i> 繳交 1-on-1 個教實務作業</h3>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleAssignmentSubmit(event)">
+          <div class="form-group">
+            <label>GitHub 專案倉庫 URL / Figma 連結</label>
+            <input type="url" id="assignUrl" class="form-control" placeholder="https://github.com/username/project-repo" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>遇到的困難與希望導師重點批改項目</label>
+            <textarea id="assignNotes" class="form-control" rows="3" placeholder="例如：在整合 AI API 時發生 CORS 跨域錯誤..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            確認送出並通知導師批改
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container text-center">
+      <p>© 2026 練課室 SkillSync | 結合近10年經驗名師資源的創新型小班與個教學習平台</p>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
