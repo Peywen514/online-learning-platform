@@ -1,6 +1,5 @@
-// Data model & RBAC Accounts for 練課室 SkillSync Platform
+// Data model & RBAC Accounts for SkillSync Platform
 
-// System Mock Accounts with Roles
 const mockUsers = [
   {
     id: "u-1",
@@ -29,6 +28,70 @@ const mockUsers = [
     roleLabel: "🎓 消費者學員 (Student)",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
     purchasedCourses: ["course-1"]
+  },
+  {
+    id: "u-4",
+    name: "張哲銘 (Ethan講師)",
+    email: "ethan@skillsync.com",
+    password: "ethan123",
+    role: "instructor",
+    roleLabel: "👨‍🏫 金牌講師 (Instructor)",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
+  }
+];
+
+let mockBookings = [
+  {
+    id: "bk-101",
+    instructor: "張哲銘 (Ethan)",
+    studentName: "林小明",
+    studentEmail: "student@skillsync.com",
+    date: "2026-07-25",
+    slotTime: "14:00 - 15:00",
+    topic: "專案作品 1 對 1 精準批修與架構診斷 (1小時)",
+    notes: "想檢討 React 19 與 AI API 串接效能優化...",
+    status: "已預約",
+    fee: 1800,
+    payout: 1080
+  },
+  {
+    id: "bk-102",
+    instructor: "陳婷俐 (Tina)",
+    studentName: "黃雅婷",
+    studentEmail: "yating@example.com",
+    date: "2026-07-25",
+    slotTime: "15:30 - 16:30",
+    topic: "UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)",
+    notes: "請講師幫忙檢視 Figma 3D 擬態作品集排版...",
+    status: "已預約",
+    fee: 2000,
+    payout: 1200
+  },
+  {
+    id: "bk-103",
+    instructor: "歐陽翔 (Shawn)",
+    studentName: "林家豪",
+    studentEmail: "jiahao@example.com",
+    date: "2026-07-26",
+    slotTime: "19:00 - 20:00",
+    topic: "專案作品 1 對 1 精準批修與架構診斷 (1小時)",
+    notes: "針對北歐風 3D 全景渲染光影參數調整...",
+    status: "已完成",
+    fee: 1600,
+    payout: 960
+  },
+  {
+    id: "bk-104",
+    instructor: "林雅涵 (Hannah)",
+    studentName: "張宇彤",
+    studentEmail: "yutong@example.com",
+    date: "2026-07-26",
+    slotTime: "20:30 - 21:30",
+    topic: "副業接案定價與商業合約教練 (1小時)",
+    notes: "短影音腳本對接品牌客戶過單報價問題...",
+    status: "已完成",
+    fee: 1800,
+    payout: 1080
   }
 ];
 
@@ -41,14 +104,14 @@ let mockCourses = [
     instructor: "張哲銘 (Ethan)",
     instructorTitle: "近10年全台培訓體系資深 Front-End & AI 架構師",
     instructorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80",
     priceRecordOnly: 3600,
     priceWith1on1: 12800,
     rating: 4.9,
     reviewCount: 142,
     videoDuration: "32 小時錄播視訊",
     liveSlotsCount: "4 次 1-on-1 專屬個教批改",
-    description: "結合 React, Node.js 與 OpenAI/Claude API。從基礎語法到獨立完成可上線的 AI SaaS 應用，並提供導師 1 對 1 Code Review。",
+    description: "結合 React, Node.js 與 OpenAI/Claude API。從基礎語法到獨立完成可上線的 AI SaaS 應用，並提供講師 1 對 1 Code Review。",
     badge: "🔥 熱銷首選"
   },
   {
@@ -59,7 +122,7 @@ let mockCourses = [
     instructor: "陳婷俐 (Tina)",
     instructorTitle: "前知名電腦培訓體系 跨國專案 UI/UX 設計總監",
     instructorAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1200&q=80",
     priceRecordOnly: 4200,
     priceWith1on1: 14800,
     rating: 5.0,
@@ -77,7 +140,7 @@ let mockCourses = [
     instructor: "歐陽翔 (Shawn)",
     instructorTitle: "知名教育體系資深 Python 資料科學專任講師",
     instructorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
     priceRecordOnly: 3200,
     priceWith1on1: 9800,
     rating: 4.8,
@@ -95,7 +158,7 @@ let mockCourses = [
     instructor: "林雅涵 (Hannah)",
     instructorTitle: "資深職業培訓電商行銷顧問 • 累計輔導 200+ 品牌",
     instructorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
     priceRecordOnly: 2980,
     priceWith1on1: 8800,
     rating: 4.9,
@@ -111,9 +174,9 @@ let mockCourses = [
     category: "individual",
     categoryLabel: "實務個教",
     instructor: "創辦人兼師資總監 團隊",
-    instructorTitle: "總監級導師 1對1 親自陪跑",
+    instructorTitle: "總監級講師 1對1 親自陪跑",
     instructorAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
     priceRecordOnly: 0,
     priceWith1on1: 28800,
     rating: 5.0,
@@ -136,8 +199,8 @@ let mockInstructors = [
     skills: ["React 19", "Node.js", "AI Agent", "TypeScript"],
     rating: 4.9,
     studentCount: 1850,
-    rate1on1: "NT$ 1,800 / 45分鐘",
-    quote: "「程式不是用看的，是用手寫跟導師一對一問出來的！」"
+    rate1on1: "NT$ 1,800 / 1小時",
+    quote: "「程式不是用看的，是用手寫跟講師一對一問出來的！」"
   },
   {
     id: "inst-2",
@@ -149,20 +212,20 @@ let mockInstructors = [
     skills: ["Figma Design System", "User Research", "Prototyping"],
     rating: 5.0,
     studentCount: 2200,
-    rate1on1: "NT$ 2,000 / 45分鐘",
+    rate1on1: "NT$ 2,000 / 1小時",
     quote: "「透過一對一微調像素細節，你的作品集將會脫穎而出。」"
   },
   {
     id: "inst-3",
     name: "歐陽翔 (Shawn)",
     role: "Python 數據分析與 AI 顧問",
-    tag: "極客帥哥數據導師",
-    exp: "職業培訓機構近10年專任導師 / 數據金融分析師",
+    tag: "極客帥哥數據講師",
+    exp: "職業培訓機構近10年專任講師 / 數據金融分析師",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
     skills: ["Python", "Pandas", "Web Scraping", "SQL Database"],
     rating: 4.8,
     studentCount: 1400,
-    rate1on1: "NT$ 1,600 / 45分鐘",
+    rate1on1: "NT$ 1,600 / 1小時",
     quote: "「自動化工具能節省你 90% 的繁瑣工作，我教你寫出實用腳本。」"
   },
   {
@@ -175,7 +238,7 @@ let mockInstructors = [
     skills: ["Meta Ads", "SEO", "Short Video", "Conversion Funnel"],
     rating: 4.9,
     studentCount: 1950,
-    rate1on1: "NT$ 1,800 / 45分鐘",
+    rate1on1: "NT$ 1,800 / 1小時",
     quote: "「精準流量加上好的個教文案批改，打造極致轉化率。」"
   }
 ];
@@ -205,8 +268,64 @@ let mockChapters = [
     title: "第 3 章：1-on-1 個教 Code Review 實戰微調",
     duration: "40 分鐘",
     lessons: [
-      { id: "3-1", title: "3-1 導師帶你審視性能瓶頸 (Re-render 優化)", completed: false },
+      { id: "3-1", title: "3-1 講師帶你審視性能瓶頸 (Re-render 優化)", completed: false },
       { id: "3-2", title: "3-2 部署至 Vercel / Cloudflare 並設定 Domain", completed: false }
     ]
   }
+];
+
+let mockPortfolios = [
+  {
+    id: "port-1",
+    title: "AuraAI — 全自動 AI Agent 與數據儀表板",
+    categoryTag: "🤖 AI & 程式開發",
+    badgeClass: "bg-purple",
+    instructorName: "張哲銘 (Ethan)",
+    instructorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80",
+    studentName: "陳威立 (轉職成功)",
+    imgUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+    desc: "結合 React 19、Python 與 LLM 對話串接。學員獨立完成百萬級架構，獲科技大廠錄取 Offer。",
+    feedback: "React 19 + Python FastAPI + OpenAI Agent 串接。經張哲銘講師 4 次 1-on-1 針對數據傳輸效能與 UI 儀表板架構診斷微調，成果獲企業高分錄用。"
+  },
+  {
+    id: "port-2",
+    title: "VortexPay — 現代金流 3D 玻璃擬態 Design System",
+    categoryTag: "🎨 平面 & UI/UX 設計",
+    badgeClass: "bg-pink",
+    instructorName: "陳婷俐 (Tina)",
+    instructorAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80",
+    studentName: "黃雅婷 (UI設計師)",
+    imgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    desc: "超過 150+ 彈性 UI 元件庫與全互動原型，經 Tina 講師微調光影質調後獲 Behance 官方推薦。",
+    feedback: "包含完整 UI 規範、Dark/Light Mode 擬態視覺與微交互動畫。經陳婷俐講師 1 對 1 重構層級質感，打造能直接面試頂尖設計公司的作品集。"
+  },
+  {
+    id: "port-3",
+    title: "Nordic Zenith — 極簡北歐風豪宅 3D 全景建模渲染",
+    categoryTag: "🏡 室內設計 & 3D 空間",
+    badgeClass: "bg-blue",
+    instructorName: "歐陽翔 (Shawn)",
+    instructorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80",
+    studentName: "林家豪 (接案設計師)",
+    imgUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+    desc: "運用 3ds Max / Blender 還原自然採光與材質細節，包含完整施工圖面與接案報價範本。",
+    feedback: "高規格真實材質光影比對與大樓空間配置。歐陽翔講師親自診斷 V-Ray 渲染參數與施工圖細節，學員完成後即順利成立個人接案工作室。"
+  },
+  {
+    id: "port-4",
+    title: "CyberPulse — 4K 電影級賽博朋克短影音與視覺調色",
+    categoryTag: "🎥 影音剪輯 & 短影音",
+    badgeClass: "bg-green",
+    instructorName: "林雅涵 (Hannah)",
+    instructorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
+    studentName: "張宇彤 (自媒體創作者)",
+    imgUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+    desc: "Premiere 4K 剪輯與 AE 特效包，前 3 秒強效 Hook 腳本設計，創造 500 萬次觀看爆款流量。",
+    feedback: "短影音前 3 秒開頭鉤子文案與電影級 LUTs 調色。經過林雅涵講師 3 次 1-on-1 對齊商業客戶過單標準，觀看次數與接案轉化率翻倍提升。"
+  }
+];
+
+let mockMaterials = [
+  { id: "mat-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "Full-Stack AI 專案開發", url: "https://cdn.skillsync.com/react19_ai_handbook.pdf" },
+  { id: "mat-2", title: "UI/UX Design System 150+ Figma 元件庫", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 3D 擬態", url: "https://figma.com/file/demo-design-system" }
 ];

@@ -1,8 +1,26 @@
 // SkillSync Application Logic & Secure Account Auth Engine
 
+// Init Session from LocalStorage if available so refreshing page maintains login state
+let savedUserJson = null;
+try {
+  savedUserJson = localStorage.getItem('skillsync_user');
+} catch (err) {}
+
+let currentUser = mockUsers[0]; // Default to Wen總監
+if (savedUserJson) {
+  try {
+    const parsed = JSON.parse(savedUserJson);
+    const existing = mockUsers.find(u => u.id === parsed.id || u.email.toLowerCase() === parsed.email.toLowerCase());
+    if (existing) {
+      currentUser = existing;
+    } else {
+      currentUser = parsed;
+    }
+  } catch (err) {}
+}
+
 let currentView = 'home';
 let cart = [];
-let currentUser = mockUsers[2]; // Default Student for initial public view
 let activeAdminTab = 'users';
 
 // Carousel State
@@ -15,10 +33,30 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUIPermissions();
   renderCourseGrid('all');
   renderInstructors();
+  renderPortfolios();
+  renderStudentBookings();
   renderChapters();
   setupFilterEvents();
   setupTabEvents();
   initCarousel();
+
+  // Initial Hash view or home
+  const initialHash = location.hash.replace('#', '');
+  if (initialHash) {
+    switchView(initialHash, false);
+  } else {
+    if (history.replaceState) history.replaceState({ viewId: 'home' }, '', '#home');
+  }
+});
+
+// Support browser back/forward buttons (上一頁/下一頁)
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.viewId) {
+    switchView(e.state.viewId, false);
+  } else {
+    const hash = location.hash.replace('#', '');
+    switchView(hash || 'home', false);
+  }
 });
 
 // Mobile Hamburger Menu Toggle
@@ -117,7 +155,7 @@ function openInstructorModal(instId) {
       <p class="text-sm text-muted margin-top-md" style="font-style: italic;">${inst.quote}</p>
 
       <button class="btn btn-primary btn-block margin-top-md" onclick="quickBookInstructor('${inst.name}'); closeInstructorBioModal();">
-        <i class="fa-solid fa-calendar-check"></i> 立即預約 ${inst.name} 導師個教
+        <i class="fa-solid fa-calendar-check"></i> 立即預約 ${inst.name} 講師個教
       </button>
     </div>
   `;
@@ -216,14 +254,20 @@ function handleLoginSubmit(e) {
 
   if (matchedUser) {
     currentUser = matchedUser;
+    try {
+      localStorage.setItem('skillsync_user', JSON.stringify(currentUser));
+    } catch(err) {}
     closeLoginModal();
     renderAuthArea();
     updateUIPermissions();
 
     showToast(`🎉 歡迎回來，${currentUser.name}！已載入【${currentUser.roleLabel}】專屬介面`);
 
-    if (currentUser.role === 'manager' || currentUser.role === 'staff') {
+    if (currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor') {
       switchView('admin-dashboard');
+      if (currentUser.role === 'instructor') {
+        switchAdminTab('bookings');
+      }
     } else {
       switchView('marketplace');
     }
@@ -233,6 +277,9 @@ function handleLoginSubmit(e) {
 }
 
 function handleLogout() {
+  try {
+    localStorage.removeItem('skillsync_user');
+  } catch(err) {}
   currentUser = mockUsers[2]; // Reset to student
   renderAuthArea();
   updateUIPermissions();
@@ -254,22 +301,18 @@ function updateUIPermissions() {
     btn.style.display = role === 'manager' ? 'inline-flex' : 'none';
   });
 
-  // 2. Admin Dashboard Link (Manager & Staff)
   const adminLink = document.getElementById('navAdminLink');
   if (adminLink) {
-    adminLink.style.display = (role === 'manager' || role === 'staff') ? 'flex' : 'none';
+    adminLink.style.display = (role === 'manager' || role === 'staff' || role === 'instructor') ? 'flex' : 'none';
   }
 
-  // 3. Staff & Manager Video / Course Edit Buttons
   document.querySelectorAll('.staff-manager-btn').forEach(btn => {
-    btn.style.display = (role === 'manager' || role === 'staff') ? 'inline-flex' : 'none';
+    btn.style.display = (role === 'manager' || role === 'staff' || role === 'instructor') ? 'inline-flex' : 'none';
   });
 
-  // 4. Admin Dashboard Tabs
-  const userTabBtn = document.querySelector('.manager-only-tab');
-  if (userTabBtn) {
-    userTabBtn.style.display = role === 'manager' ? 'inline-block' : 'none';
-  }
+  document.querySelectorAll('.manager-only-tab').forEach(tab => {
+    tab.style.display = role === 'manager' ? 'inline-block' : 'none';
+  });
   
   if (role === 'staff' && activeAdminTab === 'users') {
     switchAdminTab('courses');
@@ -283,7 +326,7 @@ function updateUIPermissions() {
       adminBadge.innerText = '👑 Wen總監 最高權限 (包含帳號/密碼/課程/創業規劃)';
     } else if (role === 'staff') {
       adminBadge.className = 'badge-tag badge-staff';
-      adminBadge.innerText = '🧑‍💼 營運員工權限 (課程/導師/影片增修編輯)';
+      adminBadge.innerText = '🧑‍💼 營運員工權限 (課程/講師/影片增修編輯)';
     } else {
       adminBadge.className = 'badge-tag badge-student';
       adminBadge.innerText = '🎓 消費者學員';
@@ -295,8 +338,8 @@ function updateUIPermissions() {
   }
 }
 
-// Navigation View Switcher with Permission Guards
-function switchView(viewId) {
+// Navigation View Switcher with Permission Guards & Browser History Support
+function switchView(viewId, pushHistory = true) {
   if (viewId === 'business-plan' && currentUser.role !== 'manager') {
     showToast('⚠️ 權限不足：【創業完整規劃書】僅供 👑 Wen總監 查閱');
     return;
@@ -308,6 +351,10 @@ function switchView(viewId) {
 
   currentView = viewId;
   closeMobileMenu();
+
+  if (pushHistory && history.pushState && location.hash !== `#${viewId}`) {
+    history.pushState({ viewId: viewId }, '', `#${viewId}`);
+  }
 
   document.querySelectorAll('.nav-link').forEach(link => {
     if (link.getAttribute('data-target') === viewId) {
@@ -435,6 +482,8 @@ function renderAdminTables() {
   renderCourseAdminTable();
   renderInstructorAdminTable();
   renderChapterAdminList();
+  renderBookingAdminTable();
+  renderMentorSalaryTable();
 }
 
 // User Accounts Table (Manager Only)
@@ -462,7 +511,7 @@ function renderUserTable() {
         <td><code>${user.password}</code></td>
         <td><span class="badge-role ${roleBadgeClass}">${user.roleLabel}</span></td>
         <td class="text-sm text-muted">
-          ${user.role === 'manager' ? '全權限 + 帳號密碼 + 創業規劃' : user.role === 'staff' ? '課程 / 導師 / 影片 增修' : '官網瀏覽與課程購買'}
+          ${user.role === 'manager' ? '全權限 + 帳號密碼 + 創業規劃' : user.role === 'staff' ? '課程 / 講師 / 影片 增修' : '官網瀏覽與課程購買'}
         </td>
         <td>
           ${currentUser.role === 'manager' ? `
@@ -517,7 +566,8 @@ function renderInstructorAdminTable() {
       <td class="text-purple"><strong>${inst.rate1on1}</strong></td>
       <td>⭐ ${inst.rating} (${inst.studentCount}學員)</td>
       <td>
-        <button class="btn btn-sm btn-outline" onclick="openInstructorModal('${inst.id}')"><i class="fa-solid fa-eye"></i> 預覽名師</button>
+        <button class="btn btn-sm btn-outline" onclick="openInstructorModal('${inst.id}')"><i class="fa-solid fa-eye"></i> 預覽</button>
+        <button class="btn btn-sm btn-primary staff-manager-btn" onclick="openEditInstructorModal('${inst.id}')"><i class="fa-solid fa-pen"></i> 編輯資料與照片</button>
       </td>
     </tr>
   `).join('');
@@ -545,6 +595,103 @@ function renderChapterAdminList() {
       </div>
     </div>
   `).join('');
+}
+
+// Booking Admin Schedule Table for Instructors & Manager
+function renderBookingAdminTable() {
+  const tbody = document.getElementById('bookingAdminTableBody');
+  const filterSelect = document.getElementById('adminBookingFilter');
+  if (!tbody) return;
+
+  const filterVal = filterSelect ? filterSelect.value : 'all';
+
+  const filtered = filterVal === 'all' 
+    ? mockBookings 
+    : mockBookings.filter(b => b.instructor === filterVal || b.instructor.includes(filterVal.split(' ')[0]));
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:2rem;">目前無預約紀錄</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(b => `
+    <tr>
+      <td><code>${b.id}</code></td>
+      <td><strong class="text-purple">${b.instructor}</strong></td>
+      <td>
+        <div><strong>${b.studentName}</strong></div>
+        <div class="text-xs text-muted">${b.studentEmail}</div>
+      </td>
+      <td><span class="badge-tag">${b.date}</span> <br><small class="text-cyan">${b.slotTime}</small></td>
+      <td style="max-width:220px;">
+        <div class="text-sm"><strong>${b.topic}</strong></div>
+        <div class="text-xs text-muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">需求: ${b.notes}</div>
+      </td>
+      <td class="text-purple">NT$ ${b.fee.toLocaleString()}</td>
+      <td>
+        <span class="badge ${b.status==='已完成'?'badge-success':'badge-warning'}">${b.status}</span>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="quickBookInstructor('${b.instructor}')"><i class="fa-solid fa-video"></i> 進入帶課教室</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Mentor Monthly Salary Settlement Table for Manager (Wen總監)
+function renderMentorSalaryTable() {
+  const tbody = document.getElementById('mentorSalaryTableBody');
+  if (!tbody) return;
+
+  const salaryData = [
+    { name: "張哲銘 (Ethan)", role: "Full-Stack & AI 技術專家", rate: 1800, completed: 56, split: "60%" },
+    { name: "陳婷俐 (Tina)", role: "UI/UX 與 Figma 系統總監", rate: 2000, completed: 47, split: "60%" },
+    { name: "歐陽翔 (Shawn)", role: "Python 數據分析與 AI 顧問", rate: 1600, completed: 27, split: "60%" },
+    { name: "林雅涵 (Hannah)", role: "短影音與數位整合行銷總監", rate: 1800, completed: 18, split: "60%" }
+  ];
+
+  tbody.innerHTML = salaryData.map(s => {
+    const grossRevenue = s.rate * s.completed;
+    const mentorPayout = Math.round(grossRevenue * 0.6);
+
+    return `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td><span class="badge-tag">${s.role}</span></td>
+        <td>NT$ ${s.rate.toLocaleString()} / 1hr</td>
+        <td><strong class="text-cyan">${s.completed} 場</strong></td>
+        <td>NT$ ${grossRevenue.toLocaleString()}</td>
+        <td><span class="badge badge-purple">${s.split}</span></td>
+        <td class="text-green"><strong style="font-size:1.05rem;">NT$ ${mentorPayout.toLocaleString()}</strong></td>
+        <td><span class="badge badge-warning">已審核待撥款</span></td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="showToast('已開啟 ${s.name} 本月 1-on-1 明細與簽到單')"><i class="fa-solid fa-list-check"></i> 明細</button>
+          <button class="btn btn-sm btn-primary" onclick="showToast('✅ 已撥款 NT$ ${mentorPayout.toLocaleString()} 至 ${s.name} 指定帳戶')"><i class="fa-solid fa-dollar-sign"></i> 撥款</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function processMonthlyPayout() {
+  showToast('🎉 2026年7月份 講師團隊月結薪資總額 (NT$ 171,840) 已審核通過並全數撥款發放！');
+}
+
+function exportFinanceReport() {
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + "講師姓名,專業頭銜,單場費率,本月完成場次,產生總營收,拆帳率,本月應發月薪\n"
+    + "張哲銘 (Ethan),Full-Stack & AI,1800,56,100800,60%,60480\n"
+    + "陳婷俐 (Tina),UI/UX 設計,2000,47,94000,60%,56400\n"
+    + "歐陽翔 (Shawn),Python 數據,1600,27,43200,60%,25920\n"
+    + "林雅涵 (Hannah),短影音行銷,1800,18,32400,60%,19440\n";
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "SkillSync_202607_Mentor_Salary_Report.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("📥 已成功匯出 2026年7月份 講師月結薪資與營收報表 (CSV)");
 }
 
 // Account Creation / Password Edit
@@ -688,7 +835,7 @@ function handleSaveCourse(e) {
     const newCourse = {
       id: `course-${Date.now()}`,
       title, category, categoryLabel, instructor,
-      instructorTitle: '近10年資深名師導師',
+      instructorTitle: '近10年資深名師講師',
       instructorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
       priceRecordOnly, priceWith1on1,
@@ -748,8 +895,234 @@ function handleSaveChapter(e) {
   showToast(`🎬 成功新增章節與影片單元：${lTitle}`);
 }
 
+// Demonstration Portfolios CMS Rendering & Handlers
+function renderPortfolios() {
+  const grid = document.getElementById('portfolioGrid');
+  if (!grid) return;
+
+  grid.innerHTML = mockPortfolios.map(p => `
+    <div class="portfolio-card">
+      <div class="p-img-box">
+        <img src="${p.imgUrl}" alt="${p.title}">
+        <span class="p-tag-badge ${p.badgeClass}">${p.categoryTag}</span>
+        <span class="p-copyright-badge"><i class="fa-solid fa-shield-halved"></i> 100% 合規授權作品</span>
+      </div>
+      <div class="p-card-body">
+        <div class="p-mentor-info">
+          <img src="${p.instructorAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80'}" alt="${p.instructorName}">
+          <span>${p.instructorName} 講師 1-on-1 指導修稿</span>
+        </div>
+        <h3 class="p-title">${p.title}</h3>
+        <p class="p-desc">${p.desc}</p>
+        <div class="p-footer">
+          <span class="p-student"><i class="fa-solid fa-user-graduate"></i> 學員：${p.studentName}</span>
+          <div class="flex-center gap-xs">
+            <button class="btn btn-sm btn-outline" onclick="openPortfolioModal('${p.title.replace(/'/g, "\\'")}', '${p.imgUrl}', '${p.instructorName}', '${p.studentName}', '${p.feedback.replace(/'/g, "\\'")}')">全幅預覽</button>
+            <button class="btn btn-sm btn-outline staff-manager-btn" onclick="openEditPortfolioModal('${p.id}')" title="編輯作品"><i class="fa-solid fa-pen text-pink"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  updateUIPermissions();
+}
+
+function openAddPortfolioModal() {
+  document.getElementById('editPortId').value = '';
+  document.getElementById('inputPortTitle').value = '';
+  document.getElementById('inputPortTag').value = '🤖 AI & 程式開發';
+  document.getElementById('inputPortStudent').value = '';
+  document.getElementById('inputPortImg').value = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80';
+  document.getElementById('inputPortDesc').value = '';
+  document.getElementById('inputPortFeedback').value = '';
+  document.getElementById('addPortfolioModal').classList.add('active');
+}
+
+function openEditPortfolioModal(portId) {
+  const p = mockPortfolios.find(item => item.id === portId);
+  if (!p) return;
+
+  document.getElementById('editPortId').value = p.id;
+  document.getElementById('inputPortTitle').value = p.title;
+  document.getElementById('inputPortTag').value = p.categoryTag;
+  document.getElementById('inputPortInstructor').value = p.instructorName;
+  document.getElementById('inputPortStudent').value = p.studentName;
+  document.getElementById('inputPortImg').value = p.imgUrl;
+  document.getElementById('inputPortDesc').value = p.desc;
+  document.getElementById('inputPortFeedback').value = p.feedback;
+  document.getElementById('addPortfolioModal').classList.add('active');
+}
+
+function closeAddPortfolioModal() {
+  document.getElementById('addPortfolioModal').classList.remove('active');
+}
+
+function handleSavePortfolio(e) {
+  e.preventDefault();
+  const id = document.getElementById('editPortId').value;
+  const title = document.getElementById('inputPortTitle').value;
+  const tag = document.getElementById('inputPortTag').value;
+  const inst = document.getElementById('inputPortInstructor').value;
+  const student = document.getElementById('inputPortStudent').value;
+  const img = document.getElementById('inputPortImg').value;
+  const desc = document.getElementById('inputPortDesc').value;
+  const feedback = document.getElementById('inputPortFeedback').value;
+
+  let badgeClass = 'bg-purple';
+  if (tag.includes('UI') || tag.includes('設計')) badgeClass = 'bg-pink';
+  if (tag.includes('3D') || tag.includes('室內')) badgeClass = 'bg-blue';
+  if (tag.includes('影音') || tag.includes('剪輯')) badgeClass = 'bg-green';
+
+  let instAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80";
+  if (inst.includes('Tina') || inst.includes('陳婷俐')) instAvatar = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80";
+  if (inst.includes('Shawn') || inst.includes('歐陽翔')) instAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80";
+  if (inst.includes('Hannah') || inst.includes('林雅涵')) instAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80";
+
+  if (id) {
+    const item = mockPortfolios.find(p => p.id === id);
+    if (item) {
+      item.title = title;
+      item.categoryTag = tag;
+      item.badgeClass = badgeClass;
+      item.instructorName = inst;
+      item.instructorAvatar = instAvatar;
+      item.studentName = student;
+      item.imgUrl = img;
+      item.desc = desc;
+      item.feedback = feedback;
+      showToast(`✅ 已更新星級作品：${title}`);
+    }
+  } else {
+    const newItem = {
+      id: `port-${Date.now().toString().slice(-4)}`,
+      title: title,
+      categoryTag: tag,
+      badgeClass: badgeClass,
+      instructorName: inst,
+      instructorAvatar: instAvatar,
+      studentName: student,
+      imgUrl: img,
+      desc: desc,
+      feedback: feedback
+    };
+    mockPortfolios.unshift(newItem);
+    showToast(`🎉 成功上架星級示範作品：${title}`);
+  }
+
+  closeAddPortfolioModal();
+  renderPortfolios();
+}
+
+// Instructor CMS Modals
 function openAddInstructorModal() {
-  showToast('👨‍🏫 新增導師表單已載入，可自由新增師資頭銜與鐘點費');
+  document.getElementById('editInstId').value = '';
+  document.getElementById('inputInstName').value = '';
+  document.getElementById('inputInstRole').value = '';
+  document.getElementById('inputInstTag').value = '金牌資深講師';
+  document.getElementById('inputInstExp').value = '';
+  document.getElementById('inputInstAvatar').value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+  document.getElementById('inputInstRate').value = 'NT$ 1,800 / 1小時';
+  document.getElementById('inputInstSkills').value = '';
+  document.getElementById('inputInstQuote').value = '';
+  document.getElementById('addInstructorModal').classList.add('active');
+}
+
+function openEditInstructorModal(instId) {
+  const inst = mockInstructors.find(i => i.id === instId);
+  if (!inst) return;
+
+  document.getElementById('editInstId').value = inst.id;
+  document.getElementById('inputInstName').value = inst.name;
+  document.getElementById('inputInstRole').value = inst.role;
+  document.getElementById('inputInstTag').value = inst.tag || '';
+  document.getElementById('inputInstExp').value = inst.exp;
+  document.getElementById('inputInstAvatar').value = inst.avatar;
+  document.getElementById('inputInstRate').value = inst.rate1on1;
+  document.getElementById('inputInstSkills').value = inst.skills ? inst.skills.join(', ') : '';
+  document.getElementById('inputInstQuote').value = inst.quote || '';
+  document.getElementById('addInstructorModal').classList.add('active');
+}
+
+function closeAddInstructorModal() {
+  document.getElementById('addInstructorModal').classList.remove('active');
+}
+
+function handleSaveInstructor(e) {
+  e.preventDefault();
+  const id = document.getElementById('editInstId').value;
+  const name = document.getElementById('inputInstName').value;
+  const role = document.getElementById('inputInstRole').value;
+  const tag = document.getElementById('inputInstTag').value;
+  const exp = document.getElementById('inputInstExp').value;
+  const avatar = document.getElementById('inputInstAvatar').value;
+  const rate = document.getElementById('inputInstRate').value;
+  const skillsRaw = document.getElementById('inputInstSkills').value;
+  const quote = document.getElementById('inputInstQuote').value;
+
+  const skills = skillsRaw ? skillsRaw.split(',').map(s => s.trim()) : ['實務專案'];
+
+  if (id) {
+    const inst = mockInstructors.find(i => i.id === id);
+    if (inst) {
+      inst.name = name;
+      inst.role = role;
+      inst.tag = tag;
+      inst.exp = exp;
+      inst.avatar = avatar;
+      inst.rate1on1 = rate;
+      inst.skills = skills;
+      inst.quote = quote;
+      showToast(`✅ 已更新講師資訊與照片：${name}`);
+    }
+  } else {
+    const newInst = {
+      id: `inst-${Date.now().toString().slice(-4)}`,
+      name: name,
+      role: role,
+      tag: tag,
+      exp: exp,
+      avatar: avatar,
+      skills: skills,
+      rating: 5.0,
+      studentCount: 100,
+      rate1on1: rate,
+      quote: quote
+    };
+    mockInstructors.push(newInst);
+    showToast(`🎉 成功新增金牌講師：${name}`);
+  }
+
+  closeAddInstructorModal();
+  renderInstructors();
+  renderInstructorAdminTable();
+}
+
+// Material Upload Handlers
+function openUploadMaterialModal() {
+  document.getElementById('uploadMaterialModal').classList.add('active');
+}
+
+function closeUploadMaterialModal() {
+  document.getElementById('uploadMaterialModal').classList.remove('active');
+}
+
+function handleSaveMaterial(e) {
+  e.preventDefault();
+  const title = document.getElementById('inputMaterialTitle').value;
+  const course = document.getElementById('inputMaterialCourse').value;
+  const url = document.getElementById('inputMaterialUrl').value;
+
+  mockMaterials.push({
+    id: `mat-${Date.now().toString().slice(-4)}`,
+    title: title,
+    instructor: currentUser ? currentUser.name : "張哲銘 (Ethan)",
+    course: course,
+    url: url
+  });
+
+  showToast(`📄 講義與隨課教材上架成功：${title}`);
+  closeUploadMaterialModal();
 }
 
 // Video Player & Chapter Logic
@@ -818,19 +1191,82 @@ function renderInstructors() {
       <p class="text-sm text-muted margin-top-sm" style="font-style: italic;">${inst.quote}</p>
 
       <button class="btn btn-outline btn-sm btn-block margin-top-md" onclick="event.stopPropagation(); quickBookInstructor('${inst.name}')">
-        <i class="fa-solid fa-calendar-check"></i> 預約導師個教
+        <i class="fa-solid fa-calendar-check"></i> 預約講師個教
       </button>
     </div>
   `).join('');
 }
 
+const instructorRoomData = {
+  "張哲銘 (Ethan)": {
+    name: "張哲銘 (Full-Stack & AI 技術專家)",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+    title: "【1-on-1個教陪跑】Full-Stack & AI 專案架構 1 對 1 現場診斷與 Code Review",
+    cursor: "張哲銘 講師正在為你的 React 19 與 AI API 串接進行一對一診斷修稿...",
+    designContent: "React State & OpenAI API 串接診斷區 (Ethan 講師即時連線中)"
+  },
+  "陳婷俐 (Tina)": {
+    name: "陳婷俐 (UI/UX 與 Figma 系統總監)",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+    title: "【1-on-1個教陪跑】UI/UX Figma 設計系統與 3D 擬態作品集修稿",
+    cursor: "陳婷俐 講師正在為你的 Auto-Layout 與 3D 玻璃擬態質感進行一對一微調...",
+    designContent: "Figma Design System & Auto-Layout 批修區 (Tina 講師即時連線中)"
+  },
+  "歐陽翔 (Shawn)": {
+    name: "歐陽翔 (Python 數據分析與 AI 顧問)",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+    title: "【1-on-1個教陪跑】Python 數據模型、爬蟲與 3D 空間建模診斷",
+    cursor: "歐陽翔 講師正在為你的數據模型腳本與 V-Ray 渲染參數進行一對一優化...",
+    designContent: "Python Data Pipeline & 3D Spatial Render 批修區 (Shawn 講師即時連線中)"
+  },
+  "林雅涵 (Hannah)": {
+    name: "林雅涵 (短影音與數位整合行銷總監)",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    title: "【1-on-1個教陪跑】短影音爆款腳本與電影級調色一對一審查",
+    cursor: "林雅涵 講師正在為你的影音腳本鉤子 (Hook) 與廣告文案進行一對一優化...",
+    designContent: "Premiere / AE 4K 短影音剪輯與文案批修區 (Hannah 講師即時連線中)"
+  }
+};
+
+function updateLiveRoomUI(instructorName) {
+  let key = Object.keys(instructorRoomData).find(k => k === instructorName || k.includes(instructorName) || instructorName.includes(k.split(' ')[0]));
+  if (!key) key = "張哲銘 (Ethan)";
+
+  const data = instructorRoomData[key];
+  
+  const titleEl = document.getElementById('liveRoomTitle');
+  const avatarEl = document.getElementById('liveInstructorAvatar');
+  const labelEl = document.getElementById('liveInstructorLabel');
+  const cursorEl = document.getElementById('liveWhiteboardCursor');
+  const mockDesignEl = document.getElementById('liveMockDesign');
+
+  if (titleEl) titleEl.innerText = data.title;
+  if (avatarEl) avatarEl.src = data.avatar;
+  if (labelEl) labelEl.innerHTML = `<i class="fa-solid fa-crown text-yellow"></i> 講師：${data.name}`;
+  if (cursorEl) cursorEl.innerHTML = `<i class="fa-solid fa-arrow-pointer text-pink"></i> ${data.cursor}`;
+  if (mockDesignEl) mockDesignEl.innerText = data.designContent;
+}
+
 function quickBookInstructor(name) {
   switchView('live-classroom');
   const select = document.getElementById('bookingInstructor');
-  if (select) {
-    select.value = name;
+  if (select && name) {
+    let matchedIndex = -1;
+    for (let i = 0; i < select.options.length; i++) {
+      const optVal = select.options[i].value;
+      const optText = select.options[i].text;
+      if (optVal === name || optVal.includes(name) || optText.includes(name) || name.includes(optVal.split(' ')[0])) {
+        matchedIndex = i;
+        break;
+      }
+    }
+    if (matchedIndex !== -1) {
+      select.selectedIndex = matchedIndex;
+    }
   }
-  showToast(`已為您切換至 ${name} 導師的預約時段`);
+
+  updateLiveRoomUI(name);
+  showToast(`已為您切換至 ${name} 講師的預約時段與 1-on-1 專屬教室！`);
 }
 
 // AI Assistant
@@ -857,9 +1293,9 @@ function sendAiMsg() {
     const botMsgDiv = document.createElement('div');
     botMsgDiv.className = 'ai-msg bot';
     
-    let botReply = "這個問題太棒了！導師在影片中講到的核心在於 async/await 搭配 state 異步更新。如果不確定寫法，可以隨時預約本堂課的 1-on-1 個教批改喔！";
+    let botReply = "這個問題太棒了！講師在影片中講到的核心在於 async/await 搭配 state 異步更新。如果不確定寫法，可以隨時預約本堂課的 1-on-1 個教批改喔！";
     if (userText.includes("作業") || userText.includes("繳交")) {
-      botReply = "您可以點擊影片下方「繳交個教作業」按鈕，上傳您的 GitHub Repo。上傳後導師會收到通知並於一對一時間為您進行線上 Code Review！";
+      botReply = "您可以點擊影片下方「繳交個教作業」按鈕，上傳您的 GitHub Repo。上傳後講師會收到通知並於一對一時間為您進行線上 Code Review！";
     }
 
     botMsgDiv.innerHTML = botReply;
@@ -868,33 +1304,244 @@ function sendAiMsg() {
   }, 700);
 }
 
-// 1-on-1 Booking System
+// Dynamic Slot Availability & Conflict Prevention
+function updateAvailableSlots() {
+  const dateInput = document.getElementById('bookingDate');
+  const instSelect = document.getElementById('bookingInstructor');
+  const slotsContainer = document.getElementById('slotsGrid');
+  if (!dateInput || !instSelect || !slotsContainer) return;
+
+  const selectedDate = dateInput.value;
+  const selectedInst = instSelect.value;
+
+  const standardSlots = [
+    "14:00 - 15:00",
+    "15:30 - 16:30",
+    "19:00 - 20:00",
+    "20:30 - 21:30"
+  ];
+
+  const bookedTimes = mockBookings
+    .filter(b => (b.instructor === selectedInst || selectedInst.includes(b.instructor.split(' ')[0])) && b.date === selectedDate && b.status !== '已取消')
+    .map(b => b.slotTime);
+
+  let firstAvailableSet = false;
+
+  slotsContainer.innerHTML = standardSlots.map(slot => {
+    const isBooked = bookedTimes.includes(slot);
+    if (isBooked) {
+      return `<div class="slot-chip disabled"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已被預約)</div>`;
+    } else {
+      const isActive = !firstAvailableSet;
+      if (isActive) firstAvailableSet = true;
+      return `<div class="slot-chip ${isActive ? 'active' : ''}" onclick="selectSlotChip(this)">${slot} (可預約)</div>`;
+    }
+  }).join('');
+}
+
+function selectSlotChip(chipEl) {
+  if (chipEl.classList.contains('disabled')) return;
+  document.querySelectorAll('#slotsGrid .slot-chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+}
+
+// 1-on-1 Booking System with Conflict Prevention & Real-time Slot Lock
 function handleBooking(e) {
   e.preventDefault();
   const inst = document.getElementById('bookingInstructor').value;
   const topic = document.getElementById('bookingTopic').options[document.getElementById('bookingTopic').selectedIndex].text;
   const date = document.getElementById('bookingDate').value;
-  
-  showToast(`🎉 預約成功！您已預約 ${inst} 導師於 ${date} 進行【${topic}】`);
+  const notes = document.getElementById('bookingNotes') ? document.getElementById('bookingNotes').value : '';
 
-  const upcomingBox = document.querySelector('.upcoming-bookings');
-  if (upcomingBox) {
-    const newItem = document.createElement('div');
-    newItem.className = 'booking-item';
-    newItem.innerHTML = `
-      <div class="b-info">
-        <div class="b-title">${inst} 導師 • ${topic.substring(0, 15)}...</div>
-        <div class="b-time"><i class="fa-regular fa-clock"></i> ${date} (時段已鎖定)</div>
-      </div>
-      <button class="btn btn-sm btn-outline" onclick="joinUpcomingRoom()">進入教室</button>
-    `;
-    upcomingBox.appendChild(newItem);
+  const activeSlot = document.querySelector('#slotsGrid .slot-chip.active');
+  if (!activeSlot || activeSlot.classList.contains('disabled')) {
+    showToast('⚠️ 該時段已被其他學員優先預約或不可選，請選擇其他可預約時段！');
+    return;
   }
+
+  const rawSlotText = activeSlot.innerText;
+  const slotTimeText = rawSlotText.split(' ')[0] + ' - ' + rawSlotText.split(' ')[2]; // e.g. "14:00 - 15:00"
+
+  // Prevent double booking conflict
+  const conflict = mockBookings.find(b => (b.instructor === inst || inst.includes(b.instructor.split(' ')[0])) && b.date === date && b.slotTime === slotTimeText && b.status !== '已取消');
+
+  if (conflict) {
+    showToast(`⚠️ 抱歉！${inst} 講師於 ${date} ${slotTimeText} 已被搶先預約！請改選其他時段。`);
+    updateAvailableSlots();
+    return;
+  }
+
+  let fee = 1800;
+  if (inst.includes('Tina') || inst.includes('陳婷俐')) fee = 2000;
+  if (inst.includes('Shawn') || inst.includes('歐陽翔')) fee = 1600;
+
+  const newBooking = {
+    id: `bk-${Date.now().toString().slice(-4)}`,
+    instructor: inst,
+    studentName: currentUser ? currentUser.name : "林小明",
+    studentEmail: currentUser ? currentUser.email : "student@skillsync.com",
+    date: date,
+    slotTime: slotTimeText,
+    topic: topic,
+    notes: notes || "無特殊備註",
+    status: "已預約",
+    fee: fee,
+    payout: Math.round(fee * 0.6)
+  };
+
+  mockBookings.push(newBooking);
+
+  showToast(`🎉 預約成功！已防重疊鎖定 ${inst} 講師於 ${date} (${slotTimeText}) 的 1 小時個教！`);
+
+  updateAvailableSlots();
+  renderStudentBookings();
+  renderBookingAdminTable();
+  renderMentorSalaryTable();
 }
 
 function joinUpcomingRoom() {
   switchView('live-classroom');
-  showToast('進入 1-on-1 直播教室中...已連線導師音訊與共享畫布！');
+  showToast('進入 1-on-1 直播教室中...已連線講師音訊與共享畫布！');
+}
+
+// Student Bookings Management & Real-time Reschedule System
+function renderStudentBookings() {
+  const container = document.getElementById('studentUpcomingList');
+  if (!container) return;
+
+  const studentBookings = mockBookings.filter(b => b.status !== '已取消');
+
+  if (studentBookings.length === 0) {
+    container.innerHTML = `<div class="text-sm text-muted" style="padding:0.75rem 0;">您目前尚無預約的個教行程</div>`;
+    return;
+  }
+
+  container.innerHTML = studentBookings.map(b => `
+    <div class="booking-item">
+      <div class="b-info">
+        <div class="b-title">${b.instructor} 講師 • ${b.topic.substring(0, 14)}... ${b.status==='已改期'?'<span class="badge badge-cyan" style="font-size:0.68rem; padding:2px 6px;">已改期</span>':''}</div>
+        <div class="b-time"><i class="fa-regular fa-clock"></i> ${b.date} (${b.slotTime})</div>
+      </div>
+      <div class="flex-center gap-xs">
+        <button class="btn btn-sm btn-outline" onclick="joinUpcomingRoom()">進入教室</button>
+        <button class="btn btn-sm btn-outline" onclick="openRescheduleModal('${b.id}')" title="改期時段"><i class="fa-solid fa-calendar-pen text-purple"></i> 改期</button>
+        <button class="btn btn-sm btn-danger" onclick="cancelBooking('${b.id}')" title="取消預約"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+let activeRescheduleBookingId = null;
+
+function openRescheduleModal(bookingId) {
+  const booking = mockBookings.find(b => b.id === bookingId);
+  if (!booking) return;
+
+  activeRescheduleBookingId = bookingId;
+  document.getElementById('rescheduleBookingId').value = booking.id;
+  document.getElementById('rescheduleInstName').innerText = booking.instructor;
+  document.getElementById('rescheduleOldTime').innerText = `${booking.date} (${booking.slotTime})`;
+  document.getElementById('rescheduleNewDate').value = '2026-07-28';
+  
+  updateRescheduleSlots();
+  document.getElementById('rescheduleBookingModal').classList.add('active');
+}
+
+function closeRescheduleModal() {
+  document.getElementById('rescheduleBookingModal').classList.remove('active');
+}
+
+function updateRescheduleSlots() {
+  const booking = mockBookings.find(b => b.id === activeRescheduleBookingId);
+  const newDate = document.getElementById('rescheduleNewDate').value;
+  const slotsContainer = document.getElementById('rescheduleSlotsGrid');
+  if (!slotsContainer || !booking) return;
+
+  const standardSlots = [
+    "14:00 - 15:00",
+    "15:30 - 16:30",
+    "19:00 - 20:00",
+    "20:30 - 21:30"
+  ];
+
+  const bookedTimes = mockBookings
+    .filter(b => b.id !== booking.id && (b.instructor === booking.instructor || booking.instructor.includes(b.instructor.split(' ')[0])) && b.date === newDate && b.status !== '已取消')
+    .map(b => b.slotTime);
+
+  let firstAvailableSet = false;
+
+  slotsContainer.innerHTML = standardSlots.map(slot => {
+    const isBooked = bookedTimes.includes(slot);
+    if (isBooked) {
+      return `<div class="slot-chip disabled"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已滿額)</div>`;
+    } else {
+      const isActive = !firstAvailableSet;
+      if (isActive) firstAvailableSet = true;
+      return `<div class="slot-chip ${isActive ? 'active' : ''}" onclick="selectRescheduleSlotChip(this)">${slot} (可預約)</div>`;
+    }
+  }).join('');
+}
+
+function selectRescheduleSlotChip(chipEl) {
+  if (chipEl.classList.contains('disabled')) return;
+  document.querySelectorAll('#rescheduleSlotsGrid .slot-chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+}
+
+function handleSaveReschedule(e) {
+  e.preventDefault();
+  const bookingId = document.getElementById('rescheduleBookingId').value;
+  const newDate = document.getElementById('rescheduleNewDate').value;
+  const reason = document.getElementById('rescheduleReason').value;
+
+  const activeSlot = document.querySelector('#rescheduleSlotsGrid .slot-chip.active');
+  if (!activeSlot || activeSlot.classList.contains('disabled')) {
+    showToast('⚠️ 該時段已被搶先預約，請選擇其他可預約時段！');
+    return;
+  }
+
+  const rawSlotText = activeSlot.innerText;
+  const newSlotTime = rawSlotText.split(' ')[0] + ' - ' + rawSlotText.split(' ')[2]; // e.g. "14:00 - 15:00"
+
+  const booking = mockBookings.find(b => b.id === bookingId);
+  if (!booking) return;
+
+  const oldDate = booking.date;
+  const oldSlot = booking.slotTime;
+
+  // Double check conflict
+  const conflict = mockBookings.find(b => b.id !== bookingId && (b.instructor === booking.instructor || booking.instructor.includes(b.instructor.split(' ')[0])) && b.date === newDate && b.slotTime === newSlotTime && b.status !== '已取消');
+
+  if (conflict) {
+    showToast(`⚠️ 抱歉！${booking.instructor} 講師於 ${newDate} ${newSlotTime} 已被搶先預約！`);
+    updateRescheduleSlots();
+    return;
+  }
+
+  booking.date = newDate;
+  booking.slotTime = newSlotTime;
+  booking.notes = `${booking.notes} (改期備註: ${reason})`;
+  booking.status = "已改期";
+
+  showToast(`🎉 改期成功！已將 ${booking.instructor} 講師個教改期至 ${newDate} (${newSlotTime})，已即時同步講師與後台！`);
+
+  closeRescheduleModal();
+  updateAvailableSlots();
+  renderStudentBookings();
+  renderBookingAdminTable();
+}
+
+function cancelBooking(bookingId) {
+  if (confirm('確定要取消此 1-on-1 個教預約嗎？取消後該時段將重新釋放給其他學員。')) {
+    const booking = mockBookings.find(b => b.id === bookingId);
+    if (booking) {
+      booking.status = "已取消";
+      showToast(`已成功取消 ${booking.instructor} 講師的預約，原時段已即時釋出。`);
+      updateAvailableSlots();
+      renderStudentBookings();
+      renderBookingAdminTable();
+    }
+  }
 }
 
 // Checkout Modal
@@ -972,7 +1619,7 @@ function closeAssignmentModal() {
 function handleAssignmentSubmit(e) {
   e.preventDefault();
   closeAssignmentModal();
-  showToast('🚀 個教作業已成功送出！導師將於 24 小時內完成審查並給予影音評語。');
+  showToast('🚀 個教作業已成功送出！講師將於 24 小時內完成審查並給予影音評語。');
 }
 
 function openAddLessonModal() {
@@ -1001,11 +1648,11 @@ function toggleControl(btnId, name) {
 }
 
 function triggerHandUp() {
-  showToast('✋ 您已在直播教室中舉手！導師已優先鎖定您的畫面進行個教批改。');
+  showToast('✋ 您已在直播教室中舉手！講師已優先鎖定您的畫面進行個教批改。');
 }
 
 function openShareScreenModal() {
-  showToast('🖥️ 已開啟螢幕共享視窗，導師正在同步觀看您的程式/設計畫面...');
+  showToast('🖥️ 已開啟螢幕共享視窗，講師正在同步觀看您的程式/設計畫面...');
 }
 
 function saveNote() {
@@ -1013,4 +1660,49 @@ function saveNote() {
   if (noteText) {
     showToast('💾 筆記已成功儲存至此章節 (時間軸 14:20)');
   }
+}
+
+// Fullscreen Portfolio Modal Preview
+function openPortfolioModal(title, imgUrl, mentor, student, details) {
+  const checkoutModal = document.getElementById('checkoutModal');
+  const modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal || !modalBody) return;
+
+  modalBody.innerHTML = `
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+      <span class="badge-tag"><i class="fa-solid fa-gem text-purple"></i> 100% 合規授權星級作品集</span>
+      <h3 style="margin-top:0.5rem; font-size:1.3rem;">${title}</h3>
+      <div style="font-size:0.85rem; color:var(--accent-cyan); margin-top:0.3rem;">
+        👨‍🏫 審查講師：${mentor} • 🎓 出產學員：${student}
+      </div>
+    </div>
+
+    <div style="width:100%; height:280px; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:1.25rem; border:1px solid rgba(255,255,255,0.15);">
+      <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover;">
+    </div>
+
+    <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.08); margin-bottom:1.25rem;">
+      <h4 style="font-size:0.95rem; color:#fff; margin-bottom:0.4rem;"><i class="fa-solid fa-wand-magic-sparkles text-yellow"></i> 1-on-1 講師修稿亮點與成果評語</h4>
+      <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0;">${details}</p>
+    </div>
+
+    <div style="display:flex; gap:0.75rem;">
+      <button class="btn btn-outline btn-block" onclick="closeCheckoutModal()">關閉視窗</button>
+      <button class="btn btn-primary btn-block" onclick="closeCheckoutModal(); quickBookInstructor('${mentor}')">
+        <i class="fa-solid fa-calendar-check"></i> 預約 ${mentor} 講師修稿
+      </button>
+    </div>
+  `;
+
+  checkoutModal.classList.add('active');
+}
+
+function openPrivacyPolicyModal() {
+  const modal = document.getElementById('privacyPolicyModal');
+  if (modal) modal.classList.add('active');
+}
+
+function closePrivacyPolicyModal() {
+  const modal = document.getElementById('privacyPolicyModal');
+  if (modal) modal.classList.remove('active');
 }

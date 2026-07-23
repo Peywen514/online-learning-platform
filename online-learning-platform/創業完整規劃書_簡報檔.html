@@ -99,9 +99,9 @@
 
     <h2>🎯 二、 市場痛點與三大創新差異化優勢</h2>
     <ol>
-      <li><strong>三階融合學習法 (Tri-Learning Model)</strong>：錄播自學 (打底) ➔ 1-on-1 導師專屬 Code / 作品精細批改 (攻堅) ➔ 3~6人小班直播 (實戰)。完課率高達 90%+。</li>
+      <li><strong>三階融合學習法 (Tri-Learning Model)</strong>：錄播自學 (打底) ➔ 1-on-1 講師專屬 Code / 作品精細批改 (攻堅) ➔ 3~6人小班直播 (實戰)。完課率高達 90%+。</li>
       <li><strong>資深名師高分潤誘因 (65%~75% 拆帳)</strong>：善用近 10 年培訓機構累積之 Top 10% 口碑名師，遠高於補習班固定時薪。</li>
-      <li><strong>結果導向與副業/求職變現媒合</strong>：學員完成作品後納入平台人才庫，導師直接推薦商業案源或企業職缺。</li>
+      <li><strong>結果導向與副業/求職變現媒合</strong>：學員完成作品後納入平台人才庫，講師直接推薦商業案源或企業職缺。</li>
     </ol>
 
     <h2>💰 三、 獲利模式與首月財務試算</h2>
@@ -142,7 +142,7 @@
     </table>
 
     <div class="price-box">
-      • 支出估算：導師拆帳與個教鐘點 (60%) = NT$ 261,600 | 平台運營與雲端 Server (10%) = NT$ 43,600<br>
+      • 支出估算：講師拆帳與個教鐘點 (60%) = NT$ 261,600 | 平台運營與雲端 Server (10%) = NT$ 43,600<br>
       • <strong>創辦人首月預估淨利：NT$ 130,800</strong>
     </div>
 
@@ -152,6 +152,41 @@
       <li><strong>Day 16 - 45</strong>：錄播視訊拍攝、平台與金流上線。</li>
       <li><strong>Day 46 - 90</strong>：舊生口碑推廣、提供「20分鐘免費 1-on-1 體驗」，招募首批種子學員。</li>
     </ul>
+
+    <h2>💳 五、 金流系統串接與學員權限開通管理機制</h2>
+    <div class="highlight-box">
+      <strong>雙軌自動化與後台管理雙重架構</strong>：平台支援「學員線上自主刷卡/ Pay 自動開通」與「總監/幹部後台手動開通」雙重權限管理，確保線上銷售與線下企業包班收費皆能無縫對接。
+    </div>
+
+    <h3>1. 學員權限開通與即時授權流程</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>開通模式</th>
+          <th>操作流程說明</th>
+          <th>權限解鎖範圍</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>線上自主刷卡 (自動化)</strong></td>
+          <td>學員在課程商城選擇「純錄播方案」或「名師 1-on-1 陪跑包」，點擊付款完成後瞬間開通。</td>
+          <td>1. 全套高畫質錄播影片觀看權限<br>2. 1-on-1 直播教室預約權限 (根據方案給予 3~12 次個教時數)</td>
+        </tr>
+        <tr>
+          <td><strong>後台手動開通 (人工)</strong></td>
+          <td>Wen總監或幹部於後台「帳號與權限角色管理」新增學員或編輯帳號，一鍵勾選派發課程。</td>
+          <td>適用於線下匯款、舊生優待或企業包班學員，點擊後學員登入即刻生效觀看與預約。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2. 正式營運第三方金流 (綠界 ECPay / 藍新 NewebPay) 串接 3 步驟 Roadmap</h3>
+    <ol>
+      <li><strong>特店帳號申請與金流審核</strong>：向台灣綠界科技 (ECPay) 或藍新金流 (NewebPay) 遞交營業登記與商店資料，取得 MerchantID、HashKey 與 HashIV 密鑰。</li>
+      <li><strong>前台 API 結帳 Form 轉跳串接</strong>：將前台結帳按鈕 (handleCheckout) 連接至金流網關，支援信用卡一次付清/分期、LINE Pay、街口支付與 ATM 虛擬帳號轉帳。</li>
+      <li><strong>背景自動化開通 (ReturnURL / Webhook)</strong>：建立安全驗證伺服器接收金流扣款成功通知 (Callback Signal)，背景自動建立學員帳號、發送 Email 開通通知信與發票電子化開立。</li>
+    </ol>
 
     <hr style="margin-top:2rem;">
     <p style="text-align:center; font-size:0.85rem; color:#64748b;">
