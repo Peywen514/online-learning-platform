@@ -143,7 +143,7 @@ function openInstructorModal(instId) {
 
       <div class="fin-calc-box margin-top-md" style="text-align:left;">
         <div class="calc-row">
-          <span>1-on-1 個教費率</span>
+          <span>1-on-1 個別專屬服務</span>
           <strong class="text-purple">${inst.rate1on1}</strong>
         </div>
         <div class="calc-row">
@@ -154,8 +154,8 @@ function openInstructorModal(instId) {
 
       <p class="text-sm text-muted margin-top-md" style="font-style: italic;">${inst.quote}</p>
 
-      <button class="btn btn-primary btn-block margin-top-md" onclick="quickBookInstructor('${inst.name}'); closeInstructorBioModal();">
-        <i class="fa-solid fa-calendar-check"></i> 立即預約 ${inst.name} 講師個教
+      <button class="btn btn-line btn-block margin-top-md" onclick="closeInstructorBioModal(); openConsultLineModal('${inst.name}', 'combo');">
+        <i class="fa-brands fa-line"></i> 加 Line@ 洽小編預約 ${inst.name} 專屬個教
       </button>
     </div>
   `;
@@ -424,21 +424,18 @@ function renderCourseGrid(category = 'all') {
 
         <div class="course-pricing-box">
           <div class="price-option">
-            <span>純錄播自學包：</span>
-            <span class="price-val">NT$ ${course.priceRecordOnly.toLocaleString()}</span>
+            <span><i class="fa-solid fa-graduation-cap text-purple"></i> 學習方案：</span>
+            <span class="price-val" style="font-size:0.88rem;">純錄播 / 1-on-1 名師陪跑</span>
           </div>
-          <div class="price-option">
-            <span><strong>錄播 + 名師 1-on-1 個教：</strong></span>
-            <span class="price-val highlight">NT$ ${course.priceWith1on1.toLocaleString()}</span>
+          <div class="price-option" style="margin-top:0.35rem;">
+            <span><i class="fa-brands fa-line text-green"></i> <strong>個案專屬服務：</strong></span>
+            <span class="price-val highlight" style="font-size:0.92rem; color:#34d399;">洽小編專人規劃 • 領 Line@ 優惠</span>
           </div>
         </div>
 
         <div class="course-actions">
-          <button class="btn btn-outline btn-block" onclick="openCheckoutModal('${course.id}', 'record')">
-            購買純錄播
-          </button>
-          <button class="btn btn-primary btn-block" onclick="openCheckoutModal('${course.id}', 'combo')">
-            <i class="fa-solid fa-bolt"></i> 購買個教陪跑包
+          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')">
+            <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案 (加 Line / 網頁留訊)
           </button>
         </div>
       </div>
@@ -484,6 +481,8 @@ function renderAdminTables() {
   renderChapterAdminList();
   renderBookingAdminTable();
   renderMentorSalaryTable();
+  renderLeadAdminTable();
+  renderCustomQuotesAdminTable();
 }
 
 // User Accounts Table (Manager Only)
@@ -1293,9 +1292,9 @@ function sendAiMsg() {
     const botMsgDiv = document.createElement('div');
     botMsgDiv.className = 'ai-msg bot';
     
-    let botReply = "這個問題太棒了！講師在影片中講到的核心在於 async/await 搭配 state 異步更新。如果不確定寫法，可以隨時預約本堂課的 1-on-1 個教批改喔！";
+    let botReply = "這個問題太棒了！講師在影片中講到的核心在於 async/await 搭配 state 異步更新。<br><small class='text-yellow' style='font-size:0.72rem;'>⚠️ (註：回答僅供參考，若與講師教學上有出入，請一律以講師上課內容為主)</small>";
     if (userText.includes("作業") || userText.includes("繳交")) {
-      botReply = "您可以點擊影片下方「繳交個教作業」按鈕，上傳您的 GitHub Repo。上傳後講師會收到通知並於一對一時間為您進行線上 Code Review！";
+      botReply = "您可以點擊影片下方「繳交個教作業」按鈕，上傳您的 GitHub Repo。上傳後講師會收到通知並於一對一時間為您進行線上 Code Review！<br><small class='text-yellow' style='font-size:0.72rem;'>⚠️ (註：回答僅供參考，若與講師教學上有出入，請一律以講師上課內容為主)</small>";
     }
 
     botMsgDiv.innerHTML = botReply;
@@ -1544,50 +1543,387 @@ function cancelBooking(bookingId) {
   }
 }
 
-// Checkout Modal
-function openCheckoutModal(courseId, type) {
-  const course = mockCourses.find(c => c.id === courseId);
-  if (!course) return;
+// Line@ Consultation & Exclusive Service Modal Engine
+function openConsultLineModal(courseIdOrTitle, type = 'combo') {
+  let title = '精選實務熱門課程';
+  let matchedId = 'course-1';
+  
+  if (typeof courseIdOrTitle === 'string') {
+    const course = mockCourses.find(c => c.id === courseIdOrTitle || c.title === courseIdOrTitle);
+    if (course) {
+      title = course.title;
+      matchedId = course.id;
+    } else {
+      title = courseIdOrTitle;
+    }
+  }
 
   const isCombo = type === 'combo';
-  const price = isCombo ? course.priceWith1on1 : course.priceRecordOnly;
+  const checkoutModal = document.getElementById('checkoutModal');
+  const modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal || !modalBody) return;
+
+  modalBody.innerHTML = `
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+      <span class="badge-tag bg-green-glow" style="color:#06C755; border-color:rgba(6,199,85,0.4);">
+        <i class="fa-brands fa-line"></i> 洽小編 • 提供個別專屬服務與 Line@ 專屬優惠
+      </span>
+      <h3 style="margin-top:0.75rem; font-size:1.25rem; color:#fff;">${title}</h3>
+      <div style="font-size:0.88rem; color:var(--accent-cyan); margin-top:0.3rem;">
+        ${isCombo ? '🔥 1-on-1 名師陪跑 + 錄播全套視訊個案服務' : '📹 純錄播自學講義諮詢方案'}
+      </div>
+    </div>
+
+    <div class="line-consult-box">
+      <div class="line-consult-title">
+        <i class="fa-solid fa-crown text-yellow"></i> 為什麼不直接明碼標價？我們的競爭優勢是：
+      </div>
+      <ul class="consult-perks-list">
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與名師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          <span><strong>Line@ 官方帳號限定學員優惠：</strong>加入 Line@ 即可向小編領取【限時隱藏版學員獎學金】與【零利率彈性分期方案】。</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-circle-check"></i>
+          <span><strong>100% 企業級星級作品陪跑：</strong>不是只賣影片，更手把手修稿帶你做到能直接去面試接案的硬實力作品。</span>
+        </li>
+      </ul>
+
+      <div style="text-align: center; margin-top: 1rem;">
+        <div class="text-xs text-muted margin-bottom-xs">官方 Line@ 帳號專人即時服務：</div>
+        <div class="line-id-chip">
+          <i class="fa-brands fa-line"></i> LINE ID: @SkillSync
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1rem;">
+      <button class="btn btn-line btn-block" onclick="handleJoinLineAt('${title}')">
+        <i class="fa-brands fa-line"></i> 🟢 一鍵複製 LINE ID 洽小編領取專屬優惠
+      </button>
+      <button class="btn btn-primary btn-block" onclick="openLeadFormModal('${title}')" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+        <i class="fa-solid fa-file-pen"></i> 📝 無 LINE 或偏好網頁留訊？填寫客製化需求表單
+      </button>
+      <div style="text-align:center; margin-top:0.4rem;">
+        <a href="javascript:void(0)" onclick="openCheckoutModalDirect('${matchedId}', '${type}')" style="font-size:0.78rem; color:var(--text-muted); text-decoration:underline;">
+          [舊學員限定] 已洽過小編？點此開啟系統手動開通與試算
+        </a>
+      </div>
+    </div>
+  `;
+
+  checkoutModal.classList.add('active');
+}
+
+function handleJoinLineAt(courseName) {
+  try {
+    navigator.clipboard.writeText('@SkillSync');
+  } catch(e) {}
+  showToast(`🟢 已複製官方 LINE ID: @SkillSync！請開啟 LINE 貼上搜尋，小編將為您解鎖【${courseName}】專屬優惠與 1 對 1 諮詢！`);
+}
+
+// Lead Form Modal Engine (無 LINE / 偏好網頁留訊專用)
+function openLeadFormModal(courseTitle = '') {
+  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+
+  const modal = document.getElementById('leadFormModal');
+  if (!modal) return;
+
+  if (courseTitle) {
+    const courseSelect = document.getElementById('leadCourse');
+    if (courseSelect) {
+      const match = Array.from(courseSelect.options).find(opt => opt.value.includes(courseTitle) || courseTitle.includes(opt.value));
+      if (match) courseSelect.value = match.value;
+    }
+  }
+
+  modal.classList.add('active');
+  const box = modal.querySelector('.modal-box');
+  if (box) box.scrollTop = 0;
+}
+
+function closeLeadFormModal() {
+  const modal = document.getElementById('leadFormModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleLeadFormSubmit(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('leadName').value.trim();
+  const phone = document.getElementById('leadPhone').value.trim();
+  const email = document.getElementById('leadEmail').value.trim();
+  const identity = document.getElementById('leadIdentity').value;
+  const course = document.getElementById('leadCourse').value;
+  const goal = document.getElementById('leadGoal').value;
+  const experience = document.getElementById('leadExperience').value;
+  const timePerWeek = document.getElementById('leadTimePerWeek').value;
+  const priorityHelp = document.getElementById('leadPriorityHelp').value;
+  const notes = document.getElementById('leadNotes').value.trim();
+
+  const newLead = {
+    id: `lead-${Date.now()}`,
+    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    name,
+    phone,
+    email: email || '未提供',
+    course,
+    identity,
+    goal,
+    experience,
+    timePerWeek,
+    priorityHelp,
+    notes: notes || '無特殊備註',
+    status: '🆕 新進諮詢'
+  };
+
+  mockLeads.unshift(newLead);
+  try {
+    localStorage.setItem('skillsync_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+
+  closeLeadFormModal();
+  showToast(`🎉 感謝 ${name} 填寫需求！諮詢表單已成功送出，專屬小編收到訊息後會盡快與您聯絡！`);
+  renderLeadAdminTable();
+}
+
+function renderLeadAdminTable() {
+  const tbody = document.getElementById('leadTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = mockLeads.map(lead => {
+    let statusBadgeClass = 'badge-primary';
+    if (lead.status.includes('已聯繫')) statusBadgeClass = 'badge-success';
+    if (lead.status.includes('媒合中')) statusBadgeClass = 'badge-info';
+
+    return `
+      <tr>
+        <td class="text-xs text-muted"><code>${lead.createdAt}</code></td>
+        <td>
+          <strong>${lead.name}</strong>
+          <div class="text-xs text-cyan"><i class="fa-solid fa-phone"></i> ${lead.phone}</div>
+          <div class="text-xs text-muted"><i class="fa-solid fa-envelope"></i> ${lead.email}</div>
+        </td>
+        <td><strong class="text-purple">${lead.course}</strong></td>
+        <td><span class="badge-tag">${lead.identity}</span></td>
+        <td class="text-xs">
+          <div><strong class="text-pink">目標：</strong>${lead.goal}</div>
+          <div class="text-muted"><strong class="text-cyan">程度：</strong>${lead.experience}</div>
+        </td>
+        <td class="text-xs">
+          <div>${lead.timePerWeek}</div>
+          <div class="text-green"><strong>優先：</strong>${lead.priorityHelp}</div>
+        </td>
+        <td class="text-xs text-muted" style="max-width:180px;">${lead.notes}</td>
+        <td><span class="badge ${statusBadgeClass}">${lead.status}</span></td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="updateLeadStatus('${lead.id}')"><i class="fa-solid fa-check"></i> 改狀態</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead.id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateLeadStatus(leadId) {
+  const lead = mockLeads.find(l => l.id === leadId);
+  if (!lead) return;
+
+  if (lead.status === '🆕 新進諮詢') {
+    lead.status = '✅ 已聯繫洽談';
+  } else if (lead.status === '✅ 已聯繫洽談') {
+    lead.status = '🎯 導師媒合中';
+  } else {
+    lead.status = '🆕 新進諮詢';
+  }
+
+  showToast(`已更新 ${lead.name} 的跟進狀態為【${lead.status}】`);
+  renderLeadAdminTable();
+}
+
+function deleteLead(leadId) {
+  mockLeads = mockLeads.filter(l => l.id !== leadId);
+  showToast('已刪除諮詢表單紀錄');
+  renderLeadAdminTable();
+}
+
+function openCheckoutModalDirect(courseId, type) {
+  openCheckoutModal(courseId, type);
+}
+
+// Enrollment Checkout & Payment Modal (支援 Wen總監/員工 客製化報價單系統)
+function openCheckoutModal(courseId, type) {
+  const course = mockCourses.find(c => c.id === courseId) || mockCourses[0];
+  if (!course) return;
+
+  const userEmail = currentUser ? currentUser.email : 'student@skillsync.com';
+  const customQuote = mockCustomQuotes.find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
+
+  const isCombo = type === 'combo';
+  const displayTitle = customQuote ? customQuote.courseTitle : course.title;
+  const displayPrice = customQuote ? customQuote.customPrice : (isCombo ? course.priceWith1on1 : course.priceRecordOnly);
+  const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
+  const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次名師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
 
   const modalBody = document.getElementById('checkoutModalBody');
   modalBody.innerHTML = `
-    <div style="text-align: center; margin-bottom: 1.5rem;">
-      <h4>${course.title}</h4>
-      <div class="badge-tag margin-top-xs">${isCombo ? '🔥 錄播 + 1-on-1 名師個教陪跑方案' : '📹 純錄播自主學習方案'}</div>
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+      <span class="badge-tag bg-purple"><i class="fa-solid fa-shield-halved"></i> 256-bit SSL 安全加密報名通道</span>
+      <h4 style="margin-top:0.5rem; font-size:1.15rem; color:#fff;">${displayTitle}</h4>
+      <div class="text-xs text-cyan margin-top-xs">
+        ${customQuote ? `👑 由【${createdBy}】親自設定之專屬學員結帳金額與課程方案` : '🔒 與專屬小編洽詢確認後之學員結帳與權限開通頁面'}
+      </div>
     </div>
 
     <div class="fin-calc-box">
       <div class="calc-row">
-        <span>購買方案</span>
-        <strong>${isCombo ? '錄播全套 + 4次個教批改' : '錄播全套視訊與教材'}</strong>
+        <span>對接報名方案</span>
+        <strong class="text-pink" style="font-size:0.95rem;">${displayTitle}</strong>
       </div>
       <div class="calc-row">
-        <span>應付金額</span>
-        <strong class="text-purple" font-size="1.2rem">NT$ ${price.toLocaleString()}</strong>
+        <span>專屬對接結帳金額</span>
+        <strong class="text-purple" style="font-size: 1.3rem;">NT$ ${displayPrice.toLocaleString()}</strong>
       </div>
+      ${customQuote ? `
+        <div class="calc-row" style="margin-top:0.3rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.3rem;">
+          <span class="text-xs text-muted">專屬優惠與贈品：</span>
+          <span class="text-xs text-green"><strong>${quoteDetails}</strong></span>
+        </div>
+      ` : ''}
     </div>
 
-    <form onsubmit="processPayment(event, '${course.title}', ${price}, '${type}')" class="margin-top-md">
+    <form onsubmit="processPayment(event, '${displayTitle.replace(/'/g, "\\'")}', ${displayPrice}, '${type}')" class="margin-top-md">
       <div class="form-group">
-        <label>選擇付款方式</label>
+        <label><i class="fa-solid fa-credit-card text-cyan"></i> 選擇金流服務與付款方式</label>
         <select class="form-control" id="payMethod">
-          <option>信用卡 / 簽帳金融卡 (一次付清)</option>
-          <option>無卡分期 (每月 NT$ ${(price / 3).toFixed(0)} x 3期)</option>
-          <option>LINE Pay / 街口支付</option>
-          <option>ATM 轉帳開通</option>
+          <option>💳 信用卡 / 簽帳金融卡 (256-bit SSL 一次付清)</option>
+          <option>🏦 銀行 ATM / 網路銀行轉帳 (取得專屬虛擬帳號)</option>
+          <option>📱 LINE Pay / 街口支付行動快充</option>
+          <option>💳 零利率無卡分期 (每月 NT$ ${(displayPrice / 3).toFixed(0)} x 3期)</option>
         </select>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block margin-top-md">
-        <i class="fa-solid fa-credit-card"></i> 立即付款 NT$ ${price.toLocaleString()} 並開通權限
+      <div class="line-consult-box margin-top-sm" style="padding:0.75rem 1rem; margin-bottom:0.5rem;">
+        <div class="text-xs text-muted" style="line-height:1.45;">
+          <i class="fa-solid fa-circle-check text-green"></i> 付款完成後系統將自動派發電子發票，並於 3 分鐘內自動開通【錄播學習中心】與【1-on-1 導師預約】存取權限。
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
+        <i class="fa-solid fa-file-signature"></i> 確認報名結帳 NT$ ${displayPrice.toLocaleString()} 並開通專屬權限
       </button>
     </form>
   `;
 
   document.getElementById('checkoutModal').classList.add('active');
+}
+
+// Student Custom Quotation Management Engine (Manager & Staff CMS)
+function openAddQuoteModal() {
+  document.getElementById('editQuoteId').value = '';
+  document.getElementById('inputQuoteStudentEmail').value = 'student@skillsync.com';
+  document.getElementById('inputQuoteStudentName').value = '林小明 (學員)';
+  document.getElementById('inputQuoteCourseTitle').value = 'AI 驅動 Full-Stack 開發實戰營 (👑 專屬對接 85 折優惠包)';
+  document.getElementById('inputQuotePrice').value = '10880';
+  document.getElementById('inputQuoteDetails').value = '包含全套錄播 + 4次個教點評 + 贈送設計元件庫';
+  document.getElementById('customQuoteModal').classList.add('active');
+}
+
+function openEditQuoteModal(quoteId) {
+  const quote = mockCustomQuotes.find(q => q.id === quoteId);
+  if (!quote) return;
+
+  document.getElementById('editQuoteId').value = quote.id;
+  document.getElementById('inputQuoteStudentEmail').value = quote.studentEmail;
+  document.getElementById('inputQuoteStudentName').value = quote.studentName;
+  document.getElementById('inputQuoteCourseTitle').value = quote.courseTitle;
+  document.getElementById('inputQuotePrice').value = quote.customPrice;
+  document.getElementById('inputQuoteDetails').value = quote.details;
+  document.getElementById('customQuoteModal').classList.add('active');
+}
+
+function closeCustomQuoteModal() {
+  document.getElementById('customQuoteModal').classList.remove('active');
+}
+
+function handleSaveCustomQuote(e) {
+  e.preventDefault();
+  const id = document.getElementById('editQuoteId').value;
+  const studentEmail = document.getElementById('inputQuoteStudentEmail').value.trim();
+  const studentName = document.getElementById('inputQuoteStudentName').value.trim();
+  const courseTitle = document.getElementById('inputQuoteCourseTitle').value.trim();
+  const customPrice = parseInt(document.getElementById('inputQuotePrice').value) || 0;
+  const details = document.getElementById('inputQuoteDetails').value.trim();
+
+  const creatorName = currentUser ? currentUser.name : '👑 Wen總監';
+  const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+  if (id) {
+    const existing = mockCustomQuotes.find(q => q.id === id);
+    if (existing) {
+      existing.studentEmail = studentEmail;
+      existing.studentName = studentName;
+      existing.courseTitle = courseTitle;
+      existing.customPrice = customPrice;
+      existing.details = details;
+      existing.createdBy = creatorName;
+      existing.updatedAt = nowStr;
+    }
+    showToast(`✅ 已更新 ${studentName} 的專屬結帳報價單（金額：NT$ ${customPrice.toLocaleString()}）`);
+  } else {
+    const newQuote = {
+      id: `quote-${Date.now()}`,
+      studentEmail,
+      studentName,
+      courseTitle,
+      customPrice,
+      createdBy: creatorName,
+      details,
+      updatedAt: nowStr
+    };
+    mockCustomQuotes.unshift(newQuote);
+    showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}）`);
+  }
+
+  try {
+    localStorage.setItem('skillsync_custom_quotes', JSON.stringify(mockCustomQuotes));
+  } catch(err) {}
+
+  closeCustomQuoteModal();
+  renderCustomQuotesAdminTable();
+}
+
+function renderCustomQuotesAdminTable() {
+  const tbody = document.getElementById('quoteTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = mockCustomQuotes.map(quote => `
+    <tr>
+      <td>
+        <strong>${quote.studentName}</strong>
+        <div class="text-xs text-muted"><code>${quote.studentEmail}</code></div>
+      </td>
+      <td><span class="badge-tag">${quote.createdBy}</span></td>
+      <td><strong class="text-pink">${quote.courseTitle}</strong></td>
+      <td><strong class="text-purple" style="font-size:1.05rem;">NT$ ${quote.customPrice.toLocaleString()}</strong></td>
+      <td class="text-xs text-muted" style="max-width:200px;">${quote.details}</td>
+      <td class="text-xs text-muted"><code>${quote.updatedAt}</code></td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="openEditQuoteModal('${quote.id}')"><i class="fa-solid fa-pen"></i> 修改金額/名稱</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCustomQuote('${quote.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteCustomQuote(quoteId) {
+  mockCustomQuotes = mockCustomQuotes.filter(q => q.id !== quoteId);
+  showToast('已刪除學員專屬報價單');
+  renderCustomQuotesAdminTable();
 }
 
 function closeCheckoutModal() {
@@ -1597,10 +1933,11 @@ function closeCheckoutModal() {
 function processPayment(e, title, price, type) {
   e.preventDefault();
   closeCheckoutModal();
-  showToast(`✅ 成功購買【${title}】！已立即開通錄播學習中心與個教預約額度！`);
+  showToast(`✅ 報名結帳成功！已立即開通【${title}】的線上學習中心與 1-on-1 個教預約額度！`);
   
   cart.push({ title, price });
-  document.getElementById('cartCount').innerText = cart.length;
+  const cartCountEl = document.getElementById('cartCount');
+  if (cartCountEl) cartCountEl.innerText = cart.length;
 
   setTimeout(() => {
     switchView('video-player');

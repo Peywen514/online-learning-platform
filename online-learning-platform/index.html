@@ -54,9 +54,11 @@
       </nav>
 
       <div class="nav-actions">
-        <button class="icon-btn" id="cartBtn" title="購物車">
-          <i class="fa-solid fa-cart-shopping"></i>
-          <span class="badge" id="cartCount">0</span>
+        <button class="btn btn-line btn-sm mobile-hide" onclick="openLeadFormModal()">
+          <i class="fa-solid fa-comments"></i> 與我聯絡
+        </button>
+        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal('course-1', 'combo')" title="專屬學員報名結帳與權限開通通道">
+          <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 <span class="badge" id="cartCount">0</span>
         </button>
         <button class="btn btn-outline mobile-hide" id="myCoursesBtn" onclick="switchView('video-player')">
           <i class="fa-solid fa-book-bookmark"></i> 我的課程
@@ -364,9 +366,9 @@
                       </div>
 
                       <div class="c-slide-actions margin-top-md">
-                        <span class="c-price">NT$ 12,800 <small>/ 個教陪跑包</small></span>
-                        <button class="btn btn-primary" onclick="openCheckoutModal('course-1', 'combo')">
-                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
+                        <button class="btn btn-line" onclick="openConsultLineModal('course-1', 'combo')">
+                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
                         </button>
                       </div>
                     </div>
@@ -394,9 +396,9 @@
                       </div>
 
                       <div class="c-slide-actions margin-top-md">
-                        <span class="c-price">NT$ 14,800 <small>/ 個教陪跑包</small></span>
-                        <button class="btn btn-primary" onclick="openCheckoutModal('course-2', 'combo')">
-                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
+                        <button class="btn btn-line" onclick="openConsultLineModal('course-2', 'combo')">
+                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
                         </button>
                       </div>
                     </div>
@@ -424,9 +426,9 @@
                       </div>
 
                       <div class="c-slide-actions margin-top-md">
-                        <span class="c-price">NT$ 9,800 <small>/ 個教陪跑包</small></span>
-                        <button class="btn btn-primary" onclick="openCheckoutModal('course-3', 'combo')">
-                          <i class="fa-solid fa-cart-shopping"></i> 立即搶先開通
+                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
+                        <button class="btn btn-line" onclick="openConsultLineModal('course-3', 'combo')">
+                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
                         </button>
                       </div>
                     </div>
@@ -693,6 +695,10 @@
                 <input type="text" id="aiInput" placeholder="詢問關於此影片的問題..." onkeypress="handleAiKeyPress(event)">
                 <button class="btn btn-primary btn-icon" onclick="sendAiMsg()"><i class="fa-solid fa-paper-plane"></i></button>
               </div>
+              <div class="ai-disclaimer-note">
+                <i class="fa-solid fa-circle-exclamation" style="margin-top:0.15rem; flex-shrink:0;"></i>
+                <span><strong>權威提示：</strong>AI 助教回答僅供輔助學習參考。若回答內容與講師上課教學內容有出入，請一律以講師上課內容與 1-on-1 真人個教指導為主！</span>
+              </div>
             </div>
 
             <!-- Chapter List Accordion -->
@@ -903,6 +909,12 @@
           </button>
           <button class="admin-tab manager-only-tab" data-atab="finance" onclick="switchAdminTab('finance')">
             <i class="fa-solid fa-chart-column text-yellow"></i> 📊 營運統計與講師月結薪資 (Wen總監專屬)
+          </button>
+          <button class="admin-tab" data-atab="leads" onclick="switchAdminTab('leads')">
+            <i class="fa-solid fa-clipboard-list text-pink"></i> 📋 潛在學員需求表單紀錄
+          </button>
+          <button class="admin-tab" data-atab="quotes" onclick="switchAdminTab('quotes')">
+            <i class="fa-solid fa-file-invoice text-cyan"></i> 🏷️ 學員客製化金額與課程修改
           </button>
         </div>
 
@@ -1183,6 +1195,76 @@
                 </thead>
                 <tbody id="mentorSalaryTableBody">
                   <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tab Content 7: Lead Enquiries -->
+        <div class="admin-content-pane" id="atab-leads">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <div>
+                <h3><i class="fa-solid fa-clipboard-list text-pink"></i> 📋 潛在學員 1-on-1 客製化需求表單紀錄 (網頁留訊與無 LINE 諮詢)</h3>
+                <span class="text-sm text-muted">包含姓名、電話、目前身分（上班族/待業/學生）、學習目標、週投入時間與導師診斷需求</span>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openLeadFormModal('官網後台測試諮詢')">
+                <i class="fa-solid fa-plus"></i> 模擬填寫需求表單
+              </button>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>填單時間</th>
+                    <th>姓名 / 聯絡電話 / Email</th>
+                    <th>諮詢課程領域</th>
+                    <th>身份狀態</th>
+                    <th>學習目標與實務基礎</th>
+                    <th>投入時間 & 優先協助</th>
+                    <th>備註與說明</th>
+                    <th>跟進狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="leadTableBody">
+                  <!-- JS populated by renderLeadAdminTable() -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tab Content 8: Custom Quotation Manager -->
+        <div class="admin-content-pane" id="atab-quotes">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex">
+              <div>
+                <h3><i class="fa-solid fa-file-invoice text-cyan"></i> 🏷️ 學員客製化結帳金額與課程名稱修改 (總監與員工可編修)</h3>
+                <span class="text-sm text-muted">小編與學員對接確認後，在此設定該學員的專屬結帳金額與優惠課程名稱，送出後將即時呈現在學員結帳畫面。</span>
+              </div>
+              <button class="btn btn-primary btn-sm staff-manager-btn" onclick="openAddQuoteModal()">
+                <i class="fa-solid fa-plus"></i> 新增 / 修改學員報價單
+              </button>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>對接學員</th>
+                    <th>設定者</th>
+                    <th>客製化課程/方案名稱 (學員結帳畫面呈現)</th>
+                    <th>客製化結帳金額 (NT$)</th>
+                    <th>專屬開通備註與贈品</th>
+                    <th>更新時間</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="quoteTableBody">
+                  <!-- JS populated by renderCustomQuotesAdminTable() -->
                 </tbody>
               </table>
             </div>
@@ -1585,7 +1667,7 @@
     <div class="modal-box">
       <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
       <div class="modal-header">
-        <h3><i class="fa-solid fa-cart-arrow-down text-purple"></i> 訂購與開通學習權限</h3>
+        <h3><i class="fa-solid fa-file-invoice-dollar text-purple"></i> 確認報名結帳與專屬權限開通</h3>
       </div>
       <div class="modal-body" id="checkoutModalBody">
         <!-- Filled by JS -->
@@ -1801,6 +1883,8 @@
         </form>
       </div>
     </div>
+  </div>
+
   <!-- MODAL 10: Privacy Policy & Payment Security Modal -->
   <div id="privacyPolicyModal" class="modal-backdrop">
     <div class="modal-box" style="max-width:700px;">
@@ -1828,6 +1912,155 @@
         <button class="btn btn-primary btn-block margin-top-md" onclick="closePrivacyPolicyModal()">
           <i class="fa-solid fa-check"></i> 我已閱讀並瞭解資安與個資保護聲明
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 11: Comprehensive Lead Form Modal (無 LINE / 偏好網頁留訊專用) -->
+  <div id="leadFormModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 680px;">
+      <button class="modal-close" onclick="closeLeadFormModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-pen text-purple"></i> 填寫 1-on-1 客製化學習需求表單</h3>
+        <p class="text-xs text-muted margin-top-xs">無須使用 LINE！收到您的填答訊息後，專屬小編將會盡快與您聯絡，提供個別專屬服務。</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleLeadFormSubmit(event)">
+          <div class="grid grid-2 gap-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-user text-cyan"></i> 您的姓名 <span class="text-pink">*</span></label>
+              <input type="text" id="leadName" class="form-control" placeholder="例如：王小明" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-phone text-green"></i> 聯絡電話 <span class="text-pink">*</span></label>
+              <input type="tel" id="leadPhone" class="form-control" placeholder="例如：0912-345-678" required>
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-envelope text-yellow"></i> 電子郵件 Email</label>
+              <input type="email" id="leadEmail" class="form-control" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-user-tag text-purple"></i> 目前您的身份狀態 <span class="text-pink">*</span></label>
+              <select id="leadIdentity" class="form-control" required>
+                <option value="💼 上班族 (希望職場提升/加薪)">💼 上班族 (希望職場提升/加薪)</option>
+                <option value="🚀 待業 / 準備轉職中 (希望快速完課對接求職)">🚀 待業 / 準備轉職中 (希望快速完課對接求職)</option>
+                <option value="🎓 在校學生 (打磨畢業星級專題作品集)">🎓 在校學生 (打磨畢業星級專題作品集)</option>
+                <option value="💻 自由工作者 / 接案 (拓展商業接案管道)">💻 自由工作者 / 接案 (拓展商業接案管道)</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-book-bookmark text-pink"></i> 想諮詢的課程領域/主題 <span class="text-pink">*</span></label>
+            <select id="leadCourse" class="form-control" required>
+              <option value="AI 驅動 Full-Stack Web 開發實戰營">AI 驅動 Full-Stack Web 開發實戰營</option>
+              <option value="UI/UX 產品設計與 Figma 設計系統實力班">UI/UX 產品設計與 Figma 設計系統實力班</option>
+              <option value="Python 數據分析與自動化爬蟲實務">Python 數據分析與自動化爬蟲實務</option>
+              <option value="高轉化率數位整合行銷與短影音電商實操">高轉化率數位整合行銷與短影音電商實操</option>
+              <option value="1 對 1 專屬職涯個教陪跑卡 (3個月全期保證)">1 對 1 專屬職涯個教陪跑卡 (3個月全期保證)</option>
+              <option value="不確定，希望小編先幫我安排診斷">不確定，希望小編先幫我安排診斷</option>
+            </select>
+          </div>
+
+          <!-- Deep-dive Intent Questions -->
+          <div class="line-consult-box margin-top-md" style="background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.25);">
+            <div style="font-weight: 700; color: var(--accent-purple); font-size: 0.95rem; margin-bottom: 0.75rem;">
+              <i class="fa-solid fa-bullseye text-pink"></i> 深入評估問答（幫助導師精準客製您的學習地圖）：
+            </div>
+
+            <div class="form-group">
+              <label class="text-xs text-muted">1. 主要學習目標與期望成果</label>
+              <select id="leadGoal" class="form-control text-sm">
+                <option value="🎯 想要在 3-6 個月內成功轉職">🎯 想要在 3-6 個月內成功轉職</option>
+                <option value="💼 職場技能提升 / 爭取加薪升遷">💼 職場技能提升 / 爭取加薪升遷</option>
+                <option value="🚀 建立副業接案管道 / 個人品牌作品集">🚀 建立副業接案管道 / 個人品牌作品集</option>
+                <option value="💡 興趣探索 / 學習最新 AI 工具技術">💡 興趣探索 / 學習最新 AI 工具技術</option>
+              </select>
+            </div>
+
+            <div class="form-group margin-top-xs">
+              <label class="text-xs text-muted">2. 目前在該領域的實務基礎程度</label>
+              <select id="leadExperience" class="form-control text-sm">
+                <option value="🌱 零基礎白紙新手 (希望講師手把手入門)">🌱 零基礎白紙新手 (希望講師手把手入門)</option>
+                <option value="📖 曾看影片/買書自學，但缺乏實作與批修">📖 曾看影片/買書自學，但缺乏實作與批修</option>
+                <option value="💻 已具備基礎，希望導師幫忙批修星級作品集">💻 已具備基礎，希望導師幫忙批修星級作品集</option>
+              </select>
+            </div>
+
+            <div class="grid grid-2 gap-sm margin-top-xs">
+              <div class="form-group">
+                <label class="text-xs text-muted">3. 每週預計可投入學習時間</label>
+                <select id="leadTimePerWeek" class="form-control text-sm">
+                  <option value="⏱️ 1 ~ 3 小時 (下班/假日時間)">⏱️ 1 ~ 3 小時 (下班/假日時間)</option>
+                  <option value="⏱️ 4 ~ 8 小時 (積極學習)">⏱️ 4 ~ 8 小時 (積極學習)</option>
+                  <option value="⏱️ 9 小時以上 (全職衝刺/全速個教)">⏱️ 9 小時以上 (全職衝刺/全速個教)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-xs text-muted">4. 希望小編/導師優先協助的事項</label>
+                <select id="leadPriorityHelp" class="form-control text-sm">
+                  <option value="🎨 安排金牌講師進行 1-on-1 免費視訊診斷">🎨 安排金牌講師進行 1-on-1 免費視訊診斷</option>
+                  <option value="💰 試算隱藏版學員獎學金與零利率分期">💰 試算隱藏版學員獎學金與零利率分期</option>
+                  <option value="📅 索取課程大綱與免費試聽影片">📅 索取課程大綱與免費試聽影片</option>
+                  <option value="🤝 了解完課後接案與求職媒合機制">🤝 了解完課後接案與求職媒合機制</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-comment-dots text-cyan"></i> 想告訴小編的話 / 其他特殊需求 (選填)</label>
+            <textarea id="leadNotes" class="form-control" rows="2" placeholder="例如：希望了解是否支援無卡分期？或是方便聯絡的時間..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
+            <i class="fa-solid fa-paper-plane"></i> 送出客製化學習需求表單 (小編專人聯繫)
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 12: Add / Edit Custom Student Quote Modal (CMS) -->
+  <div id="customQuoteModal" class="modal-backdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeCustomQuoteModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-invoice text-cyan"></i> 設定學員專屬報價單與結帳金額</h3>
+        <p class="text-xs text-muted margin-top-xs">Wen總監與員工設定後，學員在「報名結帳」畫面看到的課程名稱與金額將自動更新為此設定。</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveCustomQuote(event)">
+          <input type="hidden" id="editQuoteId">
+          <div class="form-group">
+            <label>對接學員 Email / 帳號 <span class="text-pink">*</span></label>
+            <input type="email" id="inputQuoteStudentEmail" class="form-control" placeholder="student@skillsync.com" value="student@skillsync.com" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>學員姓名標示</label>
+            <input type="text" id="inputQuoteStudentName" class="form-control" placeholder="例如：林小明" value="林小明 (學員)" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>客製化課程/對接方案名稱 (呈現於結帳畫面) <span class="text-pink">*</span></label>
+            <input type="text" id="inputQuoteCourseTitle" class="form-control" placeholder="例如：UI/UX 實力班 (小編對接專屬優惠包)" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>客製化對接結帳金額 (NT$) <span class="text-pink">*</span></label>
+            <input type="number" id="inputQuotePrice" class="form-control" placeholder="10880" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>專屬開通備註與優惠說明</label>
+            <textarea id="inputQuoteDetails" class="form-control" rows="3" placeholder="例如：包含全套錄播 + 4次個教點評 + 贈送設計元件庫"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存報價單 (學員即刻可報名結帳)
+          </button>
+        </form>
       </div>
     </div>
   </div>

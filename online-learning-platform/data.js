@@ -199,7 +199,7 @@ let mockInstructors = [
     skills: ["React 19", "Node.js", "AI Agent", "TypeScript"],
     rating: 4.9,
     studentCount: 1850,
-    rate1on1: "NT$ 1,800 / 1小時",
+    rate1on1: "洽小編專屬規劃 (提供個別專屬服務)",
     quote: "「程式不是用看的，是用手寫跟講師一對一問出來的！」"
   },
   {
@@ -212,7 +212,7 @@ let mockInstructors = [
     skills: ["Figma Design System", "User Research", "Prototyping"],
     rating: 5.0,
     studentCount: 2200,
-    rate1on1: "NT$ 2,000 / 1小時",
+    rate1on1: "洽小編專屬規劃 (提供個別專屬服務)",
     quote: "「透過一對一微調像素細節，你的作品集將會脫穎而出。」"
   },
   {
@@ -225,7 +225,7 @@ let mockInstructors = [
     skills: ["Python", "Pandas", "Web Scraping", "SQL Database"],
     rating: 4.8,
     studentCount: 1400,
-    rate1on1: "NT$ 1,600 / 1小時",
+    rate1on1: "洽小編專屬規劃 (提供個別專屬服務)",
     quote: "「自動化工具能節省你 90% 的繁瑣工作，我教你寫出實用腳本。」"
   },
   {
@@ -238,7 +238,7 @@ let mockInstructors = [
     skills: ["Meta Ads", "SEO", "Short Video", "Conversion Funnel"],
     rating: 4.9,
     studentCount: 1950,
-    rate1on1: "NT$ 1,800 / 1小時",
+    rate1on1: "洽小編專屬規劃 (提供個別專屬服務)",
     quote: "「精準流量加上好的個教文案批改，打造極致轉化率。」"
   }
 ];
@@ -328,4 +328,50 @@ let mockPortfolios = [
 let mockMaterials = [
   { id: "mat-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "Full-Stack AI 專案開發", url: "https://cdn.skillsync.com/react19_ai_handbook.pdf" },
   { id: "mat-2", title: "UI/UX Design System 150+ Figma 元件庫", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 3D 擬態", url: "https://figma.com/file/demo-design-system" }
+];
+
+let mockLeads = [
+  {
+    id: "lead-101",
+    createdAt: "2026-07-26 14:15",
+    name: "陳姿涵",
+    phone: "0912-345-678",
+    email: "zihan@example.com",
+    course: "UI/UX 產品設計與 Figma 設計系統實力班",
+    identity: "💼 上班族 (希望職場提升/加薪)",
+    goal: "🎯 想要在 3-6 個月內成功轉職",
+    experience: "📖 曾看影片/買書自學，但缺乏實作與批修",
+    timePerWeek: "⏱️ 4 ~ 8 小時 (積極學習)",
+    priorityHelp: "🎨 安排金牌講師進行 1-on-1 免費視訊診斷",
+    notes: "想瞭解專案作品集要放幾份比較容易拿到大廠面試？方便聯繫時間：晚間7點後。",
+    status: "🆕 新進諮詢"
+  },
+  {
+    id: "lead-102",
+    createdAt: "2026-07-26 11:30",
+    name: "王建宏",
+    phone: "0987-654-321",
+    email: "kenwang@example.com",
+    course: "AI 驅動 Full-Stack Web 開發實戰營",
+    identity: "🚀 待業 / 準備轉職中 (希望快速完課對接求職)",
+    goal: "🎯 想要在 3-6 個月內成功轉職",
+    experience: "🌱 零基礎白紙新手 (希望講師手把手入門)",
+    timePerWeek: "⏱️ 9 小時以上 (全職衝刺/全速個教)",
+    priorityHelp: "💰 試算隱藏版學員獎學金與零利率分期",
+    notes: "希望能安排張哲銘 (Ethan) 講師個教！主要想問無卡分期方案與完課率保證。",
+    status: "✅ 已聯繫洽談"
+  }
+];
+
+let mockCustomQuotes = [
+  {
+    id: "quote-101",
+    studentEmail: "student@skillsync.com",
+    studentName: "林小明 (學員)",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 Wen總監專屬對接 85 折優惠包)",
+    customPrice: 10880,
+    createdBy: "👑 Wen總監",
+    details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫 (無卡分期毎月 $3,626 x 3期)",
+    updatedAt: "2026-07-26 16:30"
+  }
 ];

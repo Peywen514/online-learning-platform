@@ -383,6 +383,20 @@ a {
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
 }
 
+.btn-line {
+  background: linear-gradient(135deg, #06C755 0%, #00B900 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(6, 199, 85, 0.35) !important;
+  transition: all 0.25s ease !important;
+}
+.btn-line:hover {
+  background: linear-gradient(135deg, #05b34c 0%, #00a000 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 22px rgba(6, 199, 85, 0.55) !important;
+}
+
 .btn-secondary {
   background: rgba(236, 72, 153, 0.2);
   color: var(--secondary);
@@ -1066,6 +1080,20 @@ a {
 .ai-input-group { display: flex; gap: 0.5rem; }
 .ai-input-group input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--bg-card-border); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); color: #fff; font-size: 0.83rem; }
 
+.ai-disclaimer-note {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #fbbf24;
+  margin-top: 0.65rem;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
 .chapters-card { background: var(--bg-card); border: 1px solid var(--bg-card-border); border-radius: var(--radius-lg); padding: 1.25rem; }
 .chapters-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 
@@ -1119,6 +1147,13 @@ a {
   transition: var(--transition);
 }
 .form-control:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+select.form-control option,
+select option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+}
 
 .slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
 .slot-chip {
@@ -1273,6 +1308,7 @@ a {
   padding: 1.25rem;
 }
 .modal-backdrop.active { display: flex; }
+#leadFormModal { z-index: 2500 !important; }
 
 .modal-box {
   background: #0f172a;
@@ -1597,4 +1633,54 @@ a {
   border-color: rgba(239, 68, 68, 0.5) !important;
   background: rgba(239, 68, 68, 0.1) !important;
   color: #ef4444 !important;
+}
+
+/* LINE@ Exclusive Consultation Box & Badge Styles */
+.line-consult-box {
+  background: linear-gradient(135deg, rgba(6, 199, 85, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border: 1px solid rgba(6, 199, 85, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  text-align: left;
+}
+.line-consult-title {
+  color: #34d399;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.line-id-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(6, 199, 85, 0.18);
+  color: #06C755;
+  border: 1px dashed #06C755;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+.consult-perks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0 0;
+}
+.consult-perks-list li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  line-height: 1.45;
+}
+.consult-perks-list li i {
+  color: #06C755;
+  margin-top: 0.15rem;
 }
