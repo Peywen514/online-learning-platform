@@ -576,7 +576,7 @@
                   <span id="currentChapterTitle">第 2 章：Full-Stack React & AI 專案架構拆解</span>
                 </div>
                 <!-- Video Mock Element -->
-                <div class="video-content-display">
+                <div class="video-content-display" id="videoContentDisplay">
                   <div class="code-editor-preview">
                     <div class="code-line"><span class="c-keyword">import</span> React, { useState, useEffect } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;</div>
                     <div class="code-line"><span class="c-keyword">import</span> { SkillSyncAI } <span class="c-keyword">from</span> <span class="c-string">'@skillsync/ai-sdk'</span>;</div>
@@ -595,21 +595,41 @@
                     <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
                     <span class="pip-name">張哲銘 講師</span>
                   </div>
+
+                  <!-- Video Trial Ended Overlay Banner inside player -->
+                  <div id="videoTrialOverlay" class="video-trial-overlay" style="display: none;">
+                    <div class="trial-overlay-content">
+                      <div class="trial-overlay-icon"><i class="fa-solid fa-lock text-pink"></i></div>
+                      <h3>試看單元已播放完畢</h3>
+                      <p class="gradient-text" style="font-weight:700; font-size:1.1rem; margin:0.3rem 0;">喜歡相關課程嗎？立即解鎖其他課程</p>
+                      <div class="flex-center gap-xs margin-top-sm" style="flex-wrap:wrap; justify-content:center;">
+                        <a href="https://rbur2v-zz.myshopify.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;">
+                          <i class="fa-solid fa-cart-shopping"></i> 立即解鎖其他課程 (前往購買)
+                        </a>
+                        <button class="btn btn-line btn-sm" onclick="triggerTrialEndModal()">
+                          <i class="fa-solid fa-sparkles"></i> 彈出「試看結束彈窗」
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Interactive Controls Bar -->
                 <div class="video-controls-bar">
-                  <div class="progress-bar-container" id="progressBar">
-                    <div class="progress-filled" style="width: 38%;"></div>
+                  <div class="progress-bar-container" id="progressBar" onclick="handleProgressBarClick(event)" title="點擊切換播放進度">
+                    <div class="progress-filled" id="progressFilled" style="width: 38%;"></div>
                   </div>
                   <div class="controls-row">
                     <div class="controls-left">
-                      <button class="ctrl-btn" id="playPauseBtn"><i class="fa-solid fa-pause"></i></button>
-                      <button class="ctrl-btn"><i class="fa-solid fa-rotate-left"></i> 10s</button>
-                      <button class="ctrl-btn"><i class="fa-solid fa-rotate-right"></i> 10s</button>
-                      <span class="time-display">14:20 / 38:00</span>
+                      <button class="ctrl-btn" id="playPauseBtn" onclick="togglePlayPause()" title="播放 / 暫停"><i class="fa-solid fa-play"></i></button>
+                      <button class="ctrl-btn" onclick="seekVideo(-10)" title="倒退 10 秒"><i class="fa-solid fa-rotate-left"></i> 10s</button>
+                      <button class="ctrl-btn" onclick="seekVideo(10)" title="快進 10 秒"><i class="fa-solid fa-rotate-right"></i> 10s</button>
+                      <span class="time-display" id="videoTimeDisplay">14:26 / 38:00</span>
                     </div>
                     <div class="controls-right">
+                      <button class="ctrl-btn pill-btn highlight" onclick="triggerTrialEndModal()" title="試看結束彈窗展示">
+                        <i class="fa-solid fa-lock text-pink"></i> 試看結束彈窗
+                      </button>
                       <button class="ctrl-btn pill-btn staff-manager-btn" onclick="openAddLessonModal()" style="display: none;">
                         <i class="fa-solid fa-plus-circle text-yellow"></i> 編輯/新增此影片單元
                       </button>
@@ -2061,6 +2081,66 @@
             <i class="fa-solid fa-floppy-disk"></i> 儲存報價單 (學員即刻可報名結帳)
           </button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 13: Video Trial Ended Modal (試看結束彈窗) -->
+  <div id="videoTrialEndModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 600px; text-align: center; border: 2px solid var(--primary); box-shadow: 0 0 40px var(--primary-glow);">
+      <button class="modal-close" onclick="closeTrialEndModal()">&times;</button>
+      
+      <div class="modal-header text-center">
+        <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--secondary)); display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:#fff; margin: 0 auto 0.85rem auto; box-shadow: 0 0 20px var(--primary-glow);">
+          <i class="fa-solid fa-circle-play"></i>
+        </div>
+        <span class="badge-tag bg-pink" style="margin-bottom:0.4rem; display:inline-block;"><i class="fa-solid fa-lock"></i> 錄播影片試看結束</span>
+        <h2 style="font-size: 1.55rem; margin-top: 0.25rem;" class="gradient-text">
+          喜歡相關課程嗎？立即解鎖其他課程
+        </h2>
+        <p class="text-sm text-muted margin-top-xs" style="line-height:1.5;">
+          您已看完本單元的試看片段！解鎖完整課程，即可觀看完整錄播單元、下載實務專案講義範例檔，並獲得金牌講師 1-on-1 專屬作品診斷與 Code Review！
+        </p>
+      </div>
+
+      <div class="trial-end-card margin-top-md" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; text-align: left;">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
+          <div>
+            <div style="font-weight:700; color:#fff; font-size:0.95rem;">Full-Stack React & AI API 實務應用全套課程</div>
+            <div style="font-size:0.78rem; color:var(--accent-cyan);">主講導師：張哲銘 (Ethan) • 含 1-on-1 個教陪跑</div>
+          </div>
+        </div>
+        
+        <ul style="list-style:none; font-size:0.83rem; color:var(--text-muted); line-height:1.6; padding-left:0.2rem;">
+          <li><i class="fa-solid fa-circle-check text-green" style="margin-right:0.4rem;"></i> <strong>完整錄播高清視訊：</strong>解鎖 4 大章節 20 小時核心實戰開發課程</li>
+          <li><i class="fa-solid fa-circle-check text-green" style="margin-right:0.4rem;"></i> <strong>1-on-1 名師個教陪跑：</strong>享 1 小時 60 分鐘專屬 Code Review 與作品批修</li>
+          <li><i class="fa-solid fa-circle-check text-green" style="margin-right:0.4rem;"></i> <strong>隨課高價值資源包：</strong>免費下載專案 Starter Template 與 Cheatsheet 講義</li>
+        </ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.25rem;">
+        <a href="https://rbur2v-zz.myshopify.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block btn-lg" style="font-size: 1.08rem; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:0.5rem; background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 0 20px var(--primary-glow);">
+          <i class="fa-solid fa-cart-shopping"></i> 立即解鎖其他課程 (前往購買課程)
+        </a>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <button class="btn btn-line btn-block" onclick="closeTrialEndModal(); openConsultLineModal('Full-Stack React & AI 課程', 'combo');">
+            <i class="fa-brands fa-line"></i> 洽小編領專屬優惠
+          </button>
+          <button class="btn btn-outline btn-block" onclick="closeTrialEndModal(); openLeadFormModal('Full-Stack React & AI 課程');">
+            <i class="fa-solid fa-file-pen"></i> 填寫客製化需求表單
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <button class="btn btn-outline btn-block btn-sm" onclick="closeTrialEndModal(); switchView('marketplace');">
+            <i class="fa-solid fa-store"></i> 瀏覽本站課程商城
+          </button>
+          <button class="btn btn-glass btn-block btn-sm" onclick="replayTrialVideo();">
+            <i class="fa-solid fa-rotate-left"></i> 重新播放試看片段
+          </button>
+        </div>
       </div>
     </div>
   </div>

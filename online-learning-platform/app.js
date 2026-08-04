@@ -1124,7 +1124,118 @@ function handleSaveMaterial(e) {
   closeUploadMaterialModal();
 }
 
-// Video Player & Chapter Logic
+// Video Player Playback Simulator & Trial End Engine
+let isVideoPlaying = false;
+let videoProgressPercent = 38; // Initial demo timestamp (38% ~ 14:26)
+let videoTimer = null;
+const videoTotalDurationSeconds = 2280; // 38 minutes
+
+function togglePlayPause() {
+  const btn = document.getElementById('playPauseBtn');
+  const overlay = document.getElementById('videoTrialOverlay');
+  
+  if (isVideoPlaying) {
+    pauseVideo();
+  } else {
+    // If progress is at end, reset first
+    if (videoProgressPercent >= 100) {
+      videoProgressPercent = 0;
+      if (overlay) overlay.style.display = 'none';
+    }
+    
+    isVideoPlaying = true;
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    if (overlay) overlay.style.display = 'none';
+    showToast('▶️ 播放試看單元影片中...');
+
+    if (videoTimer) clearInterval(videoTimer);
+    videoTimer = setInterval(() => {
+      videoProgressPercent += 1.5;
+      if (videoProgressPercent >= 100) {
+        videoProgressPercent = 100;
+        updateVideoUI();
+        pauseVideo();
+        triggerTrialEndModal();
+      } else {
+        updateVideoUI();
+      }
+    }, 400);
+  }
+}
+
+function pauseVideo() {
+  isVideoPlaying = false;
+  if (videoTimer) clearInterval(videoTimer);
+  const btn = document.getElementById('playPauseBtn');
+  if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+}
+
+function updateVideoUI() {
+  const filledBar = document.getElementById('progressFilled');
+  const timeDisplay = document.getElementById('videoTimeDisplay');
+  
+  if (filledBar) filledBar.style.width = `${videoProgressPercent}%`;
+  
+  const currentSeconds = Math.round((videoProgressPercent / 100) * videoTotalDurationSeconds);
+  const currentMin = Math.floor(currentSeconds / 60);
+  const currentSec = currentSeconds % 60;
+  const formattedTime = `${currentMin.toString().padStart(2, '0')}:${currentSec.toString().padStart(2, '0')} / 38:00`;
+  
+  if (timeDisplay) timeDisplay.innerText = formattedTime;
+}
+
+function seekVideo(deltaSeconds) {
+  const deltaPercent = (deltaSeconds / videoTotalDurationSeconds) * 100;
+  videoProgressPercent = Math.max(0, Math.min(100, videoProgressPercent + deltaPercent));
+  updateVideoUI();
+  if (videoProgressPercent >= 100) {
+    pauseVideo();
+    triggerTrialEndModal();
+  } else {
+    showToast(`時間軸 ${deltaSeconds > 0 ? '+' : ''}${deltaSeconds} 秒 (${Math.round((videoProgressPercent/100)*videoTotalDurationSeconds/60)} 分鐘)`);
+  }
+}
+
+function handleProgressBarClick(e) {
+  const bar = document.getElementById('progressBar');
+  if (!bar) return;
+  const rect = bar.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const width = rect.width;
+  const percent = Math.max(0, Math.min(100, (clickX / width) * 100));
+  
+  videoProgressPercent = percent;
+  updateVideoUI();
+  
+  if (videoProgressPercent >= 100) {
+    pauseVideo();
+    triggerTrialEndModal();
+  }
+}
+
+function triggerTrialEndModal() {
+  pauseVideo();
+  const overlay = document.getElementById('videoTrialOverlay');
+  if (overlay) overlay.style.display = 'flex';
+  
+  const modal = document.getElementById('videoTrialEndModal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeTrialEndModal() {
+  const modal = document.getElementById('videoTrialEndModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function replayTrialVideo() {
+  closeTrialEndModal();
+  const overlay = document.getElementById('videoTrialOverlay');
+  if (overlay) overlay.style.display = 'none';
+  videoProgressPercent = 0;
+  updateVideoUI();
+  togglePlayPause();
+}
+
 function renderChapters() {
   const container = document.getElementById('chapterList');
   if (!container) return;
@@ -1149,6 +1260,10 @@ function renderChapters() {
 
 function selectLesson(chapTitle, lessonTitle) {
   document.getElementById('currentChapterTitle').innerText = lessonTitle;
+  videoProgressPercent = 15;
+  updateVideoUI();
+  const overlay = document.getElementById('videoTrialOverlay');
+  if (overlay) overlay.style.display = 'none';
   showToast(`切換至播放單元：${lessonTitle}`);
 }
 
