@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterEvents();
   setupTabEvents();
   initCarousel();
+  initCloudflareStreamEngine();
 
   // Initial Hash view or home
   const initialHash = location.hash.replace('#', '');
@@ -376,6 +377,10 @@ function switchView(viewId, pushHistory = true) {
 
   if (viewId === 'admin-dashboard') {
     renderAdminTables();
+  }
+  if (viewId === 'video-player') {
+    updateWatermarkText();
+    loadCloudflareStreamLesson(currentActiveLessonId);
   }
 }
 
@@ -1124,11 +1129,170 @@ function handleSaveMaterial(e) {
   closeUploadMaterialModal();
 }
 
-// Video Player Playback Simulator & Trial End Engine
+// Video Player Playback Simulator & Cloudflare Stream DRM Engine
 let isVideoPlaying = false;
 let videoProgressPercent = 38; // Initial demo timestamp (38% ~ 14:26)
 let videoTimer = null;
 const videoTotalDurationSeconds = 2280; // 38 minutes
+
+let currentStreamPlayerMode = 'cf-stream'; // 'cf-stream' or 'interactive'
+let currentActiveLessonId = '2-2';
+let watermarkTimer = null;
+
+// Initialize Anti-Screen-Capture Floating Watermark and Stream Engine
+function initCloudflareStreamEngine() {
+  updateWatermarkText();
+  startWatermarkAnimation();
+  setupAntiDownloadEvents();
+}
+
+function setupAntiDownloadEvents() {
+  const container = document.getElementById('videoContainer');
+  if (container) {
+    container.addEventListener('contextmenu', handleVideoRightClick);
+  }
+}
+
+function handleVideoRightClick(e) {
+  if (e) e.preventDefault();
+  showToast('🛡️ 本課程視訊受著作權保護，禁止右鍵與下載');
+  return false;
+}
+
+function updateWatermarkText() {
+  const elem = document.getElementById('watermarkUserText');
+  if (!elem) return;
+
+  const email = currentUser ? currentUser.email : 'student@skillsync.com';
+  elem.innerHTML = `練課室 SkillSync • 學員授權號: ${email}`;
+}
+
+function startWatermarkAnimation() {
+  if (watermarkTimer) clearInterval(watermarkTimer);
+  
+  const watermark = document.getElementById('videoSecurityWatermark');
+  if (!watermark) return;
+
+  watermarkTimer = setInterval(() => {
+    if (!cloudflareStreamConfig.drmWatermarkEnabled) {
+      watermark.style.display = 'none';
+      return;
+    }
+    watermark.style.display = 'block';
+    
+    // Randomize top (10% ~ 75%) and left (5% ~ 60%) to prevent screen recording crop
+    const randomTop = Math.floor(10 + Math.random() * 65);
+    const randomLeft = Math.floor(5 + Math.random() * 55);
+    
+    watermark.style.top = `${randomTop}%`;
+    watermark.style.left = `${randomLeft}%`;
+    watermark.style.opacity = (0.35 + Math.random() * 0.35).toFixed(2);
+  }, 6000);
+}
+
+// Switch between Cloudflare Stream Embed and Interactive Code View Mode
+function switchPlayerMode(mode) {
+  currentStreamPlayerMode = mode;
+  const cfBtn = document.getElementById('btnModeCfStream');
+  const codeBtn = document.getElementById('btnModeInteractive');
+  const cfWrapper = document.getElementById('cloudflareStreamWrapper');
+  const codeWrapper = document.getElementById('interactiveCodeWrapper');
+
+  if (mode === 'cf-stream') {
+    if (cfBtn) cfBtn.classList.add('active');
+    if (codeBtn) codeBtn.classList.remove('active');
+    if (cfWrapper) cfWrapper.style.display = 'block';
+    if (codeWrapper) codeWrapper.style.display = 'none';
+    showToast('📺 已切換為 4K 高畫質視訊播放器');
+  } else {
+    if (codeBtn) codeBtn.classList.add('active');
+    if (cfBtn) cfBtn.classList.remove('active');
+    if (cfWrapper) cfWrapper.style.display = 'none';
+    if (codeWrapper) codeWrapper.style.display = 'flex';
+    showToast('💻 已切換為講師專題對照模式');
+  }
+}
+
+// Cloudflare Stream Signed JWT Token Generator Simulation
+function generateCloudflareSignedToken(streamId, user) {
+  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const payload = btoa(JSON.stringify({
+    sub: streamId,
+    kid: cloudflareStreamConfig.signingKeyId,
+    exp: Math.floor(Date.now() / 1000) + 3600, // 1 Hour Expiration
+    nbf: Math.floor(Date.now() / 1000) - 60,
+    user_email: user ? user.email : 'guest@skillsync.com',
+    allowed_origins: cloudflareStreamConfig.allowedOrigins,
+    access_level: "paid_student"
+  }));
+  const signature = btoa("cf_stream_signed_rsa_signature_" + Math.random().toString(36).substring(2, 10));
+  return `${header}.${payload}.${signature}`;
+}
+
+// Load Cloudflare Stream Lesson with Entitlement Verification
+function loadCloudflareStreamLesson(lessonId) {
+  currentActiveLessonId = lessonId;
+  
+  let targetLesson = null;
+  let targetChapTitle = '';
+
+  for (const chap of mockChapters) {
+    const found = chap.lessons.find(l => l.id === lessonId);
+    if (found) {
+      targetLesson = found;
+      targetChapTitle = chap.title;
+      break;
+    }
+  }
+
+  if (!targetLesson) return;
+
+  // Update Active State in mockChapters
+  mockChapters.forEach(chap => {
+    chap.lessons.forEach(l => {
+      l.active = (l.id === lessonId);
+    });
+  });
+
+  renderChapters();
+  updateWatermarkText();
+
+  const currentTitleElem = document.getElementById('currentChapterTitle');
+  if (currentTitleElem) currentTitleElem.innerText = targetLesson.title;
+
+  const overlay = document.getElementById('videoTrialOverlay');
+
+  // Check student entitlement: Manager, Staff, Instructor OR Student with purchased course OR trial allowed
+  const isUserVIP = currentUser && (currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor');
+  const isPaidStudent = currentUser && currentUser.purchasedCourses && currentUser.purchasedCourses.includes('course-1');
+  const isUnlocked = isUserVIP || isPaidStudent;
+
+  if (isUnlocked || targetLesson.isTrialAllowed) {
+    if (overlay) overlay.style.display = 'none';
+
+    // Generate Cloudflare Stream Signed Token
+    const signedToken = cloudflareStreamConfig.requireSignedTokens 
+      ? generateCloudflareSignedToken(targetLesson.streamId, currentUser)
+      : targetLesson.streamId;
+
+    const iframe = document.getElementById('cfStreamIframe');
+    if (iframe) {
+      const posterUrl = encodeURIComponent("https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80");
+      iframe.src = `https://${cloudflareStreamConfig.customerSubdomain}/${signedToken}/iframe?poster=${posterUrl}&autoplay=false&preload=true&primaryColor=%238b5cf6`;
+    }
+
+    if (isUnlocked) {
+      showToast(`▶️ 已解鎖觀看單元：${targetLesson.title}`);
+    } else {
+      showToast(`▶️ 正在觀看免費試看單元：${targetLesson.title}`);
+    }
+  } else {
+    // Unpaid student clicked locked chapter
+    if (overlay) overlay.style.display = 'flex';
+    triggerTrialEndModal();
+    showToast(`🔒 本單元為付費限定！請完成報名解鎖觀看。`);
+  }
+}
 
 function togglePlayPause() {
   const btn = document.getElementById('playPauseBtn');
@@ -1146,7 +1310,7 @@ function togglePlayPause() {
     isVideoPlaying = true;
     if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
     if (overlay) overlay.style.display = 'none';
-    showToast('▶️ 播放試看單元影片中...');
+    showToast('▶️ 播放影片中...');
 
     if (videoTimer) clearInterval(videoTimer);
     videoTimer = setInterval(() => {
@@ -1245,10 +1409,11 @@ function renderChapters() {
       <div class="chapter-title-bar">${chap.title} (${chap.duration})</div>
       <div class="lessons-list">
         ${chap.lessons.map(l => `
-          <div class="lesson-item ${l.active ? 'active' : ''}" onclick="selectLesson('${chap.title}', '${l.title}')">
+          <div class="lesson-item ${l.active ? 'active' : ''}" onclick="selectLesson('${chap.title}', '${l.title}', '${l.id}')">
             <span>
               <i class="fa-regular ${l.completed ? 'fa-circle-check text-green' : 'fa-circle-play'}"></i> 
               ${l.title}
+              ${l.isTrialAllowed ? '<span class="badge-tag bg-purple text-xs margin-left-xs">免費試看</span>' : '<i class="fa-solid fa-lock text-xs text-pink margin-left-xs" title="付費解鎖"></i>'}
             </span>
             <span class="text-sm">${l.active ? '播放中' : ''}</span>
           </div>
@@ -1258,13 +1423,77 @@ function renderChapters() {
   `).join('');
 }
 
-function selectLesson(chapTitle, lessonTitle) {
-  document.getElementById('currentChapterTitle').innerText = lessonTitle;
-  videoProgressPercent = 15;
-  updateVideoUI();
-  const overlay = document.getElementById('videoTrialOverlay');
-  if (overlay) overlay.style.display = 'none';
-  showToast(`切換至播放單元：${lessonTitle}`);
+function selectLesson(chapTitle, lessonTitle, lessonId) {
+  if (lessonId) {
+    loadCloudflareStreamLesson(lessonId);
+  } else {
+    document.getElementById('currentChapterTitle').innerText = lessonTitle;
+    videoProgressPercent = 15;
+    updateVideoUI();
+    const overlay = document.getElementById('videoTrialOverlay');
+    if (overlay) overlay.style.display = 'none';
+    showToast(`切換至播放單元：${lessonTitle}`);
+  }
+}
+
+// Cloudflare Stream CMS Configuration Modal Handlers
+function openCloudflareStreamModal() {
+  document.getElementById('cfInputAccountId').value = cloudflareStreamConfig.accountId;
+  document.getElementById('cfInputSubdomain').value = cloudflareStreamConfig.customerSubdomain;
+  document.getElementById('cfInputRequireToken').value = cloudflareStreamConfig.requireSignedTokens ? "true" : "false";
+  document.getElementById('cfInputDrmWatermark').value = cloudflareStreamConfig.drmWatermarkEnabled ? "true" : "false";
+  
+  let activeLesson = null;
+  for (const c of mockChapters) {
+    const f = c.lessons.find(l => l.active || l.id === currentActiveLessonId);
+    if (f) { activeLesson = f; break; }
+  }
+  if (activeLesson) {
+    document.getElementById('cfInputCurrentLessonStreamId').value = activeLesson.streamId;
+  }
+  
+  document.getElementById('cloudflareStreamModal').classList.add('active');
+}
+
+function closeCloudflareStreamModal() {
+  document.getElementById('cloudflareStreamModal').classList.remove('active');
+}
+
+function handleSaveCloudflareConfig(e) {
+  e.preventDefault();
+  
+  cloudflareStreamConfig.accountId = document.getElementById('cfInputAccountId').value.trim();
+  cloudflareStreamConfig.customerSubdomain = document.getElementById('cfInputSubdomain').value.trim();
+  cloudflareStreamConfig.requireSignedTokens = (document.getElementById('cfInputRequireToken').value === "true");
+  cloudflareStreamConfig.drmWatermarkEnabled = (document.getElementById('cfInputDrmWatermark').value === "true");
+
+  const newStreamId = document.getElementById('cfInputCurrentLessonStreamId').value.trim();
+  
+  // Update streamId for current active lesson
+  mockChapters.forEach(chap => {
+    chap.lessons.forEach(l => {
+      if (l.id === currentActiveLessonId || l.active) {
+        l.streamId = newStreamId;
+      }
+    });
+  });
+
+  closeCloudflareStreamModal();
+  startWatermarkAnimation();
+  loadCloudflareStreamLesson(currentActiveLessonId);
+  showToast(`✅ Cloudflare Stream 資安串接與防下載設定已成功更新！`);
+}
+
+function generateDemoStreamToken() {
+  const streamId = document.getElementById('cfInputCurrentLessonStreamId').value.trim() || 'fc38d9982a1740d7a0491823901bc093';
+  const token = generateCloudflareSignedToken(streamId, currentUser);
+  
+  const output = document.getElementById('cfTokenOutputText');
+  if (output) {
+    output.style.display = 'block';
+    output.innerText = `🔑 JWT Signed Token:\n${token}`;
+  }
+  showToast('🔑 測試 Signed JWT Token 已即時生成成功！');
 }
 
 function setupTabEvents() {

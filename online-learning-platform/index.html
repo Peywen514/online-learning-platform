@@ -570,30 +570,61 @@
           <!-- Left: Video Player & Controls -->
           <div class="video-main-column">
             <div class="player-wrapper">
-              <div class="video-screen-mock" id="videoContainer">
+              <div class="video-screen-mock" id="videoContainer" oncontextmenu="return handleVideoRightClick(event)">
                 <div class="video-overlay-badge">
-                  <span class="live-tag"><i class="fa-solid fa-play"></i> 4K 錄播單元</span>
+                  <span class="live-tag" id="cfDrmBadge"><i class="fa-solid fa-circle-play text-cyan"></i> 4K 高畫質錄播</span>
                   <span id="currentChapterTitle">第 2 章：Full-Stack React & AI 專案架構拆解</span>
-                </div>
-                <!-- Video Mock Element -->
-                <div class="video-content-display" id="videoContentDisplay">
-                  <div class="code-editor-preview">
-                    <div class="code-line"><span class="c-keyword">import</span> React, { useState, useEffect } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;</div>
-                    <div class="code-line"><span class="c-keyword">import</span> { SkillSyncAI } <span class="c-keyword">from</span> <span class="c-string">'@skillsync/ai-sdk'</span>;</div>
-                    <div class="code-line">&nbsp;</div>
-                    <div class="code-line"><span class="c-comment">// 張哲銘 講師範例：AI 智慧課程輔導模組</span></div>
-                    <div class="code-line"><span class="c-keyword">export default function</span> <span class="c-func">LearningDashboard</span>() {</div>
-                    <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">const</span> [chapter, setChapter] = <span class="c-func">useState</span>(<span class="c-string">'AI Agent Deployment'</span>);</div>
-                    <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">return</span> (</div>
-                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">div</span> className=<span class="c-string">"classroom-container"</span>&gt;</div>
-                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;實用小班 1-on-1 個教作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
-                    <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="c-tag">div</span>&gt;</div>
-                    <div class="code-line">&nbsp;&nbsp;);</div>
-                    <div class="code-line">}</div>
+                  
+                  <!-- Player Source Mode Switcher Pills -->
+                  <div class="player-mode-pills" style="margin-left: auto; display: flex; gap: 0.3rem;">
+                    <button class="mode-pill active" id="btnModeCfStream" onclick="switchPlayerMode('cf-stream')">
+                      <i class="fa-solid fa-play"></i> 視訊播放
+                    </button>
+                    <button class="mode-pill" id="btnModeInteractive" onclick="switchPlayerMode('interactive')">
+                      <i class="fa-solid fa-laptop-code"></i> 專題簡報
+                    </button>
                   </div>
-                  <div class="instructor-cam-pip">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
-                    <span class="pip-name">張哲銘 講師</span>
+                </div>
+
+                <!-- Video Content Display Engine -->
+                <div class="video-content-display" id="videoContentDisplay">
+                  
+                  <!-- Cloudflare Stream Embedded Secure Iframe Player -->
+                  <div id="cloudflareStreamWrapper" class="cf-stream-wrapper" style="display: block;">
+                    <iframe 
+                      id="cfStreamIframe"
+                      src="https://customer-88nzk2.cloudflarestream.com/fc38d9982a1740d7a0491823901bc093/iframe?poster=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1555066931-4365d14bab8c%3Fauto%3Dformat%26fit%3Dcrop%26w%3D1200%26q%3D80&autoplay=false&preload=true&primaryColor=%238b5cf6"
+                      title="練課室 SkillSync — 4K 高畫質視訊單元"
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                      allowfullscreen="true"
+                    ></iframe>
+                  </div>
+
+                  <!-- Fallback / Interactive Code Preview Engine -->
+                  <div id="interactiveCodeWrapper" class="interactive-code-wrapper" style="display: none;">
+                    <div class="code-editor-preview">
+                      <div class="code-line"><span class="c-keyword">import</span> React, { useState, useEffect } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;</div>
+                      <div class="code-line"><span class="c-keyword">import</span> { SkillSyncAI } <span class="c-keyword">from</span> <span class="c-string">'@skillsync/ai-sdk'</span>;</div>
+                      <div class="code-line">&nbsp;</div>
+                      <div class="code-line"><span class="c-comment">// 張哲銘 講師範例：AI 智慧課程輔導模組</span></div>
+                      <div class="code-line"><span class="c-keyword">export default function</span> <span class="c-func">LearningDashboard</span>() {</div>
+                      <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">const</span> [chapter, setChapter] = <span class="c-func">useState</span>(<span class="c-string">'AI Agent Deployment'</span>);</div>
+                      <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">return</span> (</div>
+                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">div</span> className=<span class="c-string">"classroom-container"</span>&gt;</div>
+                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;實用小班 1-on-1 個教作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
+                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="c-tag">div</span>&gt;</div>
+                      <div class="code-line">&nbsp;&nbsp;);</div>
+                      <div class="code-line">}</div>
+                    </div>
+                    <div class="instructor-cam-pip">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="張哲銘 講師">
+                      <span class="pip-name">張哲銘 講師</span>
+                    </div>
+                  </div>
+
+                  <!-- Dynamic Security Anti-Screen Recording Watermark Layer -->
+                  <div id="videoSecurityWatermark" class="security-watermark-overlay">
+                    <span id="watermarkUserText">練課室 SkillSync • 學員授權: student@skillsync.com</span>
                   </div>
 
                   <!-- Video Trial Ended Overlay Banner inside player -->
@@ -627,6 +658,9 @@
                       <span class="time-display" id="videoTimeDisplay">14:26 / 38:00</span>
                     </div>
                     <div class="controls-right">
+                      <button class="ctrl-btn pill-btn staff-manager-btn" onclick="openCloudflareStreamModal()" style="display: none;">
+                        <i class="fa-solid fa-gear text-cyan"></i> ⚙️ 錄播視訊與串接設定
+                      </button>
                       <button class="ctrl-btn pill-btn highlight" onclick="triggerTrialEndModal()" title="試看結束彈窗展示">
                         <i class="fa-solid fa-lock text-pink"></i> 試看結束彈窗
                       </button>
@@ -2141,6 +2175,72 @@
             <i class="fa-solid fa-rotate-left"></i> 重新播放試看片段
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 14: Cloudflare Stream Security & Integration Configuration (Manager & Staff CMS) -->
+  <div id="cloudflareStreamModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 680px;">
+      <button class="modal-close" onclick="closeCloudflareStreamModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-cloud-arrow-up text-cyan"></i> Cloudflare Stream 影片串接與防下載 DRM 設定</h3>
+        <p class="text-xs text-muted margin-top-xs">👑 專屬 Wen總監與營運團隊設定：管理影片 Secure Token 驗證、動態浮水印與單元 Cloudflare Stream ID</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveCloudflareConfig(event)">
+          
+          <div style="background: rgba(14, 165, 233, 0.1); border-left: 4px solid var(--accent-cyan); padding: 0.85rem; border-radius: 4px; margin-bottom: 1rem;" class="text-xs">
+            <strong>🛡️ 防影片被下載 4 重防護機制：</strong><br>
+            1. <strong>Dynamic HLS Bitrate 串流：</strong> 影片切分為小片段傳送，傳統下載軟體無法獲取完整原始 MP4 檔。<br>
+            2. <strong>Cloudflare Signed Tokens (JWT 簽名權限)：</strong> 僅限經系統驗證付費學員自動生成 1 小時動態簽名密碼匙，無法複製分享 URL。<br>
+            3. <strong>網域與 Origin 綁定：</strong> 限制影片僅能在 <code>peywen514.github.io</code> / <code>skillsync.com</code> 播放。<br>
+            4. <strong>學員身份動態浮水印 (Watermark)：</strong> 螢幕動態飄移顯示學員姓名、Email 與 IP，防止軟體側錄/側拍。
+          </div>
+
+          <div class="grid grid-2 gap-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-key text-yellow"></i> Cloudflare Account ID</label>
+              <input type="text" id="cfInputAccountId" class="form-control text-sm" value="c6a2e87901fb4a88bc345123456789ab" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-globe text-purple"></i> Customer Subdomain</label>
+              <input type="text" id="cfInputSubdomain" class="form-control text-sm" value="customer-88nzk2.cloudflarestream.com" required>
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-shield-cat text-pink"></i> Signed Token 驗證模式</label>
+              <select id="cfInputRequireToken" class="form-control text-sm">
+                <option value="true">✅ 開啟 (僅付費解鎖學員可取得 JWT Token)</option>
+                <option value="false">❌ 關閉 (公開直播模式/測試)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-fingerprint text-green"></i> 螢幕動態防側錄浮水印</label>
+              <select id="cfInputDrmWatermark" class="form-control text-sm">
+                <option value="true">✅ 啟用 (隨機飄移學員姓名/Email/IP)</option>
+                <option value="false">❌ 關閉</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-list-check text-cyan"></i> 當前觀看單元 Cloudflare Stream Video ID</label>
+            <div style="display:flex; gap:0.5rem;">
+              <input type="text" id="cfInputCurrentLessonStreamId" class="form-control text-sm" value="fc38d9982a1740d7a0491823901bc093" placeholder="例如: 5d5ba37905d088d80097030722b813f2" required>
+              <button type="button" class="btn btn-outline btn-sm" onclick="generateDemoStreamToken()" style="white-space:nowrap;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 測試簽名 Token
+              </button>
+            </div>
+            <div id="cfTokenOutputText" class="text-xs text-cyan margin-top-xs" style="word-break:break-all; font-family:monospace; display:none;"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存 Cloudflare Stream 資安串接設定
+          </button>
+        </form>
       </div>
     </div>
   </div>

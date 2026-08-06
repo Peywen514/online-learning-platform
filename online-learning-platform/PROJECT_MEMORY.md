@@ -26,6 +26,12 @@
   - **去電商化用語（購物車 ➔ 報名結帳 / 專屬開通）**：頂端導覽列將原「購物車」升級改稱為「報名結帳」，避免平價電商感，並串接學員對接小編後的「確認報名結帳與專屬權限開通」金流頁面，支援信用卡、ATM 銀行轉帳、LINE Pay 與無卡分期。
   - **👑 總監與員工專屬客製化報價系統 (Custom Quotation CMS)**：小編在 Line@ 或網頁表單與學員對接討論後，**Wen總監 (Manager)** 或 **李專案經理 (Staff)** 可直接於後台「🏷️ 學員客製化金額與課程修改」中，為指定學員發放專屬折扣金額（如 NT$ 10,880）與自訂課程方案名稱。學員於前台點擊「報名結帳」時，系統即時讀取並呈現該學員的專屬金額與方案名稱進行結帳。
   - **🎬 錄播試看結束彈窗 (Trial Ended Modal) 轉化機制**：因應後續與合作夥伴網站（完整看課影片與金流串接）結合之戰略，於【錄播學習中心】播放試看影片結束時，系統自動觸發「試看結束彈窗」HTML 結構 (`#videoTrialEndModal`)，呈現 **「喜歡相關課程嗎？立即解鎖其他課程」** 核心引導文案，將「解鎖其他課程」按鈕精準連結至合作夥伴金流課程購買網址 (`https://rbur2v-zz.myshopify.com/`)，並保留加 Line@ 洽小編領優惠、填寫客製化問卷與重新播放等功能。
+  - **🛡️ ☁️ Cloudflare Stream 視訊串接與防下載 DRM 4 重安全防禦架構**：
+    1. **Dynamic HLS Bitrate 串流**：影片不以 MP4 單一檔案暴露，而是切分為 `.m3u8` 與 `.ts` 動態碎片傳送，徹底阻斷一般瀏覽器外掛與簡單下載器下載。
+    2. **Cloudflare Signed Tokens (JWT 簽名權限驗證)**：開啟 `requireSignedURLs: true`，後端為登入且已報名付費學員簽發 1 小時動態 JWT Token，防止分享/外流影片連結。非付費學員僅能觀看特定免費試看單元，非試看單元自動觸發 `#videoTrialOverlay` 與解鎖彈窗。
+    3. **網域來源限制 (Domain / Origin Whitelist)**：於 Cloudflare Stream 設定 `Allowed Origins`（如 `peywen514.github.io` 與 `skillsync.com`），禁止其他人以 iframe 嵌入盜連。
+    4. **學員身份動態防側錄浮水印 (Dynamic Watermark)**：前台畫面去除「CF防盜/DRM」等硬核技術字眼，僅呈現優雅專業的學員授權資訊（如 `練課室 SkillSync • 學員授權號: student@skillsync.com`），每 6 秒優雅隨機飄移，防軟體側錄/側拍，同時給予學員極佳觀課體驗。
+    5. **Wen總監與員工專屬錄播串接控管面板**：後台提供 `openCloudflareStreamModal()` 視窗，可設定 Account ID、Subdomain、JWT Token 驗證開關、動態浮水印開關與各單元 Cloudflare Stream Video ID。
 
 ---
 

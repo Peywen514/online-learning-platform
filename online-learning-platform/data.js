@@ -243,14 +243,39 @@ let mockInstructors = [
   }
 ];
 
+let cloudflareStreamConfig = {
+  accountId: "c6a2e87901fb4a88bc345123456789ab",
+  customerSubdomain: "customer-88nzk2.cloudflarestream.com",
+  requireSignedTokens: true,
+  allowedOrigins: ["peywen514.github.io", "skillsync.com", "localhost"],
+  drmWatermarkEnabled: true,
+  watermarkOpacity: 0.65,
+  hlsEncryption: "AES-128 / Dynamic HLS Bitrate",
+  signingKeyId: "key-cf-stream-skillsync-2026"
+};
+
 let mockChapters = [
   {
     id: 1,
     title: "第 1 章：專案環境建置與現代前端趨勢",
     duration: "45 分鐘",
     lessons: [
-      { id: "1-1", title: "1-1 開發環境準備與 VS Code 神級 Extension", completed: true },
-      { id: "1-2", title: "1-2 Git / GitHub 團隊協作與個教作業繳交流程", completed: true }
+      { 
+        id: "1-1", 
+        title: "1-1 開發環境準備與 VS Code 神級 Extension", 
+        completed: true,
+        streamId: "5d5ba37905d088d80097030722b813f2",
+        isTrialAllowed: true,
+        durationSeconds: 900
+      },
+      { 
+        id: "1-2", 
+        title: "1-2 Git / GitHub 團隊協作與個教作業繳交流程", 
+        completed: true,
+        streamId: "b67c489721ad43209887711aa6768892",
+        isTrialAllowed: false,
+        durationSeconds: 1800
+      }
     ]
   },
   {
@@ -258,9 +283,31 @@ let mockChapters = [
     title: "第 2 章：Full-Stack React & AI 專案架構拆解",
     duration: "65 分鐘",
     lessons: [
-      { id: "2-1", title: "2-1 React 19 新特性與 Component 設計哲學", completed: true },
-      { id: "2-2", title: "2-2 LLM API 串接與 Server-Sent Events (SSE)", completed: false, active: true },
-      { id: "2-3", title: "2-3 【作業】建立第一個 AI 對話模組與 Error 處理", completed: false }
+      { 
+        id: "2-1", 
+        title: "2-1 React 19 新特性與 Component 設計哲學", 
+        completed: true,
+        streamId: "fc38d9982a1740d7a0491823901bc093",
+        isTrialAllowed: true,
+        durationSeconds: 1500
+      },
+      { 
+        id: "2-2", 
+        title: "2-2 LLM API 串接與 Server-Sent Events (SSE)", 
+        completed: false, 
+        active: true,
+        streamId: "729486c91a0248888bf402a7b189872e",
+        isTrialAllowed: false,
+        durationSeconds: 2280
+      },
+      { 
+        id: "2-3", 
+        title: "2-3 【作業】建立第一個 AI 對話模組與 Error 處理", 
+        completed: false,
+        streamId: "9a1829bc8310495ea721980012bc4410",
+        isTrialAllowed: false,
+        durationSeconds: 1200
+      }
     ]
   },
   {
@@ -268,8 +315,22 @@ let mockChapters = [
     title: "第 3 章：1-on-1 個教 Code Review 實戰微調",
     duration: "40 分鐘",
     lessons: [
-      { id: "3-1", title: "3-1 講師帶你審視性能瓶頸 (Re-render 優化)", completed: false },
-      { id: "3-2", title: "3-2 部署至 Vercel / Cloudflare 並設定 Domain", completed: false }
+      { 
+        id: "3-1", 
+        title: "3-1 講師帶你審視性能瓶頸 (Re-render 優化)", 
+        completed: false,
+        streamId: "e4418a09bcae412398457788102947a1",
+        isTrialAllowed: false,
+        durationSeconds: 1200
+      },
+      { 
+        id: "3-2", 
+        title: "3-2 部署至 Vercel / Cloudflare 並設定 Domain", 
+        completed: false,
+        streamId: "fa90812bc81047712a55981245671190",
+        isTrialAllowed: false,
+        durationSeconds: 1200
+      }
     ]
   }
 ];
