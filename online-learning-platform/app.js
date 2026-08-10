@@ -1164,7 +1164,7 @@ function updateWatermarkText() {
   if (!elem) return;
 
   const email = currentUser ? currentUser.email : 'student@skillsync.com';
-  elem.innerHTML = `練課室 SkillSync • 學員授權號: ${email}`;
+  elem.innerHTML = `精五門 SkillSync • 學員授權號: ${email}`;
 }
 
 function startWatermarkAnimation() {
