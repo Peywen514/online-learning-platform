@@ -2258,5 +2258,59 @@
 
   <script src="data.js?v=20260723_v2"></script>
   <script src="app.js?v=20260723_v2"></script>
+  ```javascript
+// ==========================================
+// 🔒 幹部 / 員工真資安登入防護系統
+// ==========================================
+
+// 1. 設定幹部管理員授權密碼 (可隨時修改)
+const STAFF\_SECRET\_KEY = "Admin168"; 
+
+// 2. 檢查 Session 是否已經登入
+function isStaffAuthenticated() {
+  return sessionStorage.getItem("is\_staff\_logged\_in") === "true";
+}
+
+// 3. 幹部登入驗證處理
+function handleStaffLogin() {
+  // 如果已經登入過，直接開啟後台視圖
+  if (isStaffAuthenticated()) {
+    showAdminDashboard();
+    return;
+  }
+
+  // 彈出密碼輸入框
+  const password = prompt("🔒 這是幹部員工限定區域，請輸入管理員授權密碼：");
+  
+  if (password === STAFF\_SECRET\_KEY) {
+    sessionStorage.setItem("is\_staff\_logged\_in", "true");
+    alert("✅ 驗證成功！歡迎進入幹部管理後台。");
+    showAdminDashboard();
+  } else if (password !== null) {
+    alert("❌ 密碼錯誤！您沒有存取該區域的權限。");
+  }
+}
+
+// 4. 顯示後台區域
+function showAdminDashboard() {
+  const adminNav = document.getElementById("navAdminLink");
+  const businessNav = document.getElementById("navBusinessPlanLink");
+  
+  if (adminNav) adminNav.style.display = "inline-flex";
+  if (businessNav) businessNav.style.display = "inline-flex";
+
+  // 切換至後台管理畫面
+  if (typeof switchView === "function") {
+    switchView('admin-dashboard');
+  }
+}
+
+// 5. 幹部登出機制
+function handleStaffLogout() {
+  sessionStorage.removeItem("is\_staff\_logged\_in");
+  alert("已安全登出幹部權限。");
+  location.reload();
+}
+
 </body>
 </html>
