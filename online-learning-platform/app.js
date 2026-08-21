@@ -1,9 +1,9 @@
-// SkillSync Application Logic & Secure Account Auth Engine
+// PentaSkill Application Logic & Secure Account Auth Engine
 
 // Init Session from LocalStorage if available so refreshing page maintains login state
 let savedUserJson = null;
 try {
-  savedUserJson = localStorage.getItem('skillsync_user');
+  savedUserJson = localStorage.getItem('pentaskill_user');
 } catch (err) {}
 
 let currentUser = mockUsers[0]; // Default to Wen總監
@@ -256,7 +256,7 @@ function handleLoginSubmit(e) {
   if (matchedUser) {
     currentUser = matchedUser;
     try {
-      localStorage.setItem('skillsync_user', JSON.stringify(currentUser));
+      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
     } catch(err) {}
     closeLoginModal();
     renderAuthArea();
@@ -279,7 +279,7 @@ function handleLoginSubmit(e) {
 
 function handleLogout() {
   try {
-    localStorage.removeItem('skillsync_user');
+    localStorage.removeItem('pentaskill_user');
   } catch(err) {}
   currentUser = mockUsers[2]; // Reset to student
   renderAuthArea();
@@ -379,7 +379,6 @@ function switchView(viewId, pushHistory = true) {
     renderAdminTables();
   }
   if (viewId === 'video-player') {
-    updateWatermarkText();
     loadCloudflareStreamLesson(currentActiveLessonId);
   }
 }
@@ -691,7 +690,7 @@ function exportFinanceReport() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "SkillSync_202607_Mentor_Salary_Report.csv");
+  link.setAttribute("download", "PentaSkill_202607_Mentor_Salary_Report.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1137,12 +1136,9 @@ const videoTotalDurationSeconds = 2280; // 38 minutes
 
 let currentStreamPlayerMode = 'cf-stream'; // 'cf-stream' or 'interactive'
 let currentActiveLessonId = '2-2';
-let watermarkTimer = null;
 
-// Initialize Anti-Screen-Capture Floating Watermark and Stream Engine
+// Initialize Cloudflare Stream Engine
 function initCloudflareStreamEngine() {
-  updateWatermarkText();
-  startWatermarkAnimation();
   setupAntiDownloadEvents();
 }
 
@@ -1157,37 +1153,6 @@ function handleVideoRightClick(e) {
   if (e) e.preventDefault();
   showToast('🛡️ 本課程視訊受著作權保護，禁止右鍵與下載');
   return false;
-}
-
-function updateWatermarkText() {
-  const elem = document.getElementById('watermarkUserText');
-  if (!elem) return;
-
-  const email = currentUser ? currentUser.email : 'student@skillsync.com';
-  elem.innerHTML = `精五門 SkillSync • 學員授權號: ${email}`;
-}
-
-function startWatermarkAnimation() {
-  if (watermarkTimer) clearInterval(watermarkTimer);
-  
-  const watermark = document.getElementById('videoSecurityWatermark');
-  if (!watermark) return;
-
-  watermarkTimer = setInterval(() => {
-    if (!cloudflareStreamConfig.drmWatermarkEnabled) {
-      watermark.style.display = 'none';
-      return;
-    }
-    watermark.style.display = 'block';
-    
-    // Randomize top (10% ~ 75%) and left (5% ~ 60%) to prevent screen recording crop
-    const randomTop = Math.floor(10 + Math.random() * 65);
-    const randomLeft = Math.floor(5 + Math.random() * 55);
-    
-    watermark.style.top = `${randomTop}%`;
-    watermark.style.left = `${randomLeft}%`;
-    watermark.style.opacity = (0.35 + Math.random() * 0.35).toFixed(2);
-  }, 6000);
 }
 
 // Switch between Cloudflare Stream Embed and Interactive Code View Mode
@@ -1221,7 +1186,7 @@ function generateCloudflareSignedToken(streamId, user) {
     kid: cloudflareStreamConfig.signingKeyId,
     exp: Math.floor(Date.now() / 1000) + 3600, // 1 Hour Expiration
     nbf: Math.floor(Date.now() / 1000) - 60,
-    user_email: user ? user.email : 'guest@skillsync.com',
+    user_email: user ? user.email : 'guest@pentaskill.com',
     allowed_origins: cloudflareStreamConfig.allowedOrigins,
     access_level: "paid_student"
   }));
@@ -1255,7 +1220,6 @@ function loadCloudflareStreamLesson(lessonId) {
   });
 
   renderChapters();
-  updateWatermarkText();
 
   const currentTitleElem = document.getElementById('currentChapterTitle');
   if (currentTitleElem) currentTitleElem.innerText = targetLesson.title;
@@ -1441,7 +1405,6 @@ function openCloudflareStreamModal() {
   document.getElementById('cfInputAccountId').value = cloudflareStreamConfig.accountId;
   document.getElementById('cfInputSubdomain').value = cloudflareStreamConfig.customerSubdomain;
   document.getElementById('cfInputRequireToken').value = cloudflareStreamConfig.requireSignedTokens ? "true" : "false";
-  document.getElementById('cfInputDrmWatermark').value = cloudflareStreamConfig.drmWatermarkEnabled ? "true" : "false";
   
   let activeLesson = null;
   for (const c of mockChapters) {
@@ -1465,7 +1428,6 @@ function handleSaveCloudflareConfig(e) {
   cloudflareStreamConfig.accountId = document.getElementById('cfInputAccountId').value.trim();
   cloudflareStreamConfig.customerSubdomain = document.getElementById('cfInputSubdomain').value.trim();
   cloudflareStreamConfig.requireSignedTokens = (document.getElementById('cfInputRequireToken').value === "true");
-  cloudflareStreamConfig.drmWatermarkEnabled = (document.getElementById('cfInputDrmWatermark').value === "true");
 
   const newStreamId = document.getElementById('cfInputCurrentLessonStreamId').value.trim();
   
@@ -1479,7 +1441,6 @@ function handleSaveCloudflareConfig(e) {
   });
 
   closeCloudflareStreamModal();
-  startWatermarkAnimation();
   loadCloudflareStreamLesson(currentActiveLessonId);
   showToast(`✅ Cloudflare Stream 資安串接與防下載設定已成功更新！`);
 }
@@ -1722,7 +1683,7 @@ function handleBooking(e) {
     id: `bk-${Date.now().toString().slice(-4)}`,
     instructor: inst,
     studentName: currentUser ? currentUser.name : "林小明",
-    studentEmail: currentUser ? currentUser.email : "student@skillsync.com",
+    studentEmail: currentUser ? currentUser.email : "student@pentaskill.com",
     date: date,
     slotTime: slotTimeText,
     topic: topic,
@@ -1940,7 +1901,7 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
       <div style="text-align: center; margin-top: 1rem;">
         <div class="text-xs text-muted margin-bottom-xs">官方 Line@ 帳號專人即時服務：</div>
         <div class="line-id-chip">
-          <i class="fa-brands fa-line"></i> LINE ID: @SkillSync
+          <i class="fa-brands fa-line"></i> LINE ID: @PentaSkill
         </div>
       </div>
     </div>
@@ -1965,9 +1926,9 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
 
 function handleJoinLineAt(courseName) {
   try {
-    navigator.clipboard.writeText('@SkillSync');
+    navigator.clipboard.writeText('@PentaSkill');
   } catch(e) {}
-  showToast(`🟢 已複製官方 LINE ID: @SkillSync！請開啟 LINE 貼上搜尋，小編將為您解鎖【${courseName}】專屬優惠與 1 對 1 諮詢！`);
+  showToast(`🟢 已複製官方 LINE ID: @PentaSkill！請開啟 LINE 貼上搜尋，小編將為您解鎖【${courseName}】專屬優惠與 1 對 1 諮詢！`);
 }
 
 // Lead Form Modal Engine (無 LINE / 偏好網頁留訊專用)
@@ -2027,7 +1988,7 @@ function handleLeadFormSubmit(e) {
 
   mockLeads.unshift(newLead);
   try {
-    localStorage.setItem('skillsync_leads', JSON.stringify(mockLeads));
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
   } catch (err) {}
 
   closeLeadFormModal();
@@ -2104,7 +2065,7 @@ function openCheckoutModal(courseId, type) {
   const course = mockCourses.find(c => c.id === courseId) || mockCourses[0];
   if (!course) return;
 
-  const userEmail = currentUser ? currentUser.email : 'student@skillsync.com';
+  const userEmail = currentUser ? currentUser.email : 'student@pentaskill.com';
   const customQuote = mockCustomQuotes.find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
 
   const isCombo = type === 'combo';
@@ -2169,7 +2130,7 @@ function openCheckoutModal(courseId, type) {
 // Student Custom Quotation Management Engine (Manager & Staff CMS)
 function openAddQuoteModal() {
   document.getElementById('editQuoteId').value = '';
-  document.getElementById('inputQuoteStudentEmail').value = 'student@skillsync.com';
+  document.getElementById('inputQuoteStudentEmail').value = 'student@pentaskill.com';
   document.getElementById('inputQuoteStudentName').value = '林小明 (學員)';
   document.getElementById('inputQuoteCourseTitle').value = 'AI 驅動 Full-Stack 開發實戰營 (👑 專屬對接 85 折優惠包)';
   document.getElementById('inputQuotePrice').value = '10880';
@@ -2234,7 +2195,7 @@ function handleSaveCustomQuote(e) {
   }
 
   try {
-    localStorage.setItem('skillsync_custom_quotes', JSON.stringify(mockCustomQuotes));
+    localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
   } catch(err) {}
 
   closeCustomQuoteModal();

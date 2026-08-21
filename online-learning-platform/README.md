@@ -1,4 +1,4 @@
-# 🚀 精五門 SkillSync — 創新型線上學習與個教平台 Prototype
+# 🚀 精五門 PentaSkill — 創新型線上學習與個教平台 Prototype
 
 > **全台名師陣容 • 實戰陪跑個教**
 > 本專案為結合近 10 年職業培訓機構資源轉化之次世代技能學習平台。
@@ -40,9 +40,9 @@ npm run dev
 | 角色 | 登入帳號 (Email) | 密碼 | 存取權限 |
 |---|---|---|---|
 | 👑 **平台主管** | `pey514514@gmail.com` | `admin514` | 全權限 + 帳號密碼設定 + 創業規劃書 |
-| 🧑‍💼 **營運員工** | `staff@skillsync.com` | `staff123` | 課程 / 導師 / 影片 編輯與上架 |
-| 🎓 **消費者學員** | `student@skillsync.com` | `user123` | 前台課程商城瀏覽、購買與視訊觀看 |
+| 🧑‍💼 **營運員工** | `staff@pentaskill.com` | `staff123` | 課程 / 導師 / 影片 編輯與上架 |
+| 🎓 **消費者學員** | `student@pentaskill.com` | `user123` | 前台課程商城瀏覽、購買與視訊觀看 |
 
 ---
 
-© 2026 精五門 SkillSync All Rights Reserved.
+© 2026 精五門 PentaSkill All Rights Reserved.

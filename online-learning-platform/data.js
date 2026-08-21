@@ -1,4 +1,4 @@
-// Data model & RBAC Accounts for SkillSync Platform
+// Data model & RBAC Accounts for PentaSkill Platform
 
 const mockUsers = [
   {
@@ -13,7 +13,7 @@ const mockUsers = [
   {
     id: "u-2",
     name: "李專案經理",
-    email: "staff@skillsync.com",
+    email: "staff@pentaskill.com",
     password: "staff123",
     role: "staff",
     roleLabel: "🧑‍💼 營運員工 (Staff)",
@@ -22,7 +22,7 @@ const mockUsers = [
   {
     id: "u-3",
     name: "林小明 (學員)",
-    email: "student@skillsync.com",
+    email: "student@pentaskill.com",
     password: "user123",
     role: "student",
     roleLabel: "🎓 消費者學員 (Student)",
@@ -32,7 +32,7 @@ const mockUsers = [
   {
     id: "u-4",
     name: "張哲銘 (Ethan講師)",
-    email: "ethan@skillsync.com",
+    email: "ethan@pentaskill.com",
     password: "ethan123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
@@ -45,7 +45,7 @@ let mockBookings = [
     id: "bk-101",
     instructor: "張哲銘 (Ethan)",
     studentName: "林小明",
-    studentEmail: "student@skillsync.com",
+    studentEmail: "student@pentaskill.com",
     date: "2026-07-25",
     slotTime: "14:00 - 15:00",
     topic: "專案作品 1 對 1 精準批修與架構診斷 (1小時)",
@@ -247,11 +247,9 @@ let cloudflareStreamConfig = {
   accountId: "c6a2e87901fb4a88bc345123456789ab",
   customerSubdomain: "customer-88nzk2.cloudflarestream.com",
   requireSignedTokens: true,
-  allowedOrigins: ["peywen514.github.io", "skillsync.com", "localhost"],
-  drmWatermarkEnabled: true,
-  watermarkOpacity: 0.65,
+  allowedOrigins: ["peywen514.github.io", "pentaskill.com", "localhost"],
   hlsEncryption: "AES-128 / Dynamic HLS Bitrate",
-  signingKeyId: "key-cf-stream-skillsync-2026"
+  signingKeyId: "key-cf-stream-pentaskill-2026"
 };
 
 let mockChapters = [
@@ -387,7 +385,7 @@ let mockPortfolios = [
 ];
 
 let mockMaterials = [
-  { id: "mat-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "Full-Stack AI 專案開發", url: "https://cdn.skillsync.com/react19_ai_handbook.pdf" },
+  { id: "mat-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "Full-Stack AI 專案開發", url: "https://cdn.pentaskill.com/react19_ai_handbook.pdf" },
   { id: "mat-2", title: "UI/UX Design System 150+ Figma 元件庫", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 3D 擬態", url: "https://figma.com/file/demo-design-system" }
 ];
 
@@ -427,7 +425,7 @@ let mockLeads = [
 let mockCustomQuotes = [
   {
     id: "quote-101",
-    studentEmail: "student@skillsync.com",
+    studentEmail: "student@pentaskill.com",
     studentName: "林小明 (學員)",
     courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 Wen總監專屬對接 85 折優惠包)",
     customPrice: 10880,
