@@ -48,7 +48,7 @@ let mockBookings = [
     studentEmail: "student@pentaskill.com",
     date: "2026-07-25",
     slotTime: "14:00 - 15:00",
-    topic: "專案作品 1 對 1 精準批修與架構診斷 (1小時)",
+    topic: "專案作品 1 對 1 精準批改與架構診斷 (1小時)",
     notes: "想檢討 React 19 與 AI API 串接效能優化...",
     status: "已預約",
     fee: 1800,
@@ -74,7 +74,7 @@ let mockBookings = [
     studentEmail: "jiahao@example.com",
     date: "2026-07-26",
     slotTime: "19:00 - 20:00",
-    topic: "專案作品 1 對 1 精準批修與架構診斷 (1小時)",
+    topic: "專案作品 1 對 1 精準批改與架構診斷 (1小時)",
     notes: "針對北歐風 3D 全景渲染光影參數調整...",
     status: "已完成",
     fee: 1600,
@@ -399,9 +399,9 @@ let mockLeads = [
     course: "UI/UX 產品設計與 Figma 設計系統實力班",
     identity: "💼 上班族 (希望職場提升/加薪)",
     goal: "🎯 想要在 3-6 個月內成功轉職",
-    experience: "📖 曾看影片/買書自學，但缺乏實作與批修",
+    experience: "📖 曾看影片/買書自學，但缺乏實作與批改",
     timePerWeek: "⏱️ 4 ~ 8 小時 (積極學習)",
-    priorityHelp: "🎨 安排金牌講師進行 1-on-1 免費視訊診斷",
+    priorityHelp: "🤖 想解決目前使用 AI 工具遇到問題",
     notes: "想瞭解專案作品集要放幾份比較容易拿到大廠面試？方便聯繫時間：晚間7點後。",
     status: "🆕 新進諮詢"
   },
@@ -416,7 +416,7 @@ let mockLeads = [
     goal: "🎯 想要在 3-6 個月內成功轉職",
     experience: "🌱 零基礎白紙新手 (希望講師手把手入門)",
     timePerWeek: "⏱️ 9 小時以上 (全職衝刺/全速個教)",
-    priorityHelp: "💰 試算隱藏版學員獎學金與零利率分期",
+    priorityHelp: "📅 索取課程大綱與免費試聽影片",
     notes: "希望能安排張哲銘 (Ethan) 講師個教！主要想問無卡分期方案與完課率保證。",
     status: "✅ 已聯繫洽談"
   }
@@ -434,3 +434,11 @@ let mockCustomQuotes = [
     updatedAt: "2026-07-26 16:30"
   }
 ];
+
+let googleSheetConfig = {
+  sheetId: "1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY",
+  sheetUrl: "https://docs.google.com/spreadsheets/d/1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY/edit",
+  webhookUrl: localStorage.getItem('pentaskill_sheet_webhook') || "https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec",
+  sheetName: "潛在學員諮詢紀錄",
+  autoSync: true
+};

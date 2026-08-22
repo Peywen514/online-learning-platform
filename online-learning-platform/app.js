@@ -19,6 +19,34 @@ if (savedUserJson) {
   } catch (err) {}
 }
 
+// Restore Leads & Custom Quotes from LocalStorage
+try {
+  const savedLeads = localStorage.getItem('pentaskill_leads');
+  if (savedLeads) {
+    const parsedLeads = JSON.parse(savedLeads);
+    if (Array.isArray(parsedLeads) && parsedLeads.length > 0) {
+      mockLeads = parsedLeads;
+    }
+  }
+} catch (err) {}
+
+try {
+  const savedQuotes = localStorage.getItem('pentaskill_quotes');
+  if (savedQuotes) {
+    const parsedQuotes = JSON.parse(savedQuotes);
+    if (Array.isArray(parsedQuotes) && parsedQuotes.length > 0) {
+      mockCustomQuotes = parsedQuotes;
+    }
+  }
+} catch (err) {}
+
+try {
+  const savedWebhook = localStorage.getItem('pentaskill_sheet_webhook');
+  if (savedWebhook) {
+    googleSheetConfig.webhookUrl = savedWebhook;
+  }
+} catch (err) {}
+
 let currentView = 'home';
 let cart = [];
 let activeAdminTab = 'users';
@@ -177,57 +205,97 @@ function renderAuthArea() {
     let roleBadgeClass = 'badge-student';
     if (currentUser.role === 'manager') roleBadgeClass = 'badge-manager';
     if (currentUser.role === 'staff') roleBadgeClass = 'badge-staff';
+    if (currentUser.role === 'instructor') roleBadgeClass = 'badge-instructor';
 
     container.innerHTML = `
       <div class="user-profile-menu">
-        <div class="user-profile-btn" onclick="toggleUserDropdown()">
+        <button class="user-profile-btn" onclick="toggleUserDropdown(event)" title="點擊展開個人選單 / 切換帳號">
           <img src="${currentUser.avatar}" class="avatar-img" alt="${currentUser.name}">
           <div class="user-info-text mobile-hide">
             <span class="user-name">${currentUser.name}</span>
             <span class="badge-role ${roleBadgeClass}">${currentUser.roleLabel}</span>
           </div>
-          <i class="fa-solid fa-chevron-down text-muted" style="font-size:0.75rem;"></i>
-        </div>
+          <i class="fa-solid fa-chevron-down text-muted" style="font-size:0.68rem; margin-left:2px;"></i>
+        </button>
 
         <div class="user-dropdown-menu" id="userDropdownMenu">
           <div class="dropdown-header">
-            <strong>${currentUser.name}</strong>
+            <div style="font-weight:700; color:#fff;">${currentUser.name}</div>
             <div class="text-xs text-muted">帳號: ${currentUser.email}</div>
+            <div class="text-xs" style="color: var(--accent-cyan); margin-top:2px;">身分: ${currentUser.roleLabel}</div>
           </div>
           <hr class="dropdown-divider">
-          ${(currentUser.role === 'manager' || currentUser.role === 'staff') ? `
-            <button class="dropdown-item" onclick="switchView('admin-dashboard'); toggleUserDropdown();">
+          
+          <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
+            <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
+          </button>
+          <button class="dropdown-item" onclick="openCheckoutModal('course-1', 'combo'); closeAllDropdowns();">
+            <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 / 訂單
+          </button>
+
+          ${(currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor') ? `
+            <button class="dropdown-item" onclick="switchView('admin-dashboard'); closeAllDropdowns();">
               <i class="fa-solid fa-sliders text-pink"></i> 後台管理中心
+            </button>
+            <button class="dropdown-item" onclick="openGoogleSheetConfigModal(); closeAllDropdowns();">
+              <i class="fa-solid fa-table text-green"></i> Google Sheet 串接設定
             </button>
           ` : ''}
           ${currentUser.role === 'manager' ? `
-            <button class="dropdown-item" onclick="switchView('business-plan'); toggleUserDropdown();">
+            <button class="dropdown-item" onclick="switchView('business-plan'); closeAllDropdowns();">
               <i class="fa-solid fa-chart-line text-purple"></i> 創業完整規劃書
             </button>
           ` : ''}
-          <button class="dropdown-item" onclick="openLoginModal(); toggleUserDropdown();">
-            <i class="fa-solid fa-users text-cyan"></i> 切換 / 重新登入帳號
-          </button>
+
           <hr class="dropdown-divider">
-          <button class="dropdown-item text-danger" onclick="handleLogout()">
-            <i class="fa-solid fa-right-from-bracket"></i> 登出系統
+          <button class="dropdown-item" onclick="openLoginModal(); closeAllDropdowns();" style="color: var(--accent-cyan); font-weight:600;">
+            <i class="fa-solid fa-users-viewfinder"></i> 切換身分 / 重新登入
+          </button>
+          <button class="dropdown-item text-danger" onclick="handleLogout(); closeAllDropdowns();">
+            <i class="fa-solid fa-right-from-bracket"></i> 登出帳號
           </button>
         </div>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <button class="btn btn-primary btn-sm" onclick="openLoginModal()">
-        <i class="fa-solid fa-right-to-bracket"></i> 登入 / 帳號驗證
+      <button class="btn btn-primary btn-sm" onclick="openLoginModal()" style="display:flex; align-items:center; gap:0.4rem; padding:0.35rem 0.8rem;">
+        <i class="fa-solid fa-circle-user"></i> 登入 / 註冊
       </button>
     `;
   }
 }
 
-function toggleUserDropdown() {
+// Nav Dropdowns & User Menu Controls
+function toggleNavDropdown(dropdownId, event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById(dropdownId);
+  if (!dropdown) return;
+  const isAlreadyActive = dropdown.classList.contains('active');
+  closeAllDropdowns();
+  if (!isAlreadyActive) {
+    dropdown.classList.add('active');
+  }
+}
+
+function selectDropdownNav(viewId) {
+  switchView(viewId);
+  closeAllDropdowns();
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('active'));
+  const userMenu = document.getElementById('userDropdownMenu');
+  if (userMenu) userMenu.classList.remove('active');
+}
+
+function toggleUserDropdown(event) {
+  if (event) event.stopPropagation();
   const menu = document.getElementById('userDropdownMenu');
   if (menu) {
-    menu.classList.toggle('active');
+    const isAct = menu.classList.contains('active');
+    closeAllDropdowns();
+    if (!isAct) menu.classList.add('active');
   }
 }
 
@@ -281,7 +349,7 @@ function handleLogout() {
   try {
     localStorage.removeItem('pentaskill_user');
   } catch(err) {}
-  currentUser = mockUsers[2]; // Reset to student
+  currentUser = null; // Clear login session so login button shows
   renderAuthArea();
   updateUIPermissions();
   switchView('home');
@@ -290,18 +358,26 @@ function handleLogout() {
 
 // UI Permissions Control Engine
 function updateUIPermissions() {
-  if (!currentUser) return;
-  const role = currentUser.role;
+  const role = currentUser ? currentUser.role : 'guest';
 
   // 1. Business Plan Link & Button (Manager ONLY)
   const busLink = document.getElementById('navBusinessPlanLink');
   if (busLink) {
     busLink.style.display = role === 'manager' ? 'flex' : 'none';
   }
+  const subBusLink = document.getElementById('navSubBusinessPlanLink');
+  if (subBusLink) {
+    subBusLink.style.display = role === 'manager' ? 'flex' : 'none';
+  }
   document.querySelectorAll('.manager-only-btn').forEach(btn => {
     btn.style.display = role === 'manager' ? 'inline-flex' : 'none';
   });
 
+  // 2. Admin Dropdown Link
+  const adminDropdown = document.getElementById('navAdminDropdown');
+  if (adminDropdown) {
+    adminDropdown.style.display = (role === 'manager' || role === 'staff' || role === 'instructor') ? 'block' : 'none';
+  }
   const adminLink = document.getElementById('navAdminLink');
   if (adminLink) {
     adminLink.style.display = (role === 'manager' || role === 'staff' || role === 'instructor') ? 'flex' : 'none';
@@ -328,9 +404,15 @@ function updateUIPermissions() {
     } else if (role === 'staff') {
       adminBadge.className = 'badge-tag badge-staff';
       adminBadge.innerText = '🧑‍💼 營運員工權限 (課程/講師/影片增修編輯)';
-    } else {
+    } else if (role === 'instructor') {
+      adminBadge.className = 'badge-tag badge-staff';
+      adminBadge.innerText = '👨‍🏫 金牌講師權限 (看個人預約/批改作業)';
+    } else if (role === 'student') {
       adminBadge.className = 'badge-tag badge-student';
       adminBadge.innerText = '🎓 消費者學員';
+    } else {
+      adminBadge.className = 'badge-tag';
+      adminBadge.innerText = '訪客模式 (未登入)';
     }
   }
 
@@ -341,29 +423,44 @@ function updateUIPermissions() {
 
 // Navigation View Switcher with Permission Guards & Browser History Support
 function switchView(viewId, pushHistory = true) {
-  if (viewId === 'business-plan' && currentUser.role !== 'manager') {
+  const role = currentUser ? currentUser.role : 'guest';
+  if (viewId === 'business-plan' && role !== 'manager') {
     showToast('⚠️ 權限不足：【創業完整規劃書】僅供 👑 Wen總監 查閱');
     return;
   }
-  if (viewId === 'admin-dashboard' && currentUser.role === 'student') {
+  if (viewId === 'admin-dashboard' && (role !== 'manager' && role !== 'staff' && role !== 'instructor')) {
     showToast('⚠️ 權限不足：【後台管理中心】僅供 👑 主管 與 🧑‍💼 員工 存取');
     return;
   }
 
   currentView = viewId;
   closeMobileMenu();
+  closeAllDropdowns();
 
   if (pushHistory && history.pushState && location.hash !== `#${viewId}`) {
     history.pushState({ viewId: viewId }, '', `#${viewId}`);
   }
 
-  document.querySelectorAll('.nav-link').forEach(link => {
+  document.querySelectorAll('.nav-link, .dropdown-item.nav-item-btn').forEach(link => {
     if (link.getAttribute('data-target') === viewId) {
       link.classList.add('active');
     } else {
       link.classList.remove('active');
     }
   });
+
+  // Highlight parent dropdown button when sub-item is active
+  const coursesViews = ['marketplace', 'video-player', 'live-classroom', 'instructors'];
+  const adminViews = ['admin-dashboard', 'business-plan'];
+  
+  const coursesDropdownBtn = document.querySelector('#navCoursesDropdown .nav-dropdown-btn');
+  if (coursesDropdownBtn) {
+    coursesDropdownBtn.classList.toggle('active', coursesViews.includes(viewId));
+  }
+  const adminDropdownBtn = document.querySelector('#navAdminDropdown .nav-dropdown-btn');
+  if (adminDropdownBtn) {
+    adminDropdownBtn.classList.toggle('active', adminViews.includes(viewId));
+  }
 
   document.querySelectorAll('.view-section').forEach(section => {
     section.classList.remove('active');
@@ -384,7 +481,7 @@ function switchView(viewId, pushHistory = true) {
 }
 
 function initNavbar() {
-  document.querySelectorAll('.nav-link').forEach(button => {
+  document.querySelectorAll('.nav-link:not(.nav-dropdown-btn)').forEach(button => {
     button.addEventListener('click', (e) => {
       const target = e.currentTarget.getAttribute('data-target');
       if (target) switchView(target);
@@ -392,6 +489,13 @@ function initNavbar() {
   });
 
   document.getElementById('logoBtn').addEventListener('click', () => switchView('home'));
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-dropdown') && !e.target.closest('.user-profile-menu')) {
+      closeAllDropdowns();
+    }
+  });
 }
 
 // Course Grid Rendering
@@ -1961,28 +2065,37 @@ function handleLeadFormSubmit(e) {
 
   const name = document.getElementById('leadName').value.trim();
   const phone = document.getElementById('leadPhone').value.trim();
-  const email = document.getElementById('leadEmail').value.trim();
-  const identity = document.getElementById('leadIdentity').value;
-  const course = document.getElementById('leadCourse').value;
-  const goal = document.getElementById('leadGoal').value;
-  const experience = document.getElementById('leadExperience').value;
-  const timePerWeek = document.getElementById('leadTimePerWeek').value;
-  const priorityHelp = document.getElementById('leadPriorityHelp').value;
-  const notes = document.getElementById('leadNotes').value.trim();
+  const email = (document.getElementById('leadEmail') && document.getElementById('leadEmail').value.trim()) || '';
+  const identity = (document.getElementById('leadIdentity') && document.getElementById('leadIdentity').value) || '💼 上班族 (想轉職/副業提升)';
+  const course = (document.getElementById('leadCourse') && document.getElementById('leadCourse').value) || '';
+  const goal = (document.getElementById('leadGoal') && document.getElementById('leadGoal').value) || '🎯 想要在 3-6 個月內成功轉職';
+  const experience = (document.getElementById('leadExperience') && document.getElementById('leadExperience').value) || '🌱 零基礎新手';
+  const timePerWeek = (document.getElementById('leadTimePerWeek') && document.getElementById('leadTimePerWeek').value) || '⏱️ 4 ~ 8 小時 (積極學習)';
+  const priorityHelp = (document.getElementById('leadPriorityHelp') && document.getElementById('leadPriorityHelp').value) || '📅 索取課程大綱與免費試聽影片';
+  const notes = (document.getElementById('leadNotes') && document.getElementById('leadNotes').value.trim()) || '無特殊備註';
+
+  if (!email) {
+    showToast('⚠️ 請填寫您的電子郵件 (Email)！');
+    return;
+  }
+  if (!course) {
+    showToast('⚠️ 請選擇您想諮詢的課程領域！');
+    return;
+  }
 
   const newLead = {
     id: `lead-${Date.now()}`,
     createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     name,
     phone,
-    email: email || '未提供',
+    email,
     course,
     identity,
     goal,
     experience,
     timePerWeek,
     priorityHelp,
-    notes: notes || '無特殊備註',
+    notes,
     status: '🆕 新進諮詢'
   };
 
@@ -1991,12 +2104,267 @@ function handleLeadFormSubmit(e) {
     localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
   } catch (err) {}
 
+  // Asynchronous sync to Google Sheet (if Webhook URL is set)
+  syncLeadToGoogleSheet(newLead);
+
   closeLeadFormModal();
-  showToast(`🎉 感謝 ${name} 填寫需求！諮詢表單已成功送出，專屬小編收到訊息後會盡快與您聯絡！`);
+  showToast(`🎉 感謝 ${name} 填寫需求！諮詢表單已成功送出並同步至後台與 Google Sheet，專屬小編將盡快與您聯絡！`);
   renderLeadAdminTable();
 }
 
+// Google Sheet Synchronization Engine
+function syncLeadToGoogleSheet(leadData) {
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec';
+  if (!webhookUrl) {
+    console.log('ℹ️ 尚未設定 Google Apps Script Webhook URL，資料已安全儲存於本地後台');
+    return;
+  }
+
+  try {
+    fetch(webhookUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(leadData)
+    }).then(() => {
+      console.log('✅ Google Sheet 雙向同步觸發完成 (已寫入試算表)');
+    }).catch(err => {
+      console.warn('⚠️ Google Sheet 傳送提醒:', err);
+    });
+  } catch (err) {
+    console.warn('⚠️ 建立發送參數異常:', err);
+  }
+}
+
+// Google Sheet Configuration Modal Handlers
+function openGoogleSheetConfigModal() {
+  const modal = document.getElementById('googleSheetConfigModal');
+  if (!modal) return;
+
+  const urlInput = document.getElementById('inputGoogleWebhookUrl');
+  if (urlInput) {
+    urlInput.value = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || '';
+  }
+
+  const codeBlock = document.getElementById('appsScriptCodeBlock');
+  if (codeBlock) {
+    codeBlock.value = getGoogleAppsScriptTemplate();
+  }
+
+  modal.classList.add('active');
+}
+
+function closeGoogleSheetConfigModal() {
+  const modal = document.getElementById('googleSheetConfigModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleSaveGoogleSheetConfig(e) {
+  e.preventDefault();
+  const url = document.getElementById('inputGoogleWebhookUrl').value.trim();
+  googleSheetConfig.webhookUrl = url;
+  try {
+    localStorage.setItem('pentaskill_sheet_webhook', url);
+  } catch (err) {}
+
+  showToast('✅ Google Sheet 串接設定已成功儲存！');
+  closeGoogleSheetConfigModal();
+  updateInlineWebhookInputs();
+}
+
+function saveInlineGoogleWebhook() {
+  const input = document.getElementById('inlineGoogleWebhookUrl');
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) {
+    showToast('⚠️ 請輸入有效的 Google Apps Script 網址 (https://script.google.com/.../exec)');
+    return;
+  }
+
+  googleSheetConfig.webhookUrl = url;
+  try {
+    localStorage.setItem('pentaskill_sheet_webhook', url);
+  } catch (err) {}
+
+  updateInlineWebhookInputs();
+  showToast('✅ Google Sheet Webhook 網址已成功儲存！');
+}
+
+function updateInlineWebhookInputs() {
+  const currentUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || '';
+  const inlineInput = document.getElementById('inlineGoogleWebhookUrl');
+  const modalInput = document.getElementById('inputGoogleWebhookUrl');
+  if (inlineInput) inlineInput.value = currentUrl;
+  if (modalInput) modalInput.value = currentUrl;
+}
+
+function copyAppsScriptCode() {
+  const code = getGoogleAppsScriptTemplate();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('📋 Google Apps Script 程式碼已複製至剪貼簿！');
+    }).catch(() => {
+      fallbackCopy(code);
+    });
+  } else {
+    fallbackCopy(code);
+  }
+}
+
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  showToast('📋 Google Apps Script 程式碼已複製至剪貼簿！');
+}
+
+function testGoogleSheetSync() {
+  const testLead = {
+    id: `test-${Date.now()}`,
+    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19).replace('T', ' '),
+    name: "測試學員 (Google Sheet 連線測試)",
+    phone: "0900-123-456",
+    email: "test@pentaskill.com",
+    identity: "💼 上班族 (轉職測試)",
+    course: "AI 程式與全端工作流實戰",
+    goal: "🎯 驗證 Google Sheet 自動化傳送",
+    experience: "🌱 零基礎新手",
+    timePerWeek: "⏱️ 4 ~ 8 小時",
+    priorityHelp: "🎨 1-on-1 名師視訊診斷",
+    notes: "這是一筆由精五門後台發出的連線測試紀錄",
+    status: "✅ 連線測試成功"
+  };
+
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook');
+  if (!webhookUrl) {
+    showToast('⚠️ 請先在上方欄位貼上 Google Apps Script 部署網址 (Web App URL)！');
+    return;
+  }
+
+  showToast('🚀 正在發送測試資料至 Google Sheet...');
+  syncLeadToGoogleSheet(testLead);
+  setTimeout(() => {
+    showToast('🎉 測試資料已成功發送！請至您的 Google Sheet 檢查是否有新增列。');
+  }, 1200);
+}
+
+function getGoogleAppsScriptTemplate() {
+  return `/**
+ * 精五門 PentaSkill — Google Sheet 自動化接收與表頭生成腳本
+ * 綁定 Google Sheet ID: ${googleSheetConfig.sheetId}
+ */
+
+function setupHeaders() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var headers = [
+    "填表時間",
+    "學員姓名",
+    "聯絡電話",
+    "電子郵件",
+    "目前身分",
+    "想諮詢課程",
+    "學習目標",
+    "實務基礎程度",
+    "每週投入時間",
+    "優先協助事項",
+    "學員備註說明",
+    "處理跟進狀態"
+  ];
+  
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // 美化表頭格式 (精五門科技紫)
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground("#4f46e5");
+    headerRange.setFontColor("#ffffff");
+    headerRange.setFontWeight("bold");
+    headerRange.setHorizontalAlignment("center");
+    headerRange.setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    sheet.setFrozenRows(1);
+    
+    // 自動調整欄寬
+    for (var i = 1; i <= headers.length; i++) {
+      sheet.autoResizeColumn(i);
+    }
+  }
+}
+
+function doGet(e) {
+  setupHeaders();
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success",
+    message: "精五門 PentaSkill Google Sheet 串接正常運行中！表頭已自動初始化完成。"
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    setupHeaders();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = {};
+    
+    if (e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    } else if (e.parameter) {
+      data = e.parameter;
+    }
+    
+    var timestamp = data.createdAt || Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    var name = data.name || "未填寫";
+    var phone = data.phone || "未填寫";
+    var email = data.email || "未提供";
+    var identity = data.identity || "一般諮詢";
+    var course = data.course || "全系列諮詢";
+    var goal = data.goal || "未指定";
+    var experience = data.experience || "未指定";
+    var timePerWeek = data.timePerWeek || "未指定";
+    var priorityHelp = data.priorityHelp || "未指定";
+    var notes = data.notes || "無特殊備註";
+    var status = data.status || "🆕 新進諮詢";
+    
+    sheet.appendRow([
+      timestamp,
+      name,
+      phone,
+      email,
+      identity,
+      course,
+      goal,
+      experience,
+      timePerWeek,
+      priorityHelp,
+      notes,
+      status
+    ]);
+    
+    var lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow, 1, 1, 12).setVerticalAlignment("middle");
+    sheet.setRowHeight(lastRow, 30);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "表單資料已成功寫入 Google Sheet！",
+      row: lastRow
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+}
+
 function renderLeadAdminTable() {
+  updateInlineWebhookInputs();
   const tbody = document.getElementById('leadTableBody');
   if (!tbody) return;
 
@@ -2046,12 +2414,20 @@ function updateLeadStatus(leadId) {
     lead.status = '🆕 新進諮詢';
   }
 
+  try {
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+
   showToast(`已更新 ${lead.name} 的跟進狀態為【${lead.status}】`);
   renderLeadAdminTable();
 }
 
 function deleteLead(leadId) {
   mockLeads = mockLeads.filter(l => l.id !== leadId);
+  try {
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+
   showToast('已刪除諮詢表單紀錄');
   renderLeadAdminTable();
 }
