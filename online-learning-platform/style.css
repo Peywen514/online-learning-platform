@@ -1605,6 +1605,8 @@ select option {
 }
 .modal-backdrop.active { display: flex; }
 #leadFormModal { z-index: 2500 !important; }
+#googleSheetConfigModal { z-index: 2600 !important; }
+#googleSheetConfigModal.active { display: flex !important; }
 
 .modal-box {
   background: #0f172a;

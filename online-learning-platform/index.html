@@ -83,7 +83,7 @@
                 <span class="dropdown-subtitle">會員帳密 / 課程 / 薪資審核</span>
               </div>
             </button>
-            <button class="dropdown-item nav-item-btn" onclick="openGoogleSheetConfigModal(); closeAllDropdowns();">
+            <button class="dropdown-item nav-item-btn" onclick="openGoogleSheetConfigModal(); switchView('admin-dashboard'); switchAdminTab('sheets'); closeAllDropdowns();">
               <i class="fa-solid fa-table text-green"></i>
               <div class="dropdown-text">
                 <span class="dropdown-title">Google Sheet 串接設定</span>
@@ -146,7 +146,7 @@
               <span class="hero-title-line">打造你的業界即戰力</span>
             </h1>
             <p class="hero-desc">
-              告別「看完影片還是不會做」的迷惘！不論是 <span class="skill-highlight text-cyan">平面視覺</span>、<span class="skill-highlight text-pink">影音剪輯</span>、<span class="skill-highlight text-amber">室內設計</span>、<span class="skill-highlight text-purple">程式開發</span> 還是 <span class="skill-highlight text-green">AI 實務應用</span>，名師 1 對 1 <strong>手把手帶你修作品、拆解盲點</strong>，打造出<strong>拿得出場的星級代表作</strong>，輕鬆對接業界好工作！
+              零基礎也能輕鬆上手！專為<strong>上班族進修</strong>與<strong>樂活銀髮族</strong>量身打造。不論是 <span class="skill-highlight text-cyan">平面視覺</span>、<span class="skill-highlight text-pink">影音剪輯</span>、<span class="skill-highlight text-amber">室內設計</span>、<span class="skill-highlight text-purple">程式開發</span> 還是 <span class="skill-highlight text-green">AI 實用工具</span>，金牌名師 1 對 1 <strong>手把手耐心帶練、即時解惑不卡關</strong>，讓你在最短時間內學會實用技能，親手做出<strong>專屬自己的精彩作品</strong>，收穫滿滿的成就感！
             </p>
 
             <div class="hero-buttons">
@@ -1025,6 +1025,9 @@
           <button class="admin-tab" data-atab="quotes" onclick="switchAdminTab('quotes')">
             <i class="fa-solid fa-file-invoice text-cyan"></i> 🏷️ 學員客製化金額與課程修改
           </button>
+          <button class="admin-tab" data-atab="sheets" onclick="switchAdminTab('sheets')">
+            <i class="fa-solid fa-table text-green"></i> 📊 Google Sheet 試算表串接
+          </button>
         </div>
 
         <!-- Admin Tab Content 1 -->
@@ -1426,6 +1429,92 @@
           </div>
         </div>
 
+        <!-- Admin Tab Content 9: Dedicated Google Sheet Control Center -->
+        <div class="admin-content-pane" id="atab-sheets">
+          <div class="plan-card margin-top-md">
+            <div class="card-header-flex" style="flex-wrap:wrap; gap:0.75rem;">
+              <div>
+                <h3><i class="fa-solid fa-table text-green"></i> 📊 Google Sheet 需求表單自動化串接中心</h3>
+                <span class="text-sm text-muted">學員於前台送出註冊或諮詢問卷時，系統自動將資料即時寫入指定 Google Sheet 與教學後台！</span>
+              </div>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <a href="https://docs.google.com/spreadsheets/d/1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY/edit" target="_blank" class="btn btn-sm btn-outline" style="color:var(--accent-green); border-color:#10b981;">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Google Sheet 試算表
+                </a>
+                <button type="button" class="btn btn-sm btn-primary" onclick="openGoogleSheetConfigModal()">
+                  <i class="fa-solid fa-window-restore"></i> 開啟彈窗設定
+                </button>
+              </div>
+            </div>
+
+            <!-- Highly Visible Google Sheet Sync Control Banner -->
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(79, 70, 229, 0.12) 100%); border: 2px solid #10b981; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-top: 1.25rem; box-shadow: 0 8px 30px rgba(16, 185, 129, 0.15);">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.85rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                  <div style="width:42px; height:42px; border-radius:10px; background:rgba(16,185,129,0.25); border:1px solid #10b981; display:flex; align-items:center; justify-content:center; color:#34d399; font-size:1.3rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin:0; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                      Google Sheet 雙向同步狀態：
+                      <span class="badge-tag bg-green" style="font-size:0.72rem;"><i class="fa-solid fa-circle-check"></i> 即時連線啟用中</span>
+                    </h4>
+                    <div class="text-xs text-muted" style="margin-top:2px;">
+                      綁定試算表 ID：<code style="color:#34d399; font-weight:bold;">1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Direct Webhook URL input row on the page -->
+              <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.08);">
+                <div style="flex:1; min-width:280px;">
+                  <label class="text-xs" style="color:#e2e8f0; display:block; margin-bottom:4px;">
+                    <i class="fa-solid fa-link text-cyan"></i> <strong>Google Apps Script 網頁應用程式網址 (Web App Webhook URL)：</strong>
+                  </label>
+                  <input type="url" id="inlineGoogleWebhookUrl" class="form-control text-sm" placeholder="請在此貼上 https://script.google.com/macros/s/.../exec" style="background:rgba(15,23,42,0.9); border-color:#10b981; color:#fff; padding:0.55rem 0.85rem;">
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:18px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="saveInlineGoogleWebhook()" style="padding:0.55rem 1rem;">
+                    <i class="fa-solid fa-floppy-disk"></i> 儲存網址
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="testGoogleSheetSync()" style="padding:0.55rem 1rem;">
+                    <i class="fa-solid fa-paper-plane text-green"></i> 測試發送
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Apps Script Code & Guide -->
+            <div class="grid grid-2 gap-md margin-top-md">
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--bg-card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+                <div class="flex-between" style="margin-bottom:0.75rem;">
+                  <h4 style="margin:0; font-size:0.95rem; color:#fff;"><i class="fa-solid fa-code text-purple"></i> 專屬 Google Apps Script 程式碼</h4>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="copyAppsScriptCode()" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-copy"></i> 複製程式碼
+                  </button>
+                </div>
+                <textarea id="inlineAppsScriptCodeBlock" class="form-control text-xs" rows="10" readonly style="font-family: monospace; background: rgba(0,0,0,0.4); color: #cbd5e1;"></textarea>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--bg-card-border); border-radius: var(--radius-md); padding: 1.25rem;">
+                <h4 style="margin:0 0 0.75rem 0; font-size:0.95rem; color:#fff;"><i class="fa-solid fa-list-check text-cyan"></i> 3 步驟快速部署教學</h4>
+                <ol style="margin-left: 1.2rem; line-height: 1.8; color: var(--text-muted); font-size:0.85rem;">
+                  <li>開啟您的 Google Sheet 試算表，點擊上方選單 <strong>「擴充功能」 ➔ 「Apps Script」</strong>。</li>
+                  <li>將左側的程式碼貼入腳本編輯器並儲存。</li>
+                  <li>點擊右上方 <strong>「部署」 ➔ 「新增部署」</strong>（類型選「網頁應用程式」，設定為「我」執行、「所有人」皆可存取）。</li>
+                  <li>複製產生的網頁應用程式網址，貼入上方 Webhook URL 欄位並點擊「儲存網址」。</li>
+                </ol>
+                <div class="margin-top-md">
+                  <button type="button" class="btn btn-outline btn-block" onclick="testGoogleSheetSync()">
+                    <i class="fa-solid fa-paper-plane text-green"></i> 立即發送一筆測試資料至 Google Sheet
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -1649,50 +1738,178 @@
     </div>
   </div>
 
-  <!-- MODAL 2: LOGIN MODAL -->
+  <!-- MODAL 2: LOGIN MODAL (學員/會員安全登入) -->
   <div id="loginModal" class="modal-backdrop">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 440px;">
       <button class="modal-close" onclick="closeLoginModal()">&times;</button>
       <div class="modal-header text-center">
         <div class="logo-icon margin-top-xs" style="margin: 0 auto 0.75rem auto;">
           <i class="fa-solid fa-graduation-cap"></i>
         </div>
-        <h3>帳號密碼安全登入</h3>
-        <p class="text-sm text-muted">登入後系統將根據主管設定之權限，開啟相對應的操作介面</p>
+        <h3 style="margin-top:0.3rem;">學員 / 會員安全登入</h3>
+        <p class="text-sm text-muted">請輸入您的電子郵件帳號與密碼以登入專屬學習專區</p>
       </div>
 
       <div class="modal-body margin-top-sm">
         <form onsubmit="handleLoginSubmit(event)">
           <div class="form-group">
-            <label><i class="fa-solid fa-envelope"></i> 電子郵件 (帳號)</label>
-            <input type="email" id="loginEmail" class="form-control" placeholder="user@pentaskill.com" required>
+            <label><i class="fa-solid fa-envelope"></i> 電子郵件 (帳號) <span class="text-pink">*</span></label>
+            <input type="email" id="loginEmail" class="form-control" placeholder="請輸入電子郵件 (例如：student@gmail.com)" required autocomplete="username">
           </div>
           <div class="form-group margin-top-sm">
-            <label><i class="fa-solid fa-lock"></i> 登入密碼</label>
-            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+            <label><i class="fa-solid fa-lock"></i> 登入密碼 <span class="text-pink">*</span></label>
+            <div style="position: relative;">
+              <input type="password" id="loginPassword" class="form-control" placeholder="請輸入登入密碼" required autocomplete="current-password">
+              <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
+                <i class="fa-solid fa-eye" id="loginPasswordToggleIcon"></i>
+              </button>
+            </div>
           </div>
           
-          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
             <i class="fa-solid fa-right-to-bracket"></i> 驗證密碼並登入
           </button>
         </form>
 
-        <div class="quick-demo-fill margin-top-md">
-          <div class="text-xs text-muted" style="font-size:0.75rem; margin-bottom:0.4rem;">💡 測試展示快速填入：</div>
-          <div class="grid grid-4 gap-xs">
-            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('pey514514@gmail.com', 'admin514')">
-              👑 Wen總監
-            </button>
-            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('ethan@pentaskill.com', 'ethan123')">
-              👨‍🏫 Ethan講師
-            </button>
-            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('staff@pentaskill.com', 'staff123')">
-              🧑‍💼 員工
-            </button>
-            <button class="btn btn-sm btn-outline" onclick="fillLoginCredentials('student@pentaskill.com', 'user123')">
-              🎓 學員
-            </button>
+        <div class="login-footer-action margin-top-md text-center" style="padding-top:1rem; border-top:1px solid rgba(255,255,255,0.08);">
+          <span class="text-sm text-muted">還不是精五門學員？</span>
+          <button type="button" class="btn btn-link text-cyan font-bold" onclick="switchToRegisterModal()" style="background:none; border:none; color:var(--accent-cyan); font-weight:700; cursor:pointer; font-size:0.92rem; text-decoration:underline;">
+            <i class="fa-solid fa-user-plus"></i> 立即免費註冊學員 <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2B: REGISTER MODAL (學員註冊與學習需求諮詢表單) -->
+  <div id="registerModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 680px;">
+      <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-graduation-cap"></i> 精五門學員專區</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-plus text-cyan"></i> 免費註冊學員 & 填寫學習需求</h3>
+        <p class="text-xs text-muted margin-top-xs">完成註冊即可立即開通學員帳號，並將學習需求同步至後台與 Google Sheet，由小編與名師團隊第一時間專人對接！</p>
+      </div>
+
+      <div class="modal-body margin-top-xs">
+        <form onsubmit="handleRegisterSubmit(event)">
+          <!-- 帳號基本資料區塊 -->
+          <div class="grid grid-2 gap-sm">
+            <div class="form-group">
+              <label>真實姓名 / 稱呼 <span class="text-pink">*</span></label>
+              <input type="text" id="registerName" class="form-control" placeholder="例如：林同學" required>
+            </div>
+            <div class="form-group">
+              <label>聯絡電話 (手機) <span class="text-pink">*</span></label>
+              <input type="tel" id="registerPhone" class="form-control" placeholder="例如：0912-345-678" required>
+            </div>
           </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>電子郵件 (作為登入帳號) <span class="text-pink">*</span></label>
+              <input type="email" id="registerEmail" class="form-control" placeholder="例如：student@gmail.com" required autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label>設定登入密碼 <span class="text-pink">*</span></label>
+              <div style="position: relative;">
+                <input type="password" id="registerPassword" class="form-control" placeholder="請設定 4 位數以上密碼" required minlength="4" autocomplete="new-password">
+                <button type="button" onclick="togglePasswordVisibility('registerPassword', 'regPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
+                  <i class="fa-solid fa-eye" id="regPasswordToggleIcon"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 潛在學員需求調查區塊 (後台整合與 Google Apps Script 同步) -->
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>想諮詢 / 感興趣的課程領域 <span class="text-pink">*</span></label>
+              <select id="registerCourse" class="form-control text-sm" required>
+                <option value="" disabled selected>-- 請選擇感興趣的領域 --</option>
+                <option value="AI 程式與全端工作流實戰">AI 程式與全端工作流實戰</option>
+                <option value="UI/UX 產品設計與 3D 擬態">UI/UX 產品設計與 3D 擬態</option>
+                <option value="Python 數據分析與自動化">Python 數據分析與自動化</option>
+                <option value="平面視覺與商業品牌設計">平面視覺與商業品牌設計</option>
+                <option value="短影音剪輯與自媒體行銷">短影音剪輯與自媒體行銷</option>
+                <option value="室內設計與 3D 軟裝渲染">室內設計與 3D 軟裝渲染</option>
+                <option value="1-on-1 專屬金牌名師帶練個教">1-on-1 專屬金牌名師帶練個教</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>目前身分狀態</label>
+              <select id="registerIdentity" class="form-control text-sm">
+                <option value="💼 上班族 (想轉職/副業提升)">💼 上班族 (想轉職/副業提升)</option>
+                <option value="🎓 在學學生 / 應屆畢業生">🎓 在學學生 / 應屆畢業生</option>
+                <option value="🚀 待業中 (全力轉職衝刺)">🚀 待業中 (全力轉職衝刺)</option>
+                <option value="💻 自由接案 / 創業個人">💻 自由接案 / 創業個人</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label class="text-xs text-muted">核心學習目標</label>
+              <select id="registerGoal" class="form-control text-sm">
+                <option value="🎯 想要在 3-6 個月內成功轉職">🎯 想要在 3-6 個月內成功轉職</option>
+                <option value="💼 職場技能提升 / 爭取加薪升遷">💼 職場技能提升 / 爭取加薪升遷</option>
+                <option value="🚀 建立副業接案管道 / 個人品牌作品集">🚀 建立副業接案管道 / 個人品牌作品集</option>
+                <option value="💡 興趣探索 / 掌握最新 AI 工具">💡 興趣探索 / 掌握最新 AI 工具</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="text-xs text-muted">目前在該領域的實務基礎程度</label>
+              <select id="registerExperience" class="form-control text-sm">
+                <option value="🌱 零基礎白紙新手 (希望講師手把手入門)">🌱 零基礎白紙新手 (希望講師手把手入門)</option>
+                <option value="📖 曾看影片/買書自學，但缺乏實作與批改">📖 曾看影片/買書自學，但缺乏實作與批改</option>
+                <option value="💻 已具備基礎，希望導師幫忙批改星級作品集">💻 已具備基礎，希望導師幫忙批改星級作品集</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label class="text-xs text-muted">每週預計可投入學習時間</label>
+              <select id="registerTimePerWeek" class="form-control text-sm">
+                <option value="⏱️ 1 ~ 3 小時 (下班/週末時間)">⏱️ 1 ~ 3 小時 (下班/週末時間)</option>
+                <option value="⏱️ 4 ~ 8 小時 (積極學習)">⏱️ 4 ~ 8 小時 (積極學習)</option>
+                <option value="⏱️ 9 小時以上 (全職衝刺/全速個教)">⏱️ 9 小時以上 (全職衝刺/全速個教)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="text-xs text-muted">希望小編 / 導師優先協助的事項</label>
+              <select id="registerPriorityHelp" class="form-control text-sm">
+                <option value="📅 索取課程大綱與免費試聽影片">📅 索取課程大綱與免費試聽影片</option>
+                <option value="🤖 想解決目前使用 AI 工具遇到問題">🤖 想解決目前使用 AI 工具遇到問題</option>
+                <option value="🎨 1-on-1 名師視訊診斷與作品批改">🎨 1-on-1 名師視訊診斷與作品批改</option>
+                <option value="💡 其他">💡 其他</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-comment-dots text-cyan"></i> 想告訴小編的話 / 其他特殊需求 (選填)</label>
+            <textarea id="registerNotes" class="form-control" rows="2" placeholder="例如：希望了解是否支援無卡分期？或是方便聯絡的時間..."></textarea>
+          </div>
+
+          <div class="line-consult-box margin-top-sm" style="padding:0.6rem 0.8rem;">
+            <div class="text-xs text-muted">
+              <i class="fa-solid fa-cloud-arrow-up text-green"></i> 註冊送出後將自動建立學員登入帳號，並將學習需求即時傳送至後台與 Google Sheet，由小編與教學團隊第一時間專人對接！
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
+            <i class="fa-solid fa-user-check"></i> 完成註冊並登入學員專區
+          </button>
+        </form>
+
+        <div class="margin-top-sm text-center">
+          <span class="text-sm text-muted">已經是精五門會員？</span>
+          <button type="button" class="btn btn-link text-cyan font-bold" onclick="switchToLoginModal()" style="background:none; border:none; color:var(--accent-cyan); font-weight:700; cursor:pointer; font-size:0.92rem; text-decoration:underline;">
+            <i class="fa-solid fa-right-to-bracket"></i> 點此直接登入 <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -2199,6 +2416,8 @@
         </form>
       </div>
     </div>
+  </div>
+
   <!-- MODAL 15: Google Sheet Integration & Apps Script Deployment (Manager & Staff CMS) -->
   <div id="googleSheetConfigModal" class="modal-backdrop">
     <div class="modal-box" style="max-width: 720px;">
@@ -2271,7 +2490,7 @@
     </div>
   </footer>
 
-  <script src="data.js?v=20260723_v2"></script>
-  <script src="app.js?v=20260723_v2"></script>
+  <script src="data.js?v=20260823_v5"></script>
+  <script src="app.js?v=20260823_v5"></script>
 </body>
 </html>

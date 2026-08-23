@@ -1,16 +1,40 @@
 // PentaSkill Application Logic & Secure Account Auth Engine
 
+// Restore all users from LocalStorage if available, merging with mockUsers
+try {
+  const savedUsers = localStorage.getItem('pentaskill_users');
+  if (savedUsers) {
+    const parsedUsers = JSON.parse(savedUsers);
+    if (Array.isArray(parsedUsers) && parsedUsers.length > 0) {
+      parsedUsers.forEach(pu => {
+        const idx = mockUsers.findIndex(u => u.id === pu.id || (u.email && pu.email && u.email.toLowerCase() === pu.email.toLowerCase()));
+        if (idx !== -1) {
+          mockUsers[idx] = pu;
+        } else {
+          mockUsers.push(pu);
+        }
+      });
+    }
+  }
+} catch (err) {}
+
+function saveUsersToStorage() {
+  try {
+    localStorage.setItem('pentaskill_users', JSON.stringify(mockUsers));
+  } catch (err) {}
+}
+
 // Init Session from LocalStorage if available so refreshing page maintains login state
 let savedUserJson = null;
 try {
   savedUserJson = localStorage.getItem('pentaskill_user');
 } catch (err) {}
 
-let currentUser = mockUsers[0]; // Default to Wen總監
+let currentUser = mockUsers[0]; // Default to Wen總監 for demonstration or restore saved session
 if (savedUserJson) {
   try {
     const parsed = JSON.parse(savedUserJson);
-    const existing = mockUsers.find(u => u.id === parsed.id || u.email.toLowerCase() === parsed.email.toLowerCase());
+    const existing = mockUsers.find(u => u.id === parsed.id || (u.email && parsed.email && u.email.toLowerCase() === parsed.email.toLowerCase()));
     if (existing) {
       currentUser = existing;
     } else {
@@ -210,7 +234,7 @@ function renderAuthArea() {
     container.innerHTML = `
       <div class="user-profile-menu">
         <button class="user-profile-btn" onclick="toggleUserDropdown(event)" title="點擊展開個人選單 / 切換帳號">
-          <img src="${currentUser.avatar}" class="avatar-img" alt="${currentUser.name}">
+          <img src="${currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}" class="avatar-img" alt="${currentUser.name}">
           <div class="user-info-text mobile-hide">
             <span class="user-name">${currentUser.name}</span>
             <span class="badge-role ${roleBadgeClass}">${currentUser.roleLabel}</span>
@@ -237,7 +261,7 @@ function renderAuthArea() {
             <button class="dropdown-item" onclick="switchView('admin-dashboard'); closeAllDropdowns();">
               <i class="fa-solid fa-sliders text-pink"></i> 後台管理中心
             </button>
-            <button class="dropdown-item" onclick="openGoogleSheetConfigModal(); closeAllDropdowns();">
+            <button class="dropdown-item" onclick="openGoogleSheetConfigModal(); switchView('admin-dashboard'); switchAdminTab('sheets'); closeAllDropdowns();">
               <i class="fa-solid fa-table text-green"></i> Google Sheet 串接設定
             </button>
           ` : ''}
@@ -249,7 +273,7 @@ function renderAuthArea() {
 
           <hr class="dropdown-divider">
           <button class="dropdown-item" onclick="openLoginModal(); closeAllDropdowns();" style="color: var(--accent-cyan); font-weight:600;">
-            <i class="fa-solid fa-users-viewfinder"></i> 切換身分 / 重新登入
+            <i class="fa-solid fa-users-viewfinder"></i> 切換帳號登入
           </button>
           <button class="dropdown-item text-danger" onclick="handleLogout(); closeAllDropdowns();">
             <i class="fa-solid fa-right-from-bracket"></i> 登出帳號
@@ -259,9 +283,14 @@ function renderAuthArea() {
     `;
   } else {
     container.innerHTML = `
-      <button class="btn btn-primary btn-sm" onclick="openLoginModal()" style="display:flex; align-items:center; gap:0.4rem; padding:0.35rem 0.8rem;">
-        <i class="fa-solid fa-circle-user"></i> 登入 / 註冊
-      </button>
+      <div class="auth-btn-group" style="display:flex; align-items:center; gap:0.45rem;">
+        <button class="btn btn-outline btn-sm" onclick="openLoginModal()" style="display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.75rem;">
+          <i class="fa-solid fa-right-to-bracket"></i> 登入
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openRegisterModal()" style="display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.75rem;">
+          <i class="fa-solid fa-user-plus"></i> 註冊
+        </button>
+      </div>
     `;
   }
 }
@@ -299,27 +328,81 @@ function toggleUserDropdown(event) {
   }
 }
 
-// Login Modal & Authentication Logic
+// Modal View Switchers & Password Visibility Toggle
 function openLoginModal() {
-  document.getElementById('loginModal').classList.add('active');
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.add('active');
 }
 
 function closeLoginModal() {
-  document.getElementById('loginModal').classList.remove('active');
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.remove('active');
 }
 
-function fillLoginCredentials(email, password) {
-  document.getElementById('loginEmail').value = email;
-  document.getElementById('loginPassword').value = password;
+function openRegisterModal(preselectedCourse) {
+  const modal = document.getElementById('registerModal');
+  if (!modal) return;
+  
+  if (preselectedCourse) {
+    const courseSelect = document.getElementById('registerCourse');
+    if (courseSelect) {
+      for (let i = 0; i < courseSelect.options.length; i++) {
+        if (courseSelect.options[i].value.includes(preselectedCourse) || preselectedCourse.includes(courseSelect.options[i].value)) {
+          courseSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+  modal.classList.add('active');
 }
 
+function closeRegisterModal() {
+  const modal = document.getElementById('registerModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function switchToRegisterModal() {
+  closeLoginModal();
+  openRegisterModal();
+}
+
+function switchToLoginModal() {
+  closeRegisterModal();
+  openLoginModal();
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) {
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    }
+  } else {
+    input.type = 'password';
+    if (icon) {
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+}
+
+// Login Authentication Verification Logic
 function handleLoginSubmit(e) {
   e.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  if (!emailInput || !passwordInput) return;
 
-  // Search accounts in database (mockUsers)
-  const matchedUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  // Search accounts in mockUsers (case-insensitive email matching)
+  const matchedUser = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
   if (matchedUser) {
     currentUser = matchedUser;
@@ -330,19 +413,125 @@ function handleLoginSubmit(e) {
     renderAuthArea();
     updateUIPermissions();
 
-    showToast(`🎉 歡迎回來，${currentUser.name}！已載入【${currentUser.roleLabel}】專屬介面`);
-
-    if (currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor') {
-      switchView('admin-dashboard');
-      if (currentUser.role === 'instructor') {
-        switchAdminTab('bookings');
-      }
+    if (currentUser.role === 'student') {
+      showToast(`🎉 歡迎回來，${currentUser.name} 學員！已成功驗證帳密並登入學員專區`);
     } else {
-      switchView('marketplace');
+      showToast(`🎉 歡迎回來，${currentUser.name}！已載入【${currentUser.roleLabel}】專屬管理介面`);
+      if (currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor') {
+        switchView('admin-dashboard');
+        if (currentUser.role === 'instructor') {
+          switchAdminTab('bookings');
+        }
+      }
     }
   } else {
-    showToast('⚠️ 登入失敗：帳號或密碼不正確，請重新檢查！');
+    const emailExists = mockUsers.some(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    if (emailExists) {
+      showToast('⚠️ 登入失敗：密碼不正確，請重新檢查！');
+    } else {
+      showToast('⚠️ 登入失敗：此帳號尚未註冊，請點擊「立即免費註冊學員」！');
+    }
   }
+}
+
+// Student Registration & Lead Form Submission (自動建立學員帳號 + 送出需求表單至 Google Sheet)
+function handleRegisterSubmit(e) {
+  e.preventDefault();
+
+  const nameInput = document.getElementById('registerName');
+  const phoneInput = document.getElementById('registerPhone');
+  const emailInput = document.getElementById('registerEmail');
+  const passwordInput = document.getElementById('registerPassword');
+  const courseInput = document.getElementById('registerCourse');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const email = emailInput ? emailInput.value.trim() : '';
+  const password = passwordInput ? passwordInput.value.trim() : '';
+  const course = courseInput ? courseInput.value : '';
+
+  const identity = (document.getElementById('registerIdentity') && document.getElementById('registerIdentity').value) || '💼 上班族 (想轉職/副業提升)';
+  const goal = (document.getElementById('registerGoal') && document.getElementById('registerGoal').value) || '🎯 想要在 3-6 個月內成功轉職';
+  const experience = (document.getElementById('registerExperience') && document.getElementById('registerExperience').value) || '🌱 零基礎白紙新手 (希望講師手把手入門)';
+  const timePerWeek = (document.getElementById('registerTimePerWeek') && document.getElementById('registerTimePerWeek').value) || '⏱️ 4 ~ 8 小時 (積極學習)';
+  const priorityHelp = (document.getElementById('registerPriorityHelp') && document.getElementById('registerPriorityHelp').value) || '📅 索取課程大綱與免費試聽影片';
+  const notes = (document.getElementById('registerNotes') && document.getElementById('registerNotes').value.trim()) || '學員線上註冊並提交學習需求表單';
+
+  if (!email || !password || !name || !phone) {
+    showToast('⚠️ 請完整填寫姓名、手機、電子郵件與密碼！');
+    return;
+  }
+  if (!course) {
+    showToast('⚠️ 請選擇想諮詢 / 感興趣的課程領域！');
+    return;
+  }
+
+  // Check if account already registered
+  const existingUser = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+  if (existingUser) {
+    showToast(`⚠️ 電子郵件「${email}」已註冊過帳號！請直接使用該帳號登入。`);
+    switchToLoginModal();
+    const loginEmailInput = document.getElementById('loginEmail');
+    if (loginEmailInput) loginEmailInput.value = email;
+    return;
+  }
+
+  // 1. Create Student User Account
+  const newStudent = {
+    id: `u-${Date.now()}`,
+    name: name,
+    email: email,
+    phone: phone,
+    password: password,
+    role: 'student',
+    roleLabel: '🎓 消費者學員 (Student)',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+    registeredAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    purchasedCourses: ['course-1']
+  };
+
+  mockUsers.push(newStudent);
+  saveUsersToStorage();
+
+  // 2. Create Potential Student Lead Record for CRM
+  const newLead = {
+    id: `lead-${Date.now()}`,
+    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    name: name,
+    phone: phone,
+    email: email,
+    course: course,
+    identity: identity,
+    goal: goal,
+    experience: experience,
+    timePerWeek: timePerWeek,
+    priorityHelp: `${priorityHelp} (新註冊學員)`,
+    notes: notes,
+    status: '🆕 新進學員註冊'
+  };
+
+  mockLeads.unshift(newLead);
+  try {
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+
+  // 3. Sync to Google Apps Script Webhook (Google Sheets)
+  syncLeadToGoogleSheet(newLead);
+
+  // 4. Auto Log-in as New Student
+  currentUser = newStudent;
+  try {
+    localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+  } catch (err) {}
+
+  closeRegisterModal();
+  renderAuthArea();
+  updateUIPermissions();
+  renderLeadAdminTable();
+  renderUserTable();
+
+  showToast(`🎉 恭喜 ${name}！已成功註冊學員帳號並登入，需求表單已同步傳送至後台與 Google Sheet！`);
+  switchView('marketplace');
 }
 
 function handleLogout() {
@@ -591,6 +780,7 @@ function renderAdminTables() {
   renderMentorSalaryTable();
   renderLeadAdminTable();
   renderCustomQuotesAdminTable();
+  renderGoogleSheetAdminSection();
 }
 
 // User Accounts Table (Manager Only)
@@ -867,6 +1057,7 @@ function handleSaveUser(e) {
     showToast(`✅ 成功新增帳號：${name} (密碼: ${password})`);
   }
 
+  saveUsersToStorage();
   closeAddUserModal();
   renderUserTable();
 }
@@ -876,6 +1067,7 @@ function deleteUser(userId) {
     const idx = mockUsers.findIndex(u => u.id === userId);
     if (idx !== -1) {
       mockUsers.splice(idx, 1);
+      saveUsersToStorage();
       renderUserTable();
       showToast('已刪除指定帳號');
     }
@@ -2140,8 +2332,12 @@ function syncLeadToGoogleSheet(leadData) {
 
 // Google Sheet Configuration Modal Handlers
 function openGoogleSheetConfigModal() {
+  closeAllDropdowns();
   const modal = document.getElementById('googleSheetConfigModal');
-  if (!modal) return;
+  if (!modal) {
+    console.error('googleSheetConfigModal not found');
+    return;
+  }
 
   const urlInput = document.getElementById('inputGoogleWebhookUrl');
   if (urlInput) {
@@ -2153,12 +2349,27 @@ function openGoogleSheetConfigModal() {
     codeBlock.value = getGoogleAppsScriptTemplate();
   }
 
+  updateInlineWebhookInputs();
+
+  modal.style.display = 'flex';
   modal.classList.add('active');
+  showToast('📊 已開啟 Google Sheet 需求表單串接中心');
 }
 
 function closeGoogleSheetConfigModal() {
   const modal = document.getElementById('googleSheetConfigModal');
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+function renderGoogleSheetAdminSection() {
+  updateInlineWebhookInputs();
+  const inlineCodeBlock = document.getElementById('inlineAppsScriptCodeBlock');
+  if (inlineCodeBlock) {
+    inlineCodeBlock.value = getGoogleAppsScriptTemplate();
+  }
 }
 
 function handleSaveGoogleSheetConfig(e) {
@@ -2198,6 +2409,10 @@ function updateInlineWebhookInputs() {
   const modalInput = document.getElementById('inputGoogleWebhookUrl');
   if (inlineInput) inlineInput.value = currentUrl;
   if (modalInput) modalInput.value = currentUrl;
+  const inlineCodeBlock = document.getElementById('inlineAppsScriptCodeBlock');
+  if (inlineCodeBlock && !inlineCodeBlock.value) {
+    inlineCodeBlock.value = getGoogleAppsScriptTemplate();
+  }
 }
 
 function copyAppsScriptCode() {
