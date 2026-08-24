@@ -442,3 +442,12 @@ let googleSheetConfig = {
   sheetName: "潛在學員諮詢紀錄",
   autoSync: true
 };
+
+let memberSheetConfig = {
+  sheetId: "1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas",
+  sheetUrl: "https://docs.google.com/spreadsheets/d/1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas/edit",
+  webhookUrl: localStorage.getItem('pentaskill_member_sheet_webhook') || "https://script.google.com/macros/s/AKfycbyJLVkWpNrBt7AWtPcg2FAgSg54tE26i675JiEgS60YiWUuiZ5aoCjfAPh4EF7YeQEiTg/exec",
+  sheetName: "會員資料紀錄",
+  headers: ["姓名", "稱呼(小姐/先生)", "email(設為帳號)", "設定密碼", "手機號碼"],
+  autoSync: true
+};
