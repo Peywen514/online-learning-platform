@@ -530,7 +530,7 @@ function handleRegisterSubmit(e) {
   renderLeadAdminTable();
   renderUserTable();
 
-  showToast(`🎉 恭喜 ${name}！已成功註冊學員帳號並登入，需求表單已同步傳送至後台與 Google Sheet！`);
+  showToast(`🎉 我們收到了！感謝您加入精五門會員，已為您自動登入學員專區！`);
   switchView('marketplace');
 }
 
@@ -2150,7 +2150,7 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
   let matchedId = 'course-1';
   
   if (typeof courseIdOrTitle === 'string') {
-    const course = mockCourses.find(c => c.id === courseIdOrTitle || c.title === courseIdOrTitle);
+    const course = (typeof mockCourses !== 'undefined' ? mockCourses : []).find(c => c.id === courseIdOrTitle || c.title === courseIdOrTitle);
     if (course) {
       title = course.title;
       matchedId = course.id;
@@ -2161,8 +2161,12 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
 
   const isCombo = type === 'combo';
   const checkoutModal = document.getElementById('checkoutModal');
-  const modalBody = document.getElementById('checkoutModalBody');
-  if (!checkoutModal || !modalBody) return;
+  let modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal) return;
+  if (!modalBody) {
+    modalBody = checkoutModal.querySelector('.modal-body') || checkoutModal.querySelector('.modal-box');
+  }
+  if (!modalBody) return;
 
   modalBody.innerHTML = `
     <div style="text-align: center; margin-bottom: 1.25rem;">
@@ -2196,17 +2200,17 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
 
       <div style="text-align: center; margin-top: 1rem;">
         <div class="text-xs text-muted margin-bottom-xs">官方 Line@ 帳號專人即時服務：</div>
-        <div class="line-id-chip">
-          <i class="fa-brands fa-line"></i> LINE ID: @PentaSkill
-        </div>
+        <a href="https://lin.ee/yq4lFuv" target="_blank" rel="noopener noreferrer" class="line-id-chip" style="text-decoration: none; cursor: pointer;" title="點擊直接開啟 LINE 加好友">
+          <i class="fa-brands fa-line"></i> LINE: https://lin.ee/yq4lFuv
+        </a>
       </div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1rem;">
-      <button class="btn btn-line btn-block" onclick="handleJoinLineAt('${title}')">
-        <i class="fa-brands fa-line"></i> 🟢 一鍵複製 LINE ID 洽小編領取專屬優惠
+      <button class="btn btn-line btn-block" onclick="handleJoinLineAt('${title.replace(/'/g, "\\'")}')">
+        <i class="fa-brands fa-line"></i> 🟢 一鍵開啟 LINE 洽小編領取專屬優惠
       </button>
-      <button class="btn btn-primary btn-block" onclick="openLeadFormModal('${title}')" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+      <button class="btn btn-primary btn-block" onclick="openLeadFormModal('${title.replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
         <i class="fa-solid fa-file-pen"></i> 📝 無 LINE 或偏好網頁留訊？填寫客製化需求表單
       </button>
       <div style="text-align:center; margin-top:0.4rem;">
@@ -2221,10 +2225,22 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
 }
 
 function handleJoinLineAt(courseName) {
+  const lineUrl = 'https://lin.ee/yq4lFuv';
   try {
-    navigator.clipboard.writeText('@PentaSkill');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lineUrl).catch(() => {});
+    } else {
+      const tempInput = document.createElement('input');
+      tempInput.value = lineUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+    }
   } catch(e) {}
-  showToast(`🟢 已複製官方 LINE ID: @PentaSkill！請開啟 LINE 貼上搜尋，小編將為您解鎖【${courseName}】專屬優惠與 1 對 1 諮詢！`);
+  
+  showToast(`🟢 正在為您開啟官方 LINE！小編將為您解鎖【${courseName || '精選實務課程'}】專屬優惠與 1 對 1 諮詢！`);
+  window.open(lineUrl, '_blank');
 }
 
 // Lead Form Modal Engine (無 LINE / 偏好網頁留訊專用)
@@ -2300,7 +2316,7 @@ function handleLeadFormSubmit(e) {
   syncLeadToGoogleSheet(newLead);
 
   closeLeadFormModal();
-  showToast(`🎉 感謝 ${name} 填寫需求！諮詢表單已成功送出並同步至後台與 Google Sheet，專屬小編將盡快與您聯絡！`);
+  showToast(`🎉 我們收到了！感謝 ${name} 填寫需求，專屬小編將盡快與您聯絡！`);
   renderLeadAdminTable();
 }
 
@@ -2653,11 +2669,11 @@ function openCheckoutModalDirect(courseId, type) {
 
 // Enrollment Checkout & Payment Modal (支援 Wen總監/員工 客製化報價單系統)
 function openCheckoutModal(courseId, type) {
-  const course = mockCourses.find(c => c.id === courseId) || mockCourses[0];
+  const course = (typeof mockCourses !== 'undefined' ? mockCourses : []).find(c => c.id === courseId) || (typeof mockCourses !== 'undefined' ? mockCourses[0] : null);
   if (!course) return;
 
   const userEmail = currentUser ? currentUser.email : 'student@pentaskill.com';
-  const customQuote = mockCustomQuotes.find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
+  const customQuote = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
 
   const isCombo = type === 'combo';
   const displayTitle = customQuote ? customQuote.courseTitle : course.title;
@@ -2665,7 +2681,14 @@ function openCheckoutModal(courseId, type) {
   const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
   const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次名師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
 
-  const modalBody = document.getElementById('checkoutModalBody');
+  const checkoutModal = document.getElementById('checkoutModal');
+  let modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal) return;
+  if (!modalBody) {
+    modalBody = checkoutModal.querySelector('.modal-body') || checkoutModal.querySelector('.modal-box');
+  }
+  if (!modalBody) return;
+
   modalBody.innerHTML = `
     <div style="text-align: center; margin-bottom: 1.25rem;">
       <span class="badge-tag bg-purple"><i class="fa-solid fa-shield-halved"></i> 256-bit SSL 安全加密報名通道</span>
@@ -2715,7 +2738,7 @@ function openCheckoutModal(courseId, type) {
     </form>
   `;
 
-  document.getElementById('checkoutModal').classList.add('active');
+  checkoutModal.classList.add('active');
 }
 
 // Student Custom Quotation Management Engine (Manager & Staff CMS)
@@ -2898,8 +2921,12 @@ function saveNote() {
 // Fullscreen Portfolio Modal Preview
 function openPortfolioModal(title, imgUrl, mentor, student, details) {
   const checkoutModal = document.getElementById('checkoutModal');
-  const modalBody = document.getElementById('checkoutModalBody');
-  if (!checkoutModal || !modalBody) return;
+  let modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal) return;
+  if (!modalBody) {
+    modalBody = checkoutModal.querySelector('.modal-body') || checkoutModal.querySelector('.modal-box');
+  }
+  if (!modalBody) return;
 
   modalBody.innerHTML = `
     <div style="text-align: center; margin-bottom: 1.25rem;">

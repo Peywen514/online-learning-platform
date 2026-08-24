@@ -34,11 +34,20 @@
   --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  position: relative;
 }
 
 body {
@@ -46,9 +55,13 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-secondary);
   line-height: 1.65;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 p {
@@ -227,10 +240,13 @@ a {
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--bg-card-border);
   padding: 0.45rem 0;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .nav-container {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 1rem;
   display: flex;
@@ -659,17 +675,22 @@ a {
   padding: 3rem 0 4rem 0;
   overflow: hidden;
   background: radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.18) 0%, rgba(9, 13, 22, 1) 75%);
+  width: 100%;
+  max-width: 100vw;
 }
 
 .hero-layout {
   display: grid;
-  grid-template-columns: 1.15fr 420px;
+  grid-template-columns: 1.15fr minmax(300px, 420px);
   gap: 2.5rem;
   align-items: center;
+  width: 100%;
 }
 
 .hero-main-text {
   text-align: left;
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero-badge {
@@ -684,6 +705,8 @@ a {
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 1.25rem;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .hero-title {
@@ -692,12 +715,18 @@ a {
   margin-bottom: 1.25rem;
   line-height: 1.3;
   color: #ffffff;
-  word-break: keep-all;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .hero-title-line {
   display: block;
-  white-space: nowrap;
+}
+
+@media (min-width: 993px) {
+  .hero-title-line {
+    white-space: nowrap;
+  }
 }
 
 .hero-desc {
@@ -705,6 +734,8 @@ a {
   color: #f1f5f9;
   margin-bottom: 2rem;
   line-height: 1.85;
+  word-break: break-word;
+  max-width: 100%;
 }
 .hero-desc strong {
   color: #ffffff;
@@ -1671,11 +1702,18 @@ select option {
   .hero-instructors-floating {
     height: auto;
     gap: 0.75rem;
+    width: 100%;
   }
 
   .card-float-1, .card-float-2, .card-float-3, .card-float-4 {
     animation: none;
     margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .floating-mentor-card {
+    width: 100%;
+    max-width: 100%;
   }
 
   .c-slide-content {
@@ -1701,12 +1739,19 @@ select option {
   }
 
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  .hero-stats {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
 }
 
-/* Mobile Phones (max-width: 640px) */
-@media (max-width: 640px) {
+/* Mobile Phones & Tablets (max-width: 768px) */
+@media (max-width: 768px) {
   .container, .container-fluid {
     padding: 0 1rem;
+    width: 100%;
+    max-width: 100%;
   }
 
   .section-padding {
@@ -1714,22 +1759,57 @@ select option {
     padding-bottom: 2.5rem;
   }
 
+  .hero-section {
+    padding: 2rem 0 3rem 0;
+  }
+
+  .hero-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-md);
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+    display: inline-flex;
+    max-width: 100%;
+  }
+
   .hero-title {
-    font-size: 2rem;
+    font-size: clamp(1.45rem, 5.8vw, 1.95rem);
+    line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .hero-title-line {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .hero-desc {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    word-break: break-word;
   }
 
   .hero-buttons {
     flex-direction: column;
     width: 100%;
+    gap: 0.75rem;
   }
 
   .hero-buttons .btn {
     width: 100%;
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    justify-content: center;
   }
 
   .hero-stats {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: 0.85rem;
+    width: 100%;
   }
 
   .grid-2, .grid-3, .grid-4 {
@@ -1743,6 +1823,10 @@ select option {
     height: 320px;
   }
 
+  .fullbody-stage-box {
+    padding: 1.5rem 1rem;
+  }
+
   .carousel-section-box {
     padding: 1.25rem 1rem;
   }
@@ -1751,9 +1835,23 @@ select option {
     font-size: 1.25rem;
   }
 
+  .portfolio-showcase-box {
+    padding: 1.5rem 1rem;
+  }
+
+  .reward-economy-box {
+    padding: 1.5rem 1rem;
+  }
+
+  .modal-backdrop {
+    padding: 0.75rem;
+  }
+
   .modal-box {
     padding: 1.5rem 1rem;
     border-radius: var(--radius-md);
+    width: 100%;
+    max-width: 100%;
   }
 
   .toast-container {
@@ -1763,6 +1861,41 @@ select option {
   .toast {
     max-width: 100%;
     font-size: 0.82rem;
+  }
+
+  .user-dropdown-menu {
+    width: calc(100vw - 32px);
+    max-width: 240px;
+  }
+}
+
+/* Extra Small Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(1.35rem, 6.2vw, 1.7rem);
+  }
+
+  .brand-name {
+    font-size: 0.95rem;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-num {
+    font-size: 1.65rem;
+  }
+
+  .p-card-body {
+    padding: 1rem;
   }
 }
 

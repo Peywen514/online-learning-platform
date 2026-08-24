@@ -1790,7 +1790,7 @@
           <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-graduation-cap"></i> 精五門學員專區</span>
         </div>
         <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-plus text-cyan"></i> 免費註冊學員 & 填寫學習需求</h3>
-        <p class="text-xs text-muted margin-top-xs">完成註冊即可立即開通學員帳號，並將學習需求同步至後台與 Google Sheet，由小編與名師團隊第一時間專人對接！</p>
+        <p class="text-xs text-muted margin-top-xs">完成註冊即可立即開通專屬學員專區，解鎖全站學習資源與 1 對 1 名師個教預約資格！</p>
       </div>
 
       <div class="modal-body margin-top-xs">
@@ -1823,7 +1823,7 @@
             </div>
           </div>
 
-          <!-- 潛在學員需求調查區塊 (後台整合與 Google Apps Script 同步) -->
+          <!-- 潛在學員需求調查區塊 -->
           <div class="grid grid-2 gap-sm margin-top-sm">
             <div class="form-group">
               <label>想諮詢 / 感興趣的課程領域 <span class="text-pink">*</span></label>
@@ -1896,7 +1896,7 @@
 
           <div class="line-consult-box margin-top-sm" style="padding:0.6rem 0.8rem;">
             <div class="text-xs text-muted">
-              <i class="fa-solid fa-cloud-arrow-up text-green"></i> 註冊送出後將自動建立學員登入帳號，並將學習需求即時傳送至後台與 Google Sheet，由小編與教學團隊第一時間專人對接！
+              <i class="fa-solid fa-circle-check text-green"></i> 我們收到了！感謝您加入精五門會員，送出後將自動為您登入學員專區！
             </div>
           </div>
 
@@ -2034,54 +2034,12 @@
     </div>
   </div>
 
-  <!-- Purchase Modal -->
+  <!-- Purchase & Line@ Consultation Modal -->
   <div id="checkoutModal" class="modal-backdrop">
     <div class="modal-box">
       <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
-      <div class="modal-header">
-        <div class="checkout-step-badge">CONFIRM & CHECKOUT</div>
-        <h3 id="checkoutCourseTitle">確認報名結帳與專屬權限開通</h3>
-        <p class="text-sm text-muted">包含完整錄播觀看授權與 1-on-1 專屬名師個教預約資格</p>
-      </div>
-
-      <div class="modal-body margin-top-sm">
-        <div class="checkout-summary-box margin-bottom-md">
-          <div class="flex-between">
-            <span class="text-sm text-muted">已選擇課程方案：</span>
-            <span class="text-sm font-bold text-white" id="checkoutPlanName">精五門旗艦實戰模組</span>
-          </div>
-          <div class="flex-between margin-top-xs">
-            <span class="text-sm text-muted">結帳總金額 (含稅)：</span>
-            <span class="checkout-total-price" id="checkoutPriceText">NT$ 2,880</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label><i class="fa-solid fa-credit-card text-purple"></i> 選擇付款方式</label>
-          <select id="checkoutPaymentMethod" class="form-control">
-            <option value="credit-card">💳 信用卡 / Debit 簽帳金融卡 (支援 VISA / MasterCard / JCB)</option>
-            <option value="line-pay">🟢 LINE Pay 行動支付</option>
-            <option value="atm">🏧 ATM 虛擬帳號轉帳 (支援全台各大銀行)</option>
-            <option value="installment">📑 無卡分期 (3 / 6 / 12 期零利率)</option>
-          </select>
-        </div>
-
-        <div class="form-group margin-top-sm">
-          <label><i class="fa-solid fa-receipt text-cyan"></i> 電子發票開立</label>
-          <select id="checkoutInvoiceType" class="form-control">
-            <option value="personal">個人二聯式電子發票 (系統自動對獎寄送)</option>
-            <option value="company">公司三聯式發票 (含統一編號與抬頭)</option>
-            <option value="mobile-carrier">財政部手機條碼載具</option>
-          </select>
-        </div>
-
-        <button type="button" class="btn btn-primary btn-block btn-lg margin-top-lg" onclick="handleProcessCheckout()">
-          <i class="fa-solid fa-shield-check"></i> 安全加密結帳並即刻開通權限
-        </button>
-
-        <div class="text-center text-xs text-muted margin-top-sm">
-          🔒 交易過程採用 256-bit SSL 銀行級加密，保障個資與付款安全
-        </div>
+      <div id="checkoutModalBody">
+        <!-- Dynamically rendered by openConsultLineModal / openCheckoutModal -->
       </div>
     </div>
   </div>
@@ -2251,7 +2209,7 @@
 
           <div class="line-consult-box margin-top-sm" style="padding:0.6rem 0.8rem;">
             <div class="text-xs text-muted">
-              <i class="fa-solid fa-cloud-arrow-up text-green"></i> 送出後系統將即刻傳送至教學後台與 Google Sheet，由小編與教學團隊第一時間專人對接！
+              <i class="fa-solid fa-circle-check text-green"></i> 我們收到了！專屬小編將盡快與您聯絡！
             </div>
           </div>
 
