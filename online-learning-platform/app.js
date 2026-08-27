@@ -30,7 +30,7 @@ try {
   savedUserJson = localStorage.getItem('pentaskill_user');
 } catch (err) {}
 
-let currentUser = mockUsers[0]; // Default to Wen總監 for demonstration or restore saved session
+let currentUser = null; // ⚡ 預設為一般訪客/非會員未登入狀態 (Guest)
 if (savedUserJson) {
   try {
     const parsed = JSON.parse(savedUserJson);
@@ -69,10 +69,6 @@ try {
   if (savedWebhook) {
     googleSheetConfig.webhookUrl = savedWebhook;
   }
-  const savedMemberWebhook = localStorage.getItem('pentaskill_member_sheet_webhook');
-  if (savedMemberWebhook) {
-    memberSheetConfig.webhookUrl = savedMemberWebhook;
-  }
 } catch (err) {}
 
 let currentView = 'home';
@@ -96,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabEvents();
   initCarousel();
   initCloudflareStreamEngine();
+  checkUrlDirectCheckout();
 
   // Initial Hash view or home
   const initialHash = location.hash.replace('#', '');
@@ -343,9 +340,21 @@ function closeLoginModal() {
   if (modal) modal.classList.remove('active');
 }
 
-function openRegisterModal() {
+function openRegisterModal(preselectedCourse) {
   const modal = document.getElementById('registerModal');
   if (!modal) return;
+  
+  if (preselectedCourse) {
+    const courseSelect = document.getElementById('registerCourse');
+    if (courseSelect) {
+      for (let i = 0; i < courseSelect.options.length; i++) {
+        if (courseSelect.options[i].value.includes(preselectedCourse) || preselectedCourse.includes(courseSelect.options[i].value)) {
+          courseSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
   modal.classList.add('active');
 }
 
@@ -426,24 +435,35 @@ function handleLoginSubmit(e) {
   }
 }
 
-// Member Registration Submission (建立會員帳號 + 5 欄自訂資料同步至 Google Sheet ID: 1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas)
+// Student Registration & Lead Form Submission (自動建立學員帳號 + 送出需求表單至 Google Sheet)
 function handleRegisterSubmit(e) {
   e.preventDefault();
 
   const nameInput = document.getElementById('registerName');
-  const salutationInput = document.getElementById('registerSalutation');
+  const phoneInput = document.getElementById('registerPhone');
   const emailInput = document.getElementById('registerEmail');
   const passwordInput = document.getElementById('registerPassword');
-  const phoneInput = document.getElementById('registerPhone');
+  const courseInput = document.getElementById('registerCourse');
 
   const name = nameInput ? nameInput.value.trim() : '';
-  const salutation = salutationInput ? salutationInput.value : '小姐';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
   const email = emailInput ? emailInput.value.trim() : '';
   const password = passwordInput ? passwordInput.value.trim() : '';
-  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const course = courseInput ? courseInput.value : '';
 
-  if (!name || !salutation || !email || !password || !phone) {
-    showToast('⚠️ 請完整填寫姓名、稱呼、電子郵件、設定密碼與手機號碼！');
+  const identity = (document.getElementById('registerIdentity') && document.getElementById('registerIdentity').value) || '💼 上班族 (想轉職/副業提升)';
+  const goal = (document.getElementById('registerGoal') && document.getElementById('registerGoal').value) || '🎯 想要在 3-6 個月內成功轉職';
+  const experience = (document.getElementById('registerExperience') && document.getElementById('registerExperience').value) || '🌱 零基礎白紙新手 (希望講師手把手入門)';
+  const timePerWeek = (document.getElementById('registerTimePerWeek') && document.getElementById('registerTimePerWeek').value) || '⏱️ 4 ~ 8 小時 (積極學習)';
+  const priorityHelp = (document.getElementById('registerPriorityHelp') && document.getElementById('registerPriorityHelp').value) || '📅 索取課程大綱與免費試聽影片';
+  const notes = (document.getElementById('registerNotes') && document.getElementById('registerNotes').value.trim()) || '學員線上註冊並提交學習需求表單';
+
+  if (!email || !password || !name || !phone) {
+    showToast('⚠️ 請完整填寫姓名、手機、電子郵件與密碼！');
+    return;
+  }
+  if (!course) {
+    showToast('⚠️ 請選擇想諮詢 / 感興趣的課程領域！');
     return;
   }
 
@@ -457,11 +477,10 @@ function handleRegisterSubmit(e) {
     return;
   }
 
-  // 1. Create Student Member Account
+  // 1. Create Student User Account
   const newStudent = {
     id: `u-${Date.now()}`,
     name: name,
-    salutation: salutation,
     email: email,
     phone: phone,
     password: password,
@@ -475,16 +494,32 @@ function handleRegisterSubmit(e) {
   mockUsers.push(newStudent);
   saveUsersToStorage();
 
-  // 2. Sync to Member Registration Google Sheet (ID: 1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas)
-  syncMemberToGoogleSheet({
+  // 2. Create Potential Student Lead Record for CRM
+  const newLead = {
+    id: `lead-${Date.now()}`,
+    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     name: name,
-    salutation: salutation,
+    phone: phone,
     email: email,
-    password: password,
-    phone: phone
-  });
+    course: course,
+    identity: identity,
+    goal: goal,
+    experience: experience,
+    timePerWeek: timePerWeek,
+    priorityHelp: `${priorityHelp} (新註冊學員)`,
+    notes: notes,
+    status: '🆕 新進學員註冊'
+  };
 
-  // 3. Auto Log-in as New Student Member
+  mockLeads.unshift(newLead);
+  try {
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+
+  // 3. Sync to Google Apps Script Webhook (Google Sheets)
+  syncLeadToGoogleSheet(newLead);
+
+  // 4. Auto Log-in as New Student
   currentUser = newStudent;
   try {
     localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
@@ -493,9 +528,10 @@ function handleRegisterSubmit(e) {
   closeRegisterModal();
   renderAuthArea();
   updateUIPermissions();
+  renderLeadAdminTable();
   renderUserTable();
 
-  showToast(`🎉 歡迎加入精五門會員，${name} ${salutation}！已為您自動開通並登入學員專區！`);
+  showToast(`🎉 我們收到了！感謝您加入精五門會員，已為您自動登入學員專區！`);
   switchView('marketplace');
 }
 
@@ -719,7 +755,7 @@ function setupFilterEvents() {
 
 // Admin Dashboard Tabs & Tables
 function switchAdminTab(tabKey) {
-  if (tabKey === 'users' && currentUser.role !== 'manager') {
+  if (tabKey === 'users' && (!currentUser || currentUser.role !== 'manager')) {
     showToast('⚠️ 帳號密碼與權限管理僅供 👑 Wen總監 操作');
     return;
   }
@@ -766,11 +802,7 @@ function renderUserTable() {
         <td>
           <div style="display:flex; align-items:center; gap:0.5rem;">
             <img src="${user.avatar}" style="width:30px;height:30px;border-radius:50%;">
-            <div>
-              <strong>${user.name}</strong>
-              ${user.salutation ? `<span class="badge-tag" style="font-size:0.7rem; padding:1px 5px; margin-left:4px;">${user.salutation}</span>` : ''}
-              ${user.phone ? `<div class="text-xs text-cyan" style="font-weight:500;"><i class="fa-solid fa-phone"></i> ${user.phone}</div>` : ''}
-            </div>
+            <strong>${user.name}</strong>
           </div>
         </td>
         <td><code>${user.email}</code></td>
@@ -780,7 +812,7 @@ function renderUserTable() {
           ${user.role === 'manager' ? '全權限 + 帳號密碼 + 創業規劃' : user.role === 'staff' ? '課程 / 講師 / 影片 增修' : '官網瀏覽與課程購買'}
         </td>
         <td>
-          ${currentUser.role === 'manager' ? `
+          ${currentUser && currentUser.role === 'manager' ? `
             <button class="btn btn-sm btn-outline" onclick="openEditUserModal('${user.id}')"><i class="fa-solid fa-pen"></i> 密碼/權限</button>
             ${user.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
           ` : '<span class="text-muted">無權限</span>'}
@@ -805,7 +837,7 @@ function renderCourseAdminTable() {
       <td><span class="badge badge-success">已上架</span></td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="openEditCourseModal('${c.id}')"><i class="fa-solid fa-pen"></i> 編輯</button>
-        ${currentUser.role === 'manager' ? `<button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        ${currentUser && currentUser.role === 'manager' ? `<button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
     </tr>
   `).join('');
@@ -962,7 +994,7 @@ function exportFinanceReport() {
 
 // Account Creation / Password Edit
 function openAddUserModal() {
-  if (currentUser.role !== 'manager') {
+  if (!currentUser || currentUser.role !== 'manager') {
     showToast('⚠️ 僅有 👑 Wen總監 可以新增帳號密碼');
     return;
   }
@@ -2155,15 +2187,15 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
       <ul class="consult-perks-list">
         <li>
           <i class="fa-solid fa-circle-check"></i>
-          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與名師依據您的基礎與目標，量身規劃專屬學習地圖。</span>
+          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與名師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
         </li>
         <li>
           <i class="fa-solid fa-circle-check"></i>
-          <span><strong>領取專屬折扣精幣：</strong>加入官方 Line@ 洽小編，立即領取專屬折抵精幣與客製化學習方案。</span>
+          <span><strong>Line@ 官方帳號限定學員優惠：</strong>加入 Line@ 即可向小編領取【限時隱藏版學員獎學金】與【專屬學習諮詢服務】。</span>
         </li>
         <li>
           <i class="fa-solid fa-circle-check"></i>
-          <span><strong>最具成就感的專屬實戰作品：</strong>不只賣影片！無論是職場求職接案、還是豐富樂活生活，名師手把手耐心陪伴指導，帶你做出最具成就感的作品。</span>
+          <span><strong>100% 企業級星級作品陪跑：</strong>不是只賣影片，更手把手修稿帶你做到能直接去面試接案的硬實力作品。</span>
         </li>
       </ul>
 
@@ -2289,33 +2321,7 @@ function handleLeadFormSubmit(e) {
   renderLeadAdminTable();
 }
 
-// Google Sheet Synchronization Engine — 1. 會員註冊資料 (ID: 1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas)
-function syncMemberToGoogleSheet(memberData) {
-  const webhookUrl = memberSheetConfig.webhookUrl || localStorage.getItem('pentaskill_member_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbyJLVkWpNrBt7AWtPcg2FAgSg54tE26i675JiEgS60YiWUuiZ5aoCjfAPh4EF7YeQEiTg/exec';
-  if (!webhookUrl) {
-    console.log('ℹ️ 尚未設定會員 Google Apps Script Webhook URL，資料已先儲存於本地端');
-    return;
-  }
-
-  try {
-    fetch(webhookUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify(memberData)
-    }).then(() => {
-      console.log('✅ 會員資料已自動回傳同步至 Google Sheet (ID: 1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas)');
-    }).catch(err => {
-      console.warn('⚠️ 會員 Google Sheet 發送提醒:', err);
-    });
-  } catch (err) {
-    console.warn('⚠️ 建立會員發送參數異常:', err);
-  }
-}
-
-// Google Sheet Synchronization Engine — 2. 客製化問卷需求 (ID: 1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY)
+// Google Sheet Synchronization Engine
 function syncLeadToGoogleSheet(leadData) {
   const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec';
   if (!webhookUrl) {
@@ -2332,7 +2338,7 @@ function syncLeadToGoogleSheet(leadData) {
       },
       body: JSON.stringify(leadData)
     }).then(() => {
-      console.log('✅ 需求問卷 Google Sheet 雙向同步觸發完成 (已寫入試算表)');
+      console.log('✅ Google Sheet 雙向同步觸發完成 (已寫入試算表)');
     }).catch(err => {
       console.warn('⚠️ Google Sheet 傳送提醒:', err);
     });
@@ -2350,11 +2356,21 @@ function openGoogleSheetConfigModal() {
     return;
   }
 
+  const urlInput = document.getElementById('inputGoogleWebhookUrl');
+  if (urlInput) {
+    urlInput.value = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || '';
+  }
+
+  const codeBlock = document.getElementById('appsScriptCodeBlock');
+  if (codeBlock) {
+    codeBlock.value = getGoogleAppsScriptTemplate();
+  }
+
   updateInlineWebhookInputs();
 
   modal.style.display = 'flex';
   modal.classList.add('active');
-  showToast('📊 已開啟 Google Sheet 試算表串接中心');
+  showToast('📊 已開啟 Google Sheet 需求表單串接中心');
 }
 
 function closeGoogleSheetConfigModal() {
@@ -2367,36 +2383,10 @@ function closeGoogleSheetConfigModal() {
 
 function renderGoogleSheetAdminSection() {
   updateInlineWebhookInputs();
-}
-
-function handleSaveMemberSheetConfig(e) {
-  e.preventDefault();
-  const url = document.getElementById('inputMemberWebhookUrl').value.trim();
-  memberSheetConfig.webhookUrl = url;
-  try {
-    localStorage.setItem('pentaskill_member_sheet_webhook', url);
-  } catch (err) {}
-
-  showToast('✅ 會員註冊 Google Sheet 串接設定已成功儲存！');
-  updateInlineWebhookInputs();
-}
-
-function saveInlineMemberWebhook() {
-  const input = document.getElementById('inlineMemberWebhookUrl');
-  if (!input) return;
-  const url = input.value.trim();
-  if (!url) {
-    showToast('⚠️ 請輸入有效的 Google Apps Script 網址 (https://script.google.com/.../exec)');
-    return;
+  const inlineCodeBlock = document.getElementById('inlineAppsScriptCodeBlock');
+  if (inlineCodeBlock) {
+    inlineCodeBlock.value = getGoogleAppsScriptTemplate();
   }
-
-  memberSheetConfig.webhookUrl = url;
-  try {
-    localStorage.setItem('pentaskill_member_sheet_webhook', url);
-  } catch (err) {}
-
-  updateInlineWebhookInputs();
-  showToast('✅ 會員註冊 Google Sheet Webhook 網址已成功儲存！');
 }
 
 function handleSaveGoogleSheetConfig(e) {
@@ -2407,7 +2397,7 @@ function handleSaveGoogleSheetConfig(e) {
     localStorage.setItem('pentaskill_sheet_webhook', url);
   } catch (err) {}
 
-  showToast('✅ 客製化問卷 Google Sheet 串接設定已成功儲存！');
+  showToast('✅ Google Sheet 串接設定已成功儲存！');
   closeGoogleSheetConfigModal();
   updateInlineWebhookInputs();
 }
@@ -2427,47 +2417,18 @@ function saveInlineGoogleWebhook() {
   } catch (err) {}
 
   updateInlineWebhookInputs();
-  showToast('✅ 客製化問卷 Google Sheet Webhook 網址已成功儲存！');
+  showToast('✅ Google Sheet Webhook 網址已成功儲存！');
 }
 
 function updateInlineWebhookInputs() {
-  // Member sheet inputs
-  const currentMemberUrl = memberSheetConfig.webhookUrl || localStorage.getItem('pentaskill_member_sheet_webhook') || '';
-  const inlineMemberInput = document.getElementById('inlineMemberWebhookUrl');
-  const modalMemberInput = document.getElementById('inputMemberWebhookUrl');
-  if (inlineMemberInput) inlineMemberInput.value = currentMemberUrl;
-  if (modalMemberInput) modalMemberInput.value = currentMemberUrl;
-
-  const inlineMemberCodeBlock = document.getElementById('inlineMemberAppsScriptCodeBlock');
-  const modalMemberCodeBlock = document.getElementById('memberAppsScriptCodeBlock');
-  const memberCode = getMemberAppsScriptTemplate();
-  if (inlineMemberCodeBlock) inlineMemberCodeBlock.value = memberCode;
-  if (modalMemberCodeBlock) modalMemberCodeBlock.value = memberCode;
-
-  // Lead sheet inputs
-  const currentLeadUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || '';
+  const currentUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || '';
   const inlineInput = document.getElementById('inlineGoogleWebhookUrl');
   const modalInput = document.getElementById('inputGoogleWebhookUrl');
-  if (inlineInput) inlineInput.value = currentLeadUrl;
-  if (modalInput) modalInput.value = currentLeadUrl;
-
+  if (inlineInput) inlineInput.value = currentUrl;
+  if (modalInput) modalInput.value = currentUrl;
   const inlineCodeBlock = document.getElementById('inlineAppsScriptCodeBlock');
-  const modalCodeBlock = document.getElementById('appsScriptCodeBlock');
-  const leadCode = getGoogleAppsScriptTemplate();
-  if (inlineCodeBlock) inlineCodeBlock.value = leadCode;
-  if (modalCodeBlock) modalCodeBlock.value = leadCode;
-}
-
-function copyMemberAppsScriptCode() {
-  const code = getMemberAppsScriptTemplate();
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(code).then(() => {
-      showToast('📋 會員註冊 Apps Script 程式碼已複製至剪貼簿！');
-    }).catch(() => {
-      fallbackCopy(code);
-    });
-  } else {
-    fallbackCopy(code);
+  if (inlineCodeBlock && !inlineCodeBlock.value) {
+    inlineCodeBlock.value = getGoogleAppsScriptTemplate();
   }
 }
 
@@ -2475,7 +2436,7 @@ function copyAppsScriptCode() {
   const code = getGoogleAppsScriptTemplate();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(code).then(() => {
-      showToast('📋 需求問卷 Apps Script 程式碼已複製至剪貼簿！');
+      showToast('📋 Google Apps Script 程式碼已複製至剪貼簿！');
     }).catch(() => {
       fallbackCopy(code);
     });
@@ -2491,29 +2452,7 @@ function fallbackCopy(text) {
   textarea.select();
   document.execCommand('copy');
   document.body.removeChild(textarea);
-  showToast('📋 程式碼已成功複製至剪貼簿！');
-}
-
-function testMemberSheetSync() {
-  const testMember = {
-    name: "王小美 (測試會員)",
-    salutation: "小姐",
-    email: "test.member@pentaskill.com",
-    password: "pass" + Math.floor(1000 + Math.random() * 9000),
-    phone: "0912-345-678"
-  };
-
-  const webhookUrl = memberSheetConfig.webhookUrl || localStorage.getItem('pentaskill_member_sheet_webhook');
-  if (!webhookUrl) {
-    showToast('⚠️ 請先在上方欄位貼上會員 Google Apps Script 部署網址 (Web App URL)！');
-    return;
-  }
-
-  showToast('🚀 正在發送測試會員資料至 Google Sheet...');
-  syncMemberToGoogleSheet(testMember);
-  setTimeout(() => {
-    showToast('🎉 測試會員資料已發送！請至 Google Sheet (ID: 1a0eY9...) 檢查是否有新增「' + testMember.name + '」。');
-  }, 1200);
+  showToast('📋 Google Apps Script 程式碼已複製至剪貼簿！');
 }
 
 function testGoogleSheetSync() {
@@ -2539,240 +2478,321 @@ function testGoogleSheetSync() {
     return;
   }
 
-  showToast('🚀 正在發送測試資料至 Google Sheet...');
+  showToast('🚀 正在發送測試諮詢資料至 Google Sheet...');
   syncLeadToGoogleSheet(testLead);
   setTimeout(() => {
-    showToast('🎉 測試資料已成功發送！請至您的 Google Sheet 檢查是否有新增列。');
+    showToast('🎉 測試諮詢資料已成功發送！請至您的 Google Sheet 檢查【潛在學員諮詢紀錄】分頁是否有新增列。');
   }, 1200);
 }
 
-// Member Registration Google Sheet Apps Script Template (5 Columns)
-function getMemberAppsScriptTemplate() {
-  return `/**
- * 精五門 PentaSkill — 會員註冊資料 Google Sheet 自動化同步接收腳本
- * 綁定 Google Sheet ID: ${memberSheetConfig.sheetId}
- * 自訂欄位表頭：姓名 | 稱呼(小姐/先生) | email(設為帳號) | 設定密碼 | 手機號碼
- */
+function testGoogleSheetQuoteSync() {
+  const testQuote = {
+    id: `test-quote-${Date.now()}`,
+    updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    studentEmail: "test.student@pentaskill.com",
+    studentName: "測試學員 (報價單同步測試)",
+    courseTitle: "AI 驅動 Full-Stack 實戰營 (👑 總監專屬優惠包)",
+    customPrice: 10880,
+    createdBy: currentUser ? currentUser.name : "👑 Wen總監",
+    details: "包含全套錄播 + 4次名師1對1個教 + 贈送專案元件庫 (雲端同步測試)"
+  };
 
-var SPREADSHEET_ID = "${memberSheetConfig.sheetId}";
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook');
+  if (!webhookUrl) {
+    showToast('⚠️ 請先設定 Google Apps Script Webhook 網址！');
+    return;
+  }
 
-function getTargetSheet() {
-  try {
-    var activeSs = SpreadsheetApp.getActiveSpreadsheet();
-    if (activeSs) {
-      return activeSs.getActiveSheet();
-    }
-  } catch (e) {}
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  return ss.getSheets()[0];
+  showToast('🚀 正在發送測試報價單至 Google Sheet...');
+  syncQuoteToGoogleSheet(testQuote);
+  setTimeout(() => {
+    showToast('🎉 測試報價單已成功發送！請至您的 Google Sheet 檢查【學員客製化報價單】分頁是否有新增列。');
+  }, 1200);
 }
 
-function setupHeaders() {
-  var sheet = getTargetSheet();
-  var headers = [
-    "姓名",
-    "稱呼(小姐/先生)",
-    "email(設為帳號)",
-    "設定密碼",
-    "手機號碼"
-  ];
-  
-  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    
-    // 美化表頭格式 (精五門科技紫底白字)
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setBackground("#4f46e5");
-    headerRange.setFontColor("#ffffff");
-    headerRange.setFontWeight("bold");
-    headerRange.setHorizontalAlignment("center");
-    headerRange.setVerticalAlignment("middle");
-    sheet.setRowHeight(1, 38);
-    sheet.setFrozenRows(1);
-    
-    // 自動調整欄寬
-    for (var i = 1; i <= headers.length; i++) {
-      sheet.autoResizeColumn(i);
-    }
+// Google Sheet Synchronization Engine for Custom Quotes
+function syncQuoteToGoogleSheet(quoteData) {
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec';
+  if (!webhookUrl) return;
+
+  const payload = {
+    type: "quote",
+    ...quoteData
+  };
+
+  try {
+    fetch(webhookUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      console.log('✅ 學員客製化報價單已即時同步至 Google Sheet【學員客製化報價單】分頁');
+    }).catch(err => {
+      console.warn('⚠️ Google Sheet 報價單傳送提醒:', err);
+    });
+  } catch (err) {
+    console.warn('⚠️ 建立報價單發送參數異常:', err);
   }
 }
 
-function doGet(e) {
-  setupHeaders();
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "success",
-    message: "精五門 PentaSkill 會員註冊 Google Sheet 串接正常運行中！5 欄表頭已自動初始化完成。"
-  })).setMimeType(ContentService.MimeType.JSON);
+function getGoogleAppsScriptTemplate() {
+  return `/**
+ * 精五門 PentaSkill — Google Sheet 雙工作表自動分流接收腳本
+ * 支援 1. 潛在學員諮詢紀錄 / 2. 學員客製化報價單 (含手機查單與即時雲端查詢)
+ * 綁定試算表 ID: ${googleSheetConfig.sheetId}
+ */
+
+function getSpreadsheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    ss = SpreadsheetApp.openById("${googleSheetConfig.sheetId}");
+  }
+  return ss;
 }
 
-function doPost(e) {
+function testRun() {
+  var ss = getSpreadsheet();
+  initLeadSheet(ss);
+  initQuoteSheet(ss);
+  Logger.log("雙工作表已成功初始化完成！");
+}
+
+function initLeadSheet(ss) {
+  var sheet = ss.getSheetByName("潛在學員諮詢紀錄");
+  if (!sheet) {
+    sheet = ss.getSheets()[0];
+    try { sheet.setName("潛在學員諮詢紀錄"); } catch(e) {}
+  }
+  var headers = [
+    "填表時間", "學員姓名", "聯絡電話", "電子郵件", "目前身分",
+    "想諮詢課程", "學習目標", "實務基礎程度", "每週投入時間",
+    "優先協助事項", "學員備註說明", "處理跟進狀態"
+  ];
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    var range = sheet.getRange(1, 1, 1, headers.length);
+    range.setBackground("#4f46e5");
+    range.setFontColor("#ffffff");
+    range.setFontWeight("bold");
+    range.setHorizontalAlignment("center");
+    range.setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function initQuoteSheet(ss) {
+  var sheet = ss.getSheetByName("學員客製化報價單");
+  if (!sheet) {
+    sheet = ss.insertSheet("學員客製化報價單");
+  }
+  var headers = [
+    "設定時間", "對接學員Email", "學員姓名", "聯絡電話", "客製化課程/方案名稱",
+    "客製化金額", "設定主管/員工", "專屬開通備註與贈品"
+  ];
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    var range = sheet.getRange(1, 1, 1, headers.length);
+    range.setBackground("#0891b2");
+    range.setFontColor("#ffffff");
+    range.setFontWeight("bold");
+    range.setHorizontalAlignment("center");
+    range.setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getNowString() {
+  return Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+}
+
+function doGet(e) {
   try {
-    setupHeaders();
-    var sheet = getTargetSheet();
-    var data = {};
-    
-    if (e && e.postData && e.postData.contents) {
-      try {
-        data = JSON.parse(e.postData.contents);
-      } catch(parseErr) {
-        data = e.parameter || {};
+    var ss = getSpreadsheet();
+    var kw = (e && e.parameter && (e.parameter.q || e.parameter.keyword || e.parameter.query)) ? e.parameter.q.toString().trim().toLowerCase() : "";
+    var cleanKw = kw.replace(/[\\s-]/g, "");
+
+    var quoteSheet = initQuoteSheet(ss);
+    var quotes = [];
+
+    if (quoteSheet.getLastRow() > 1) {
+      var numRows = quoteSheet.getLastRow() - 1;
+      var numCols = Math.max(quoteSheet.getLastColumn(), 8);
+      var values = quoteSheet.getRange(2, 1, numRows, numCols).getValues();
+
+      for (var i = 0; i < values.length; i++) {
+        var row = values[i];
+        var qTime = row[0] ? row[0].toString() : "";
+        var qEmail = row[1] ? row[1].toString() : "";
+        var qName = row[2] ? row[2].toString() : "";
+        var qPhone = "";
+        var qTitle = "";
+        var qPrice = 0;
+        var qBy = "";
+        var qDetails = "";
+
+        if (typeof row[4] === "number" || (!isNaN(Number(row[4])) && String(row[4]).trim() !== "" && isNaN(Number(row[3])))) {
+          // 7 欄舊格式相容: [時間, Email, 姓名, 課程名稱, 金額, 設定者, 備註]
+          qPhone = "";
+          qTitle = row[3] ? row[3].toString() : "";
+          qPrice = Number(row[4]) || 0;
+          qBy = row[5] ? row[5].toString() : "👑 Wen總監";
+          qDetails = row[6] ? row[6].toString() : "";
+        } else if (typeof row[5] === "number" || (!isNaN(Number(row[5])) && String(row[5]).trim() !== "")) {
+          // 8 欄新格式: [時間, Email, 姓名, 手機, 課程名稱, 金額, 設定者, 備註]
+          qPhone = row[3] ? row[3].toString() : "";
+          qTitle = row[4] ? row[4].toString() : "";
+          qPrice = Number(row[5]) || 0;
+          qBy = row[6] ? row[6].toString() : "👑 Wen總監";
+          qDetails = row[7] ? row[7].toString() : "";
+        } else {
+          qTitle = row[3] ? row[3].toString() : "";
+          qPrice = Number(row[4]) || 0;
+          qBy = row[5] ? row[5].toString() : "👑 Wen總監";
+          qDetails = row[6] ? row[6].toString() : "";
+        }
+
+        var quoteObj = {
+          id: "q-cloud-" + (i + 1),
+          updatedAt: qTime,
+          studentEmail: qEmail,
+          studentName: qName,
+          studentPhone: qPhone,
+          courseTitle: qTitle,
+          customPrice: Number(qPrice) || 0,
+          createdBy: qBy,
+          details: qDetails
+        };
+
+        if (!kw) {
+          quotes.push(quoteObj);
+        } else {
+          var matchEmail = qEmail.toLowerCase().indexOf(kw) !== -1;
+          var matchName = qName.toLowerCase().indexOf(kw) !== -1;
+          var matchPhone = qPhone.replace(/[\\s-]/g, "").indexOf(cleanKw) !== -1 && cleanKw.length > 0;
+          if (matchEmail || matchName || matchPhone) {
+            quotes.push(quoteObj);
+          }
+        }
       }
-    } else if (e && e.parameter) {
-      data = e.parameter;
     }
-    
-    var name = data.name || "未填寫";
-    var salutation = data.salutation || data.title || "小姐";
-    var email = data.email || "未提供";
-    var password = data.password || "未設定";
-    var phone = data.phone || data.mobile || "未填寫";
-    
-    sheet.appendRow([
-      name,
-      salutation,
-      email,
-      password,
-      phone
-    ]);
-    
-    var lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow, 1, 1, 5).setVerticalAlignment("middle");
-    sheet.setRowHeight(lastRow, 30);
-    
+
+    if (kw && quotes.length === 0) {
+      var leadSheet = initLeadSheet(ss);
+      if (leadSheet.getLastRow() > 1) {
+        var lRows = leadSheet.getLastRow() - 1;
+        var lValues = leadSheet.getRange(2, 1, lRows, 12).getValues();
+        var matchedLeadEmail = "";
+        for (var j = 0; j < lValues.length; j++) {
+          var lPhone = lValues[j][2] ? lValues[j][2].toString().replace(/[\\s-]/g, "") : "";
+          var lEmail = lValues[j][3] ? lValues[j][3].toString().toLowerCase() : "";
+          if (lPhone && (lPhone === cleanKw || lPhone.indexOf(cleanKw) !== -1)) {
+            matchedLeadEmail = lEmail;
+            break;
+          }
+        }
+        if (matchedLeadEmail) {
+          if (quoteSheet.getLastRow() > 1) {
+            var qValues2 = quoteSheet.getRange(2, 1, quoteSheet.getLastRow() - 1, Math.max(quoteSheet.getLastColumn(), 8)).getValues();
+            for (var k = 0; k < qValues2.length; k++) {
+              if (qValues2[k][1] && qValues2[k][1].toString().toLowerCase() === matchedLeadEmail) {
+                var r = qValues2[k];
+                quotes.push({
+                  id: "q-cloud-" + (k + 1),
+                  updatedAt: r[0] ? r[0].toString() : "",
+                  studentEmail: r[1] ? r[1].toString() : "",
+                  studentName: r[2] ? r[2].toString() : "",
+                  studentPhone: r[3] ? r[3].toString() : "",
+                  courseTitle: r[4] ? r[4].toString() : (r[3] ? r[3].toString() : ""),
+                  customPrice: Number(r[5] || r[4] || 0),
+                  createdBy: r[6] ? r[6].toString() : (r[5] ? r[5].toString() : ""),
+                  details: r[7] ? r[7].toString() : (r[6] ? r[6].toString() : "")
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      message: "會員註冊資料已成功寫入 Google Sheet！",
-      row: lastRow
+      count: quotes.length,
+      quotes: quotes,
+      message: "Google Sheet 雙軌自動化雲端查單運作中！"
     })).setMimeType(ContentService.MimeType.JSON);
-    
+
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: err.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
-}`;
-}
-
-// 12-Column Lead Questionnaire Apps Script Template
-function getGoogleAppsScriptTemplate() {
-  return `/**
- * 精五門 PentaSkill — 潛在學員需求問卷 Google Sheet 自動化接收與表頭生成腳本
- * 綁定 Google Sheet ID: ${googleSheetConfig.sheetId}
- */
-
-var SPREADSHEET_ID = "${googleSheetConfig.sheetId}";
-
-function getTargetSheet() {
-  try {
-    var activeSs = SpreadsheetApp.getActiveSpreadsheet();
-    if (activeSs) {
-      return activeSs.getActiveSheet();
-    }
-  } catch (e) {}
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  return ss.getSheets()[0];
-}
-
-function setupHeaders() {
-  var sheet = getTargetSheet();
-  var headers = [
-    "填表時間",
-    "學員姓名",
-    "聯絡電話",
-    "電子郵件",
-    "目前身分",
-    "想諮詢課程",
-    "學習目標",
-    "實務基礎程度",
-    "每週投入時間",
-    "優先協助事項",
-    "學員備註說明",
-    "處理跟進狀態"
-  ];
-  
-  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    
-    // 美化表頭格式 (精五門科技紫)
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setBackground("#4f46e5");
-    headerRange.setFontColor("#ffffff");
-    headerRange.setFontWeight("bold");
-    headerRange.setHorizontalAlignment("center");
-    headerRange.setVerticalAlignment("middle");
-    sheet.setRowHeight(1, 38);
-    sheet.setFrozenRows(1);
-    
-    // 自動調整欄寬
-    for (var i = 1; i <= headers.length; i++) {
-      sheet.autoResizeColumn(i);
-    }
-  }
-}
-
-function doGet(e) {
-  setupHeaders();
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "success",
-    message: "精五門 PentaSkill 需求問卷 Google Sheet 串接正常運行中！表頭已自動初始化完成。"
-  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
   try {
-    setupHeaders();
-    var sheet = getTargetSheet();
+    var ss = getSpreadsheet();
     var data = {};
-    
     if (e && e.postData && e.postData.contents) {
-      try {
-        data = JSON.parse(e.postData.contents);
-      } catch(parseErr) {
-        data = e.parameter || {};
-      }
+      data = JSON.parse(e.postData.contents);
     } else if (e && e.parameter) {
       data = e.parameter;
     }
-    
-    var timestamp = data.createdAt || Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    var name = data.name || "未填寫";
-    var phone = data.phone || "未填寫";
-    var email = data.email || "未提供";
-    var identity = data.identity || "一般諮詢";
-    var course = data.course || "全系列諮詢";
-    var goal = data.goal || "未指定";
-    var experience = data.experience || "未指定";
-    var timePerWeek = data.timePerWeek || "未指定";
-    var priorityHelp = data.priorityHelp || "未指定";
-    var notes = data.notes || "無特殊備註";
-    var status = data.status || "🆕 新進諮詢";
-    
-    sheet.appendRow([
-      timestamp,
-      name,
-      phone,
-      email,
-      identity,
-      course,
-      goal,
-      experience,
-      timePerWeek,
-      priorityHelp,
-      notes,
-      status
-    ]);
-    
-    var lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow, 1, 1, 12).setVerticalAlignment("middle");
-    sheet.setRowHeight(lastRow, 30);
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      message: "問卷資料已成功寫入 Google Sheet！",
-      row: lastRow
-    })).setMimeType(ContentService.MimeType.JSON);
-    
+
+    if (data.type === "quote" || data.dataType === "quote") {
+      var quoteSheet = initQuoteSheet(ss);
+      var row = [
+        data.updatedAt || getNowString(),
+        data.studentEmail || "未提供",
+        data.studentName || "未填寫",
+        data.studentPhone || "",
+        data.courseTitle || "客製化課程",
+        data.customPrice || 0,
+        data.createdBy || "Wen總監",
+        data.details || "無特殊備註"
+      ];
+      quoteSheet.appendRow(row);
+      var lastRow = quoteSheet.getLastRow();
+      quoteSheet.getRange(lastRow, 1, 1, 8).setVerticalAlignment("middle");
+      quoteSheet.setRowHeight(lastRow, 30);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "客製化報價單寫入成功！",
+        row: lastRow
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else {
+      var leadSheet = initLeadSheet(ss);
+      var row = [
+        (data && data.createdAt) || getNowString(),
+        (data && data.name) || "未填寫",
+        (data && data.phone) || "未填寫",
+        (data && data.email) || "未提供",
+        (data && data.identity) || "一般諮詢",
+        (data && data.course) || "全系列諮詢",
+        (data && data.goal) || "未指定",
+        (data && data.experience) || "未指定",
+        (data && data.timePerWeek) || "未指定",
+        (data && data.priorityHelp) || "未指定",
+        (data && data.notes) || "無特殊備註",
+        (data && data.status) || "新進諮詢"
+      ];
+      leadSheet.appendRow(row);
+      var lastRow = leadSheet.getLastRow();
+      leadSheet.getRange(lastRow, 1, 1, 12).setVerticalAlignment("middle");
+      leadSheet.setRowHeight(lastRow, 30);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "諮詢表單寫入成功！",
+        row: lastRow
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
@@ -2812,13 +2832,32 @@ function renderLeadAdminTable() {
         </td>
         <td class="text-xs text-muted" style="max-width:180px;">${lead.notes}</td>
         <td><span class="badge ${statusBadgeClass}">${lead.status}</span></td>
-        <td>
-          <button class="btn btn-sm btn-outline" onclick="updateLeadStatus('${lead.id}')"><i class="fa-solid fa-check"></i> 改狀態</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead.id}')"><i class="fa-solid fa-trash"></i></button>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-sm btn-primary" onclick="convertLeadToQuote('${lead.id}')" title="直接為該學員建立客製化報價單" style="padding:0.35rem 0.6rem; font-size:0.75rem;"><i class="fa-solid fa-file-invoice"></i> 轉報價單</button>
+          <button class="btn btn-sm btn-outline" onclick="updateLeadStatus('${lead.id}')" style="padding:0.35rem 0.5rem; font-size:0.75rem;"><i class="fa-solid fa-check"></i> 改狀態</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead.id}')" style="padding:0.35rem 0.5rem; font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+function convertLeadToQuote(leadId) {
+  const lead = mockLeads.find(l => l.id === leadId);
+  if (!lead) return;
+
+  document.getElementById('editQuoteId').value = '';
+  document.getElementById('inputQuoteStudentEmail').value = lead.email;
+  document.getElementById('inputQuoteStudentName').value = lead.name;
+  if (document.getElementById('inputQuoteStudentPhone')) {
+    document.getElementById('inputQuoteStudentPhone').value = lead.phone || '';
+  }
+  document.getElementById('inputQuoteCourseTitle').value = `${lead.course} (👑 LINE/電話 對接專屬優惠包)`;
+  document.getElementById('inputQuotePrice').value = '10880';
+  document.getElementById('inputQuoteDetails').value = `來自 LINE/電話 對接。學習目標：${lead.goal}。包含錄播全套 + 1對1名師個教帶練。`;
+
+  document.getElementById('customQuoteModal').classList.add('active');
+  showToast(`已為 ${lead.name} 自動帶入諮詢資料（含手機號碼），請設定結帳金額後儲存！`);
 }
 
 function updateLeadStatus(leadId) {
@@ -2910,7 +2949,6 @@ function openCheckoutModal(courseId, type) {
           <option>💳 信用卡 / 簽帳金融卡 (256-bit SSL 一次付清)</option>
           <option>🏦 銀行 ATM / 網路銀行轉帳 (取得專屬虛擬帳號)</option>
           <option>📱 LINE Pay / 街口支付行動快充</option>
-          <option>💳 零利率無卡分期 (每月 NT$ ${(displayPrice / 3).toFixed(0)} x 3期)</option>
         </select>
       </div>
 
@@ -2932,8 +2970,11 @@ function openCheckoutModal(courseId, type) {
 // Student Custom Quotation Management Engine (Manager & Staff CMS)
 function openAddQuoteModal() {
   document.getElementById('editQuoteId').value = '';
-  document.getElementById('inputQuoteStudentEmail').value = 'student@pentaskill.com';
-  document.getElementById('inputQuoteStudentName').value = '林小明 (學員)';
+  document.getElementById('inputQuoteStudentEmail').value = '';
+  document.getElementById('inputQuoteStudentName').value = '';
+  if (document.getElementById('inputQuoteStudentPhone')) {
+    document.getElementById('inputQuoteStudentPhone').value = '';
+  }
   document.getElementById('inputQuoteCourseTitle').value = 'AI 驅動 Full-Stack 開發實戰營 (👑 專屬對接 85 折優惠包)';
   document.getElementById('inputQuotePrice').value = '10880';
   document.getElementById('inputQuoteDetails').value = '包含全套錄播 + 4次個教點評 + 贈送設計元件庫';
@@ -2945,11 +2986,14 @@ function openEditQuoteModal(quoteId) {
   if (!quote) return;
 
   document.getElementById('editQuoteId').value = quote.id;
-  document.getElementById('inputQuoteStudentEmail').value = quote.studentEmail;
-  document.getElementById('inputQuoteStudentName').value = quote.studentName;
-  document.getElementById('inputQuoteCourseTitle').value = quote.courseTitle;
-  document.getElementById('inputQuotePrice').value = quote.customPrice;
-  document.getElementById('inputQuoteDetails').value = quote.details;
+  document.getElementById('inputQuoteStudentEmail').value = quote.studentEmail || '';
+  document.getElementById('inputQuoteStudentName').value = quote.studentName || '';
+  if (document.getElementById('inputQuoteStudentPhone')) {
+    document.getElementById('inputQuoteStudentPhone').value = quote.studentPhone || '';
+  }
+  document.getElementById('inputQuoteCourseTitle').value = quote.courseTitle || '';
+  document.getElementById('inputQuotePrice').value = quote.customPrice || 0;
+  document.getElementById('inputQuoteDetails').value = quote.details || '';
   document.getElementById('customQuoteModal').classList.add('active');
 }
 
@@ -2962,6 +3006,8 @@ function handleSaveCustomQuote(e) {
   const id = document.getElementById('editQuoteId').value;
   const studentEmail = document.getElementById('inputQuoteStudentEmail').value.trim();
   const studentName = document.getElementById('inputQuoteStudentName').value.trim();
+  const phoneEl = document.getElementById('inputQuoteStudentPhone');
+  const studentPhone = phoneEl ? phoneEl.value.trim() : '';
   const courseTitle = document.getElementById('inputQuoteCourseTitle').value.trim();
   const customPrice = parseInt(document.getElementById('inputQuotePrice').value) || 0;
   const details = document.getElementById('inputQuoteDetails').value.trim();
@@ -2969,23 +3015,28 @@ function handleSaveCustomQuote(e) {
   const creatorName = currentUser ? currentUser.name : '👑 Wen總監';
   const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
+  let quoteToSync = null;
+
   if (id) {
     const existing = mockCustomQuotes.find(q => q.id === id);
     if (existing) {
       existing.studentEmail = studentEmail;
       existing.studentName = studentName;
+      existing.studentPhone = studentPhone;
       existing.courseTitle = courseTitle;
       existing.customPrice = customPrice;
       existing.details = details;
       existing.createdBy = creatorName;
       existing.updatedAt = nowStr;
+      quoteToSync = existing;
     }
-    showToast(`✅ 已更新 ${studentName} 的專屬結帳報價單（金額：NT$ ${customPrice.toLocaleString()}）`);
+    showToast(`✅ 已更新 ${studentName} 的專屬結帳報價單（金額：NT$ ${customPrice.toLocaleString()}）並同步 Google Sheet`);
   } else {
     const newQuote = {
       id: `quote-${Date.now()}`,
       studentEmail,
       studentName,
+      studentPhone,
       courseTitle,
       customPrice,
       createdBy: creatorName,
@@ -2993,12 +3044,17 @@ function handleSaveCustomQuote(e) {
       updatedAt: nowStr
     };
     mockCustomQuotes.unshift(newQuote);
-    showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}）`);
+    quoteToSync = newQuote;
+    showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}）並同步 Google Sheet`);
   }
 
   try {
     localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
   } catch(err) {}
+
+  if (quoteToSync) {
+    syncQuoteToGoogleSheet(quoteToSync);
+  }
 
   closeCustomQuoteModal();
   renderCustomQuotesAdminTable();
@@ -3013,18 +3069,417 @@ function renderCustomQuotesAdminTable() {
       <td>
         <strong>${quote.studentName}</strong>
         <div class="text-xs text-muted"><code>${quote.studentEmail}</code></div>
+        ${quote.studentPhone ? `<div class="text-xs text-cyan"><i class="fa-solid fa-phone"></i> ${quote.studentPhone}</div>` : ''}
       </td>
       <td><span class="badge-tag">${quote.createdBy}</span></td>
       <td><strong class="text-pink">${quote.courseTitle}</strong></td>
       <td><strong class="text-purple" style="font-size:1.05rem;">NT$ ${quote.customPrice.toLocaleString()}</strong></td>
       <td class="text-xs text-muted" style="max-width:200px;">${quote.details}</td>
       <td class="text-xs text-muted"><code>${quote.updatedAt}</code></td>
-      <td>
-        <button class="btn btn-sm btn-outline" onclick="openEditQuoteModal('${quote.id}')"><i class="fa-solid fa-pen"></i> 修改金額/名稱</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteCustomQuote('${quote.id}')"><i class="fa-solid fa-trash"></i></button>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-line" onclick="copyLineCheckoutGuide('${quote.id}')" title="複製 LINE 專屬結帳引導 (含直通付款連結)" style="padding:0.35rem 0.6rem; font-size:0.75rem;"><i class="fa-brands fa-line"></i> 複製 LINE 引導</button>
+        <button class="btn btn-sm btn-outline" onclick="copyDirectPayLink('${quote.id}')" title="複製免登入直通付款連結" style="padding:0.35rem 0.6rem; font-size:0.75rem; border-color:var(--accent-cyan); color:var(--accent-cyan);"><i class="fa-solid fa-link"></i> 複製直通連結</button>
+        <button class="btn btn-sm btn-outline" onclick="openEditQuoteModal('${quote.id}')" style="padding:0.35rem 0.5rem; font-size:0.75rem;"><i class="fa-solid fa-pen"></i> 修改</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCustomQuote('${quote.id}')" style="padding:0.35rem 0.5rem; font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
+}
+
+function generateDirectPayUrl(quote) {
+  let base = window.location.href.split('?')[0].split('#')[0];
+  // 若在本機 file:/// 或 127.0.0.1 測試，自動使用正式 Cloudflare Workers 網址，確保發到 LINE/簡訊 100% 為可點擊的超連結
+  if (!base.startsWith('http://') && !base.startsWith('https://') || base.includes('localhost') || base.includes('127.0.0.1') || base.startsWith('file:')) {
+    base = 'https://online-class.pey514514.workers.dev/';
+  }
+  // ⚡ 做法 2：採用超簡潔短網址（乾淨俐落、不帶長代碼）
+  return `${base}?quote=${quote.id}`;
+}
+
+function copyDirectPayLink(quoteId) {
+  const quote = mockCustomQuotes.find(q => q.id === quoteId);
+  if (!quote) return;
+
+  const url = generateDirectPayUrl(quote);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast(`🔗 已複製 ${quote.studentName} 的【極簡直通結帳短網址】！`);
+    }).catch(() => {
+      fallbackCopy(url);
+    });
+  } else {
+    fallbackCopy(url);
+  }
+}
+
+function copyLineCheckoutGuide(quoteId) {
+  const quote = mockCustomQuotes.find(q => q.id === quoteId);
+  if (!quote) return;
+
+  const directPayUrl = generateDirectPayUrl(quote);
+
+  const guideText = `🎉 嗨 ${quote.studentName}！
+已為您在【精五門 PentaSkill】設定好專屬報名通道：
+📌 專屬方案：${quote.courseTitle}
+💰 專屬特惠金額：NT$ ${quote.customPrice.toLocaleString()}
+🎁 專屬包含：${quote.details}
+
+👉【方式一】點擊專屬直通短網址（免註冊登入）：
+🔗 ${directPayUrl}
+
+👉【方式二】或直接至官網點擊「專屬報價結帳」輸入您的 Email 或手機：
+🌐 https://online-class.pey514514.workers.dev/
+
+核對您的資料並選擇付款方式（信用卡/LINE Pay/ATM）即可立即開通學習權限！
+若有任何問題隨時與我們聯繫 😊`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(guideText).then(() => {
+      showToast(`📋 已複製 ${quote.studentName} 的結帳通知引導文案 (含短網址與官網查單)！`);
+    }).catch(() => {
+      fallbackCopy(guideText);
+    });
+  } else {
+    fallbackCopy(guideText);
+  }
+}
+
+// ⚡ 做法 3：學員專屬報價單快速查詢 (Lookup Custom Quotation - 支援本地與 Google Sheet 雲端即時比對)
+function openQuoteLookupModal() {
+  const modal = document.getElementById('quoteLookupModal');
+  if (!modal) return;
+  const resultArea = document.getElementById('quoteLookupResultArea');
+  if (resultArea) {
+    resultArea.style.display = 'none';
+    resultArea.innerHTML = '';
+  }
+  const input = document.getElementById('lookupQuoteKeyword');
+  if (input) input.value = '';
+  modal.classList.add('active');
+  setTimeout(() => { if (input) input.focus(); }, 150);
+}
+
+function closeQuoteLookupModal() {
+  const modal = document.getElementById('quoteLookupModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function lookupAndCheckoutQuote(e) {
+  e.preventDefault();
+  const input = document.getElementById('lookupQuoteKeyword');
+  if (!input) return;
+  const kw = input.value.trim().toLowerCase();
+  const cleanKw = kw.replace(/[\s-]/g, '');
+  const resultArea = document.getElementById('quoteLookupResultArea');
+
+  const quotes = (typeof mockCustomQuotes !== 'undefined' && Array.isArray(mockCustomQuotes)) ? mockCustomQuotes : [];
+
+  // 1. 先在本地記憶體中比對 (Email / 姓名 / 報價單ID / 手機)
+  let foundQuote = quotes.find(q => {
+    const qEmail = (q.studentEmail || '').toLowerCase().trim();
+    const qName = (q.studentName || '').toLowerCase().trim();
+    const qPhone = (q.studentPhone || '').replace(/[\s-]/g, '');
+    const qId = (q.id || '').toLowerCase().trim();
+
+    if (qEmail && (qEmail === kw || qEmail.includes(kw))) return true;
+    if (qName && (qName === kw || qName.includes(kw))) return true;
+    if (qPhone && (qPhone === cleanKw || qPhone.includes(cleanKw) || cleanKw.includes(qPhone))) return true;
+    if (qId && qId === kw) return true;
+
+    // 檢查 mockUsers 中是否有相同 Email 的電話
+    const user = (typeof mockUsers !== 'undefined' ? mockUsers : []).find(u => (u.email || '').toLowerCase() === qEmail);
+    if (user && user.phone) {
+      const cleanPhone = user.phone.replace(/[\s-]/g, '');
+      if (cleanPhone && (cleanPhone === cleanKw || cleanPhone.includes(cleanKw) || cleanKw.includes(cleanPhone))) return true;
+    }
+
+    // 檢查 mockLeads 中是否有相同 Email 的電話
+    const lead = (typeof mockLeads !== 'undefined' ? mockLeads : []).find(l => (l.email || '').toLowerCase() === qEmail);
+    if (lead && lead.phone) {
+      const cleanPhone = lead.phone.replace(/[\s-]/g, '');
+      if (cleanPhone && (cleanPhone === cleanKw || cleanPhone.includes(cleanKw) || cleanKw.includes(cleanPhone))) return true;
+    }
+
+    return false;
+  });
+
+  if (foundQuote) {
+    closeQuoteLookupModal();
+    showToast(`🎉 已成功查出【${foundQuote.studentName}】的專屬客製化報價單！`);
+    setTimeout(() => {
+      openDirectPaymentModal({
+        id: foundQuote.id,
+        email: foundQuote.studentEmail,
+        name: foundQuote.studentName,
+        phone: foundQuote.studentPhone || '',
+        title: foundQuote.courseTitle,
+        price: foundQuote.customPrice,
+        details: foundQuote.details,
+        by: foundQuote.createdBy
+      });
+    }, 300);
+    return;
+  }
+
+  // 2. 若本地未查到，啟動 Google Sheet 雲端即時查單 (跨裝置/多電腦同步)
+  if (resultArea) {
+    resultArea.style.display = 'block';
+    resultArea.innerHTML = `
+      <div style="background: rgba(8, 145, 178, 0.1); border: 1px solid rgba(8, 145, 178, 0.3); border-radius: var(--radius-sm); padding: 0.85rem; color: var(--accent-cyan); font-size: 0.85rem; text-align: center;">
+        <i class="fa-solid fa-spinner fa-spin"></i> 正在即時連線 Google Sheet 雲端報價單資料庫查詢...
+      </div>
+    `;
+  }
+
+  try {
+    const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
+    const queryUrl = `${webhookUrl}${webhookUrl.includes('?') ? '&' : '?'}q=${encodeURIComponent(kw)}`;
+
+    const response = await fetch(queryUrl);
+    const json = await response.json();
+
+    if (json && json.status === 'success' && Array.isArray(json.quotes) && json.quotes.length > 0) {
+      const cloudQuote = json.quotes[0];
+
+      let quoteTitle = cloudQuote.courseTitle;
+      let quotePrice = Number(cloudQuote.customPrice) || 0;
+      let quotePhone = cloudQuote.studentPhone || '';
+      let quoteDetails = cloudQuote.details || '';
+      let quoteBy = cloudQuote.createdBy || '👑 Wen總監';
+
+      // 智慧校正：若舊版試算表欄位未對齊（如金額跑到 courseTitle，課程名稱跑到 studentPhone）
+      if (quotePrice === 0 && !isNaN(Number(cloudQuote.courseTitle)) && Number(cloudQuote.courseTitle) > 0) {
+        quotePrice = Number(cloudQuote.courseTitle);
+        quoteTitle = cloudQuote.studentPhone || '專屬對接客製化課程';
+        quotePhone = '';
+        if (!quoteDetails && cloudQuote.createdBy && cloudQuote.createdBy !== 'Wen總監' && cloudQuote.createdBy !== '👑 Wen總監') {
+          quoteDetails = cloudQuote.createdBy;
+          quoteBy = '👑 Wen總監';
+        }
+      }
+
+      cloudQuote.courseTitle = quoteTitle;
+      cloudQuote.customPrice = quotePrice;
+      cloudQuote.studentPhone = quotePhone;
+      cloudQuote.details = quoteDetails;
+      cloudQuote.createdBy = quoteBy;
+
+      // 自動同步快取至本地
+      const existsLocal = mockCustomQuotes.find(q => q.studentEmail.toLowerCase() === cloudQuote.studentEmail.toLowerCase());
+      if (!existsLocal) {
+        mockCustomQuotes.unshift(cloudQuote);
+        try {
+          localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
+        } catch(err) {}
+      }
+
+      closeQuoteLookupModal();
+      showToast(`🎉 已自 Google Sheet 雲端成功查出【${cloudQuote.studentName}】的專屬報價單！`);
+      setTimeout(() => {
+        openDirectPaymentModal({
+          id: cloudQuote.id,
+          email: cloudQuote.studentEmail,
+          name: cloudQuote.studentName,
+          phone: cloudQuote.studentPhone || '',
+          title: cloudQuote.courseTitle,
+          price: cloudQuote.customPrice,
+          details: cloudQuote.details,
+          by: cloudQuote.createdBy
+        });
+      }, 300);
+      return;
+    }
+  } catch (cloudErr) {
+    console.warn('Google Sheet 雲端查單失敗:', cloudErr);
+  }
+
+  // 3. 查無資料提示
+  if (resultArea) {
+    resultArea.style.display = 'block';
+    resultArea.innerHTML = `
+      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 0.85rem; color: #fca5a5; font-size: 0.82rem;">
+        <div style="font-weight: 700; margin-bottom: 0.3rem;"><i class="fa-solid fa-triangle-exclamation"></i> 查無此 Email 或手機的專屬報價單</div>
+        <p style="margin: 0; line-height: 1.4; font-size: 0.78rem;">已連線 Google Sheet 試算表即時比對，未查到對應資料。請確認輸入的 Email 或手機是否正確，或點擊下方按鈕免費洽詢小編！</p>
+      </div>
+    `;
+  }
+}
+
+// Direct URL Checkout Detection Engine (免登入直通結帳檢測)
+function checkUrlDirectCheckout() {
+  const params = new URLSearchParams(window.location.search);
+  const payToken = params.get('payToken');
+  const quoteId = params.get('quote') || params.get('quoteId') || params.get('pay');
+
+  if (quoteId) {
+    const quote = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).find(q => q.id === quoteId);
+    if (quote) {
+      setTimeout(() => {
+        openDirectPaymentModal({
+          id: quote.id,
+          email: quote.studentEmail,
+          name: quote.studentName,
+          title: quote.courseTitle,
+          price: quote.customPrice,
+          details: quote.details,
+          by: quote.createdBy
+        });
+      }, 400);
+      return;
+    }
+  }
+
+  if (payToken) {
+    try {
+      const decodedJson = decodeURIComponent(atob(payToken));
+      const quoteData = JSON.parse(decodedJson);
+      if (quoteData && quoteData.title && quoteData.price) {
+        setTimeout(() => {
+          openDirectPaymentModal(quoteData);
+        }, 400);
+        return;
+      }
+    } catch(err) {
+      console.warn('payToken 解析提醒:', err);
+    }
+  }
+}
+
+function openDirectPaymentModal(quoteData) {
+  const displayTitle = quoteData.title || '精選實務課程';
+  const displayPrice = parseInt(quoteData.price) || 0;
+  const quoteDetails = quoteData.details || '全套錄播視訊 + 名師 1 對 1 個教輔導';
+  const createdBy = quoteData.by || 'Wen總監';
+  const studentEmail = quoteData.email || '';
+  const studentName = quoteData.name || '';
+
+  const checkoutModal = document.getElementById('checkoutModal');
+  let modalBody = document.getElementById('checkoutModalBody');
+  if (!checkoutModal) return;
+  if (!modalBody) {
+    modalBody = checkoutModal.querySelector('.modal-body') || checkoutModal.querySelector('.modal-box');
+  }
+  if (!modalBody) return;
+
+  modalBody.innerHTML = `
+    <div style="text-align: center; margin-bottom: 1rem;">
+      <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-bolt"></i> 專屬免登入 • 直通快速結帳通道</span>
+      <h4 style="margin-top:0.4rem; font-size:1.15rem; color:#fff;">${displayTitle}</h4>
+      <div class="text-xs text-cyan margin-top-xs">
+        👑 由【${createdBy}】為您客製化之專屬特惠方案與結帳頁面
+      </div>
+    </div>
+
+    <div class="fin-calc-box">
+      <div class="calc-row">
+        <span>對接報名方案</span>
+        <strong class="text-pink" style="font-size:0.95rem;">${displayTitle}</strong>
+      </div>
+      <div class="calc-row">
+        <span>專屬對接結帳金額</span>
+        <strong class="text-purple" style="font-size: 1.35rem;">NT$ ${displayPrice.toLocaleString()}</strong>
+      </div>
+      <div class="calc-row" style="margin-top:0.3rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.3rem;">
+        <span class="text-xs text-muted">專屬包含與贈品：</span>
+        <span class="text-xs text-green"><strong>${quoteDetails}</strong></span>
+      </div>
+    </div>
+
+    <form onsubmit="processDirectPayment(event, '${displayTitle.replace(/'/g, "\\'")}', ${displayPrice})" class="margin-top-md">
+      <div style="background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.85rem;">
+        <div style="font-size:0.82rem; font-weight:700; color:#fff; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.35rem;">
+          <i class="fa-solid fa-user-check text-cyan"></i> 核對開通學員資訊 (付款後直接為您開通此帳號)
+        </div>
+        <div class="grid grid-2 gap-sm">
+          <div class="form-group">
+            <label class="text-xs text-muted">學員姓名 / 稱呼</label>
+            <input type="text" id="directStudentName" class="form-control text-sm" value="${studentName}" placeholder="例如：林小明" required>
+          </div>
+          <div class="form-group">
+            <label class="text-xs text-muted">聯絡電話 (手機)</label>
+            <input type="tel" id="directStudentPhone" class="form-control text-sm" placeholder="0912-345-678">
+          </div>
+        </div>
+        <div class="form-group margin-top-xs">
+          <label class="text-xs text-muted">開通與接收發票 Email <span class="text-pink">*</span></label>
+          <input type="email" id="directStudentEmail" class="form-control text-sm" value="${studentEmail}" placeholder="student@gmail.com" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fa-solid fa-credit-card text-cyan"></i> 選擇金流服務與付款方式</label>
+        <select class="form-control" id="payMethod">
+          <option>💳 信用卡 / 簽帳金融卡 (256-bit SSL 一次付清)</option>
+          <option>🏦 銀行 ATM / 網路銀行轉帳 (取得專屬虛擬帳號)</option>
+          <option>📱 LINE Pay / 街口支付行動快充</option>
+        </select>
+      </div>
+
+      <div class="line-consult-box margin-top-sm" style="padding:0.65rem 0.85rem; margin-bottom:0.5rem;">
+        <div class="text-xs text-muted" style="line-height:1.45;">
+          <i class="fa-solid fa-circle-check text-green"></i> 256-bit 銀行級安全加密。付款完成後系統將自動發送發票並在 3 分鐘內開通線上看課與 1 對 1 預約權限。
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
+        <i class="fa-solid fa-lock"></i> 確認付款 NT$ ${displayPrice.toLocaleString()} 並立即開通權限
+      </button>
+    </form>
+  `;
+
+  checkoutModal.classList.add('active');
+  const box = checkoutModal.querySelector('.modal-box');
+  if (box) box.scrollTop = 0;
+}
+
+function processDirectPayment(e, title, price) {
+  e.preventDefault();
+  const nameInput = document.getElementById('directStudentName');
+  const emailInput = document.getElementById('directStudentEmail');
+  const phoneInput = document.getElementById('directStudentPhone');
+
+  const studentName = nameInput ? nameInput.value.trim() : '學員';
+  const studentEmail = emailInput ? emailInput.value.trim() : 'student@pentaskill.com';
+  const studentPhone = phoneInput ? phoneInput.value.trim() : '';
+
+  closeCheckoutModal();
+
+  // Automatically ensure student exists or register/login as this student
+  let user = mockUsers.find(u => u.email.toLowerCase() === studentEmail.toLowerCase());
+  if (!user) {
+    user = {
+      id: `u-${Date.now()}`,
+      name: studentName,
+      email: studentEmail,
+      phone: studentPhone,
+      password: 'user123',
+      role: 'student',
+      roleLabel: '🎓 消費者學員 (Student)',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+      purchasedCourses: ['course-1', 'course-2']
+    };
+    mockUsers.push(user);
+    saveUsersToStorage();
+  }
+
+  // Set as logged in user
+  currentUser = user;
+  try {
+    localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+  } catch(err) {}
+
+  renderAuthArea();
+  updateUIPermissions();
+
+  cart.push({ title, price });
+  const cartCountEl = document.getElementById('cartCount');
+  if (cartCountEl) cartCountEl.innerText = cart.length;
+
+  showToast(`🎉 結帳成功！已為 ${studentName} 自動開通【${title}】的線上學習中心與 1-on-1 導師預約權限！`);
+
+  setTimeout(() => {
+    switchView('video-player');
+  }, 1000);
 }
 
 function deleteCustomQuote(quoteId) {

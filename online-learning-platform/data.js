@@ -247,7 +247,7 @@ let cloudflareStreamConfig = {
   accountId: "c6a2e87901fb4a88bc345123456789ab",
   customerSubdomain: "customer-88nzk2.cloudflarestream.com",
   requireSignedTokens: true,
-  allowedOrigins: ["peywen514.github.io", "pentaskill.com", "localhost"],
+  allowedOrigins: ["online-class.pey514514.workers.dev", "peywen514.github.io", "pentaskill.com", "localhost"],
   hlsEncryption: "AES-128 / Dynamic HLS Bitrate",
   signingKeyId: "key-cf-stream-pentaskill-2026"
 };
@@ -417,7 +417,7 @@ let mockLeads = [
     experience: "🌱 零基礎白紙新手 (希望講師手把手入門)",
     timePerWeek: "⏱️ 9 小時以上 (全職衝刺/全速個教)",
     priorityHelp: "📅 索取課程大綱與免費試聽影片",
-    notes: "希望能安排張哲銘 (Ethan) 講師個教！主要想問無卡分期方案與完課率保證。",
+    notes: "希望能安排張哲銘 (Ethan) 講師個教！主要想了解完課率與作品集輔導機制。",
     status: "✅ 已聯繫洽談"
   }
 ];
@@ -430,7 +430,7 @@ let mockCustomQuotes = [
     courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 Wen總監專屬對接 85 折優惠包)",
     customPrice: 10880,
     createdBy: "👑 Wen總監",
-    details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫 (無卡分期毎月 $3,626 x 3期)",
+    details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
     updatedAt: "2026-07-26 16:30"
   }
 ];
@@ -438,16 +438,7 @@ let mockCustomQuotes = [
 let googleSheetConfig = {
   sheetId: "1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY",
   sheetUrl: "https://docs.google.com/spreadsheets/d/1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY/edit",
-  webhookUrl: localStorage.getItem('pentaskill_sheet_webhook') || "https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec",
+  webhookUrl: localStorage.getItem('pentaskill_sheet_webhook') || "https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec",
   sheetName: "潛在學員諮詢紀錄",
-  autoSync: true
-};
-
-let memberSheetConfig = {
-  sheetId: "1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas",
-  sheetUrl: "https://docs.google.com/spreadsheets/d/1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas/edit",
-  webhookUrl: localStorage.getItem('pentaskill_member_sheet_webhook') || "https://script.google.com/macros/s/AKfycbyJLVkWpNrBt7AWtPcg2FAgSg54tE26i675JiEgS60YiWUuiZ5aoCjfAPh4EF7YeQEiTg/exec",
-  sheetName: "會員資料紀錄",
-  headers: ["姓名", "稱呼(小姐/先生)", "email(設為帳號)", "設定密碼", "手機號碼"],
   autoSync: true
 };

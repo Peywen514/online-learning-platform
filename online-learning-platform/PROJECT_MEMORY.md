@@ -36,27 +36,33 @@
 - **👑 Wen總監 核心價格與 Line@ / 網頁雙軌留訊轉化戰略**：
   - **前台去除直接明碼標價**：全站前台（首頁熱門輪播圖、課程商城卡片、講師 bio 彈窗）全面隱藏公開直接標價，避免消費者未完整理解「1-on-1 個教陪跑」與「100% 企業級作品集」價值前盲目比價。
   - **引導「洽小編 • 提供個別專屬服務」**：課程文案與按鈕統一改為「洽小編諮詢」、「加 Line@ 領取專屬個教方案」。
-  - **突出 Line@ 競爭優勢**：引導加入官方 Line@ 帳號 (`https://lin.ee/yq4lFuv`) 專人做一對一學習診斷與領取專屬折扣精幣，並由名師手把手耐心陪伴指導，做出兼具職場求職接案與豐富樂活生活最具成就感的作品，鎖定並大幅提升多元客群的訂購轉化率。
+  - **突出 Line@ 競爭優勢**：引導加入官方 Line@ 帳號 (`https://lin.ee/yq4lFuv`) 專人做一對一學習診斷與領取隱藏版獎學金折扣，鎖定並大幅提升高價值個教客群的訂購轉化率。
   - **網頁客製化需求問券表單 (無 LINE 替代管道)**：打造 `leadFormModal` 客製化問卷，包含姓名、電話、身份狀態（上班族/待業轉職/學生/接案）、想諮詢課程、學習目標、目前實務基礎、每週投入時間及優先協助事項，並同步後台「📋 潛在學員需求表單紀錄」提供 Wen總監與團隊跟進。
-  - **去電商化用語（購物車 ➔ 報名結帳 / 專屬開通）**：頂端導覽列將原「購物車」升級改稱為「報名結帳」，避免平價電商感，並串接學員對接小編後的「確認報名結帳與專屬權限開通」金流頁面，支援信用卡、ATM 銀行轉帳、LINE Pay 與無卡分期。
-  - **👑 總監與員工專屬客製化報價系統 (Custom Quotation CMS)**：小編在 Line@ 或網頁表單與學員對接討論後，**Wen總監 (Manager)** 或 **李專案經理 (Staff)** 可直接於後台「🏷️ 學員客製化金額與課程修改」中，為指定學員發放專屬折扣金額（如 NT$ 10,880）與自訂課程方案名稱。學員於前台點擊「報名結帳」時，系統即時讀取並呈現該學員的專屬金額與方案名稱進行結帳。
+  - **👑 總監與員工專屬客製化報價系統 (Custom Quotation CMS) & LINE/電話手動錄入與免登入直通付款工作流**：
+    1. **LINE / 電話客服直接手動建單**：學員未填前台表單直接在 LINE@ 或電話聊完報名時，Wen總監/員工 可直接於後台點擊「➕ 手動錄入學員諮詢 (LINE/電話對接)」，或直接至「新增報價單」輸入學員 Email、姓名、客製金額與方案，即時同步 Google Sheet。
+    2. **一鍵將諮詢紀錄轉為專屬報價單 (1-Click Lead-to-Quote)**：在需求紀錄清單點擊「🏷️ 轉報價單」，系統自動帶入學員姓名、Email 與諮詢課程，總監只需輸入談好的特惠金額即可秒發報價單。
+    3. **⚡ 免登入專屬直通付款連結 (極簡短網址 & 官網雙軌查單通道)**：
+       - **極簡短網址 (做法 2)**：在報價單清單點擊「🔗 複製直通連結」，生成如 `https://online-class.pey514514.workers.dev/?quote=quote-1` 之極簡短網址，不露長代碼，LINE / 簡訊 / Email 點開秒進專屬結帳畫面！
+       - **官網首頁查單結帳 (做法 3 - 無 LINE/簡訊學員專用)**：學員直接至官網首頁或導覽列點擊 **「🏷️ 專屬報價結帳」**，輸入電話或 Email 即可秒查 Wen總監 開立之專屬報價單並線上刷卡/LINE Pay/ATM 開通！
+       - **全方位結帳通知引導文案**：點擊「💬 複製 LINE 引導」自動生成同時包含「直通短網址」與「官網查單」之全方位通知，免登入免註冊即可完成付款！
   - **🎬 錄播試看結束彈窗 (Trial Ended Modal) 轉化機制**：因應後續與合作夥伴網站（完整看課影片與金流串接）結合之戰略，於【錄播學習中心】播放試看影片結束時，系統自動觸發「試看結束彈窗」HTML 結構 (`#videoTrialEndModal`)，呈現 **「喜歡相關課程嗎？立即解鎖其他課程」** 核心引導文案，將「解鎖其他課程」按鈕精準連結至合作夥伴金流課程購買網址 (`https://rbur2v-zz.myshopify.com/`)，並保留加 Line@ 洽小編領優惠、填寫客製化問卷與重新播放等功能。
-  - **👤 ☁️ 加入會員專屬 Google Sheet 自動化串接 (Sheet ID: `1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas`)**：
-    1. **試算表網址**：`https://docs.google.com/spreadsheets/d/1a0eY9lkaenOkz7C2kwuvuKiMMkMnD9IWobIbntXtCas/edit`
-    2. **正式 Webhook 網址**：`https://script.google.com/macros/s/AKfycbyJLVkWpNrBt7AWtPcg2FAgSg54tE26i675JiEgS60YiWUuiZ5aoCjfAPh4EF7YeQEiTg/exec`
-    3. **5 欄自訂表頭規範 (5 Custom Columns)**：`姓名`、`稱呼(小姐/先生)`、`email(設為帳號)`、`設定密碼`、`手機號碼`（僅需此 5 欄，去除多餘問卷題目，註冊體驗極簡流暢）。
-    4. **Google Apps Script 自動化同步**：學員於前台點擊「加入會員」送出表單時，系統自動透過 Webhook POST 將資料寫入試算表，並由腳本自動檢測初始化科技紫底白字表頭與自動欄寬。
-    5. **本地存儲與後台管理**：支援於後台「Google Sheet 試算表串接」面板與設定彈窗即時配置 Webhook URL、1-Click 複製 Apps Script 程式碼、一鍵發送測試資料。
-  - **📊 ☁️ 潛在學員需求問卷 Google Sheet (Sheet ID: `1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY`)**：
-    1. **正式 Webhook 網址**：`https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec`
-    2. **12 欄表頭自動生成 (Auto Key-in Headers)**：Google Apps Script 腳本會自動檢測並將 12 欄表頭寫入試算表第 1 列（`填表時間`, `學員姓名`, `聯絡電話`, `電子郵件`, `目前身分`, `想諮詢課程`, `學習目標`, `實務基礎程度`, `每週投入時間`, `優先協助事項`, `學員備註說明`, `處理跟進狀態`）。
-    3. **雙向自動傳送**：學員於「洽小編 / 客製化問卷」填寫送出時同步寫入後台 CRM 與此問卷試算表。
-- **純淨化安全登入與極簡會員註冊 (Clean Auth & Membership Registration)**：
-  - 前台登入視窗純淨無測試按鈕，僅保留「電子郵件 (帳號)」、「登入密碼 (支援眼睛開關)」與「加入會員」連結。
-  - 點擊「加入會員」彈出專屬會員註冊視窗 (`#registerModal`)，僅需 5 個核心必填欄位：**姓名**、**稱呼(小姐/先生)**、**email(設為帳號)**、**設定密碼**、**手機號碼**。
-  - 送出後即時建立會員帳號、自動登入學員專區並自動回傳同步至會員專用 Google Sheet！
-- **🎨 官方品牌高畫質 Logo 升級 (`logos/logo(new).png`)**：
-  - 頂端導覽列品牌 Logo 與安全登入彈窗全面採用等比例高解析度 Logo 圖像，設定 `object-fit: contain`、`-webkit-optimize-contrast` 與專屬紫光微光暈，支援自適應圓角與防失真渲染。
+  - **📊 ☁️ Google Sheet 雙向雙軌自動化串接 (Sheet ID: `1fqgvE5wBRYuU-U28xO63DYAQUgUaSlEsn6I8I4sHHRY`)**：
+    1. **正式 Webhook 網址**：`https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec`
+    2. **雙工作表自動分流與表頭自動生成**：Google Apps Script 腳本支援多工作表智慧分流：
+       - 工作表 1【`潛在學員諮詢紀錄`】：自動建立 12 欄科技紫表頭（`填表時間`, `學員姓名`, `聯絡電話`, `電子郵件`, `目前身分`, `想諮詢課程`, `學習目標`, `實務基礎程度`, `每週投入時間`, `優先協助事項`, `學員備註說明`, `處理跟進狀態`）。
+       - 工作表 2【`學員客製化報價單`】：自動建立 8 欄科技青表頭（`設定時間`, `對接學員Email`, `學員姓名`, `聯絡電話`, `客製化課程/方案名稱`, `客製化金額 (NT$)`, `設定主管/員工`, `專屬開通備註與贈品`）。
+    3. **雙向即時雲端儲存與跨裝置即時查單 (Live Cloud Query)**：學員於前台填寫問卷、或 Wen總監/員工 於後台新增/修改客製化報價單時，系統即時透過 Webhook 分流寫入 Google Sheet 雙工作表；前台「專屬報價結帳」查單時，亦支援即時連線 Google Sheet 雲端比對手機與 Email，跨裝置、跨電腦即時秒開結帳畫面！
+    4. **全方位串接控制中心 (`#atab-sheets` & `#googleSheetConfigModal`)**：後台管理中心新增專屬「📊 Google Sheet 雙軌自動化串接中心」面板與 Modal，支援 1-Click 複製腳本、即時設定 Webhook URL 與一鍵分別發送「諮詢紀錄」與「客製報價單」測試資料。
+- **純淨化安全登入介面 (Clean Auth & RBAC Verification)**：
+  - **預設為非會員/訪客未登入狀態 (Guest)**：一般訪客點開網頁時，頂部顯示「登入」與「註冊」按鈕，隱藏所有後台管理與商業機密選單，100% 維持前台純淨訪客體驗。
+  - 前台登入視窗全面**移除測試展示快速填入欄位**，避免一般訪客或學員看到測試按鈕。
+  - 僅保留乾淨標準的「電子郵件 (帳號)」、「登入密碼 (支援眼睛切換開關)」與「立即免費註冊學員」切換連結。
+  - 登入時即時校驗帳號與密碼，主管/員工/講師/學員輸入正確帳密後自動載入各自身分專屬權限與介面；密碼不符或未註冊則提供精確友善提示。
+- **學員註冊與潛在需求表單一體化整合 (Registration & Lead Intake Engine)**：
+  - 點擊「註冊」彈出專屬學員註冊視窗 (`#registerModal`)，必填欄位包含：**姓名/稱呼**、**聯絡手機**、**電子郵件 (作為登入帳號)**、**設定密碼**。
+  - 同步整合**潛在學員需求調查**（身分狀態、想諮詢課程領域、學習目標、目前實務基礎、每週投入時間、優先協助事項、學員備註說明）。
+  - 前台對學員提示純淨化：送出後統一提示「🎉 我們收到了！感謝您加入精五門會員，已為您自動登入學員專區！」，不對外曝露任何後端試算表或技術名詞。
+  - 後端保持雙向自動化：將資料即時儲存至後台 CRM 並透過 Webhook 自動同步至 Google Sheet 12 欄表頭，方便團隊小編第一時間電話/Email 對接！
 - **📱 全裝置行動端置中與防溢出優化 (Mobile Centering & Overflow-Proof System)**：
   - 修正手機端 (`<= 768px` 與 `<= 480px`) 因 `white-space: nowrap` 與固定寬度導致整個頁面被撐寬、向右側偏移（右側漢堡選單/頭像與按鈕遭切除）的問題。
   - 於 `html, body` 實施全域 `width: 100%; max-width: 100vw; overflow-x: hidden;`，並將標題 (`.hero-title`)、標籤 (`.hero-badge`)、按鈕組與統計卡片全面設定為自適應折行與彈性寬度，確保手機端排版完全對稱置中。
@@ -85,7 +91,8 @@
   - `創業完整規劃書_簡報檔.html`：可直接列印為 PDF 的商業計畫書簡報 (含商業獲利模式、金流串接與學員權限開通機制)
   - `講師合作分潤與契約條款規範指南.md`：講師合作契約分潤機制對照條款、成本扣除淨利公式、SLA課後答疑服務水準與談判話術備忘錄
 - **GitHub 儲存庫**：`https://github.com/Peywen514/online-learning-platform`
-- **GitHub Pages 公開網址**：`https://peywen514.github.io/online-learning-platform/`
+- **正式線上運作網址 (Cloudflare Workers)**：`https://online-class.pey514514.workers.dev/`
+- **備用公開網址 (GitHub Pages)**：`https://peywen514.github.io/online-learning-platform/`
 
 ---
 
