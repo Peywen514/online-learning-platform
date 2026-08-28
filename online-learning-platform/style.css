@@ -1472,6 +1472,7 @@ a {
   font-size: 0.9rem;
   outline: none;
   transition: var(--transition);
+  color-scheme: dark;
 }
 .form-control:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
 

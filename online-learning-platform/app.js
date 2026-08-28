@@ -1,4 +1,102 @@
-// PentaSkill Application Logic & Secure Account Auth Engine
+// Cloudflare KV Cloud Sync Engine (跨裝置全域資料庫同步)
+const CLOUD_SYNC_API = '/api/cloud-sync';
+
+async function fetchCloudData(key) {
+  try {
+    const res = await fetch(`${CLOUD_SYNC_API}?key=${encodeURIComponent(key)}`, {
+      method: 'GET',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.log(`[Cloudflare KV] 讀取 ${key} (如在非 Worker 環境將自動切換 LocalStorage):`, err.message);
+    return null;
+  }
+}
+
+async function saveCloudData(key, data) {
+  try {
+    const res = await fetch(CLOUD_SYNC_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, data })
+    });
+    return res.ok;
+  } catch (err) {
+    console.log(`[Cloudflare KV] 儲存 ${key} 提醒:`, err.message);
+    return false;
+  }
+}
+
+// 雲端開機自動同步載入
+async function initCloudSync() {
+  try {
+    const [cloudUsers, cloudQuotes, cloudLeads] = await Promise.all([
+      fetchCloudData('users'),
+      fetchCloudData('custom_quotes'),
+      fetchCloudData('leads')
+    ]);
+
+    let updated = false;
+
+    // 1. 同步全域使用者名單與點數
+    if (Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+      cloudUsers.forEach(cu => {
+        const idx = mockUsers.findIndex(u => u.id === cu.id || (u.email && cu.email && u.email.toLowerCase() === cu.email.toLowerCase()));
+        if (idx !== -1) {
+          mockUsers[idx] = { ...mockUsers[idx], ...cu };
+        } else {
+          mockUsers.push(cu);
+        }
+      });
+      saveUsersToStorage(false); // save to local only
+      updated = true;
+    }
+
+    // 2. 同步報價單
+    if (Array.isArray(cloudQuotes) && cloudQuotes.length > 0) {
+      mockCustomQuotes = cloudQuotes;
+      try {
+        localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
+      } catch(err) {}
+      updated = true;
+    }
+
+    // 3. 同步諮詢需求紀錄
+    if (Array.isArray(cloudLeads) && cloudLeads.length > 0) {
+      mockLeads = cloudLeads;
+      try {
+        localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+      } catch(err) {}
+      updated = true;
+    }
+
+    // 4. 若當前登入者有最新雲端點數，即時刷新
+    if (currentUser) {
+      const refreshed = mockUsers.find(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
+      if (refreshed) {
+        currentUser = refreshed;
+        try {
+          localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+        } catch(err) {}
+      }
+    }
+
+    if (updated) {
+      renderAuthArea();
+      renderUserTable();
+      renderCustomQuotesAdminTable();
+      renderLeadAdminTable();
+      if (currentView === 'member-center') {
+        renderMemberCenterView();
+      }
+    }
+  } catch (err) {
+    console.warn('[Cloud Sync] 同步初始化提醒:', err);
+  }
+}
 
 // Restore all users from LocalStorage if available, merging with mockUsers
 try {
@@ -18,10 +116,13 @@ try {
   }
 } catch (err) {}
 
-function saveUsersToStorage() {
+function saveUsersToStorage(syncToCloud = true) {
   try {
     localStorage.setItem('pentaskill_users', JSON.stringify(mockUsers));
   } catch (err) {}
+  if (syncToCloud) {
+    saveCloudData('users', mockUsers);
+  }
 }
 
 // Init Session from LocalStorage if available so refreshing page maintains login state
@@ -55,7 +156,7 @@ try {
 } catch (err) {}
 
 try {
-  const savedQuotes = localStorage.getItem('pentaskill_quotes');
+  const savedQuotes = localStorage.getItem('pentaskill_custom_quotes') || localStorage.getItem('pentaskill_quotes');
   if (savedQuotes) {
     const parsedQuotes = JSON.parse(savedQuotes);
     if (Array.isArray(parsedQuotes) && parsedQuotes.length > 0) {
@@ -93,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCarousel();
   initCloudflareStreamEngine();
   checkUrlDirectCheckout();
+  initCloudSync(); // 🌟 啟動自動連線 Cloudflare KV 雲端資料庫雙向同步
 
   // Initial Hash view or home
   const initialHash = location.hash.replace('#', '');
@@ -232,9 +334,12 @@ function renderAuthArea() {
     if (currentUser.role === 'staff') roleBadgeClass = 'badge-staff';
     if (currentUser.role === 'instructor') roleBadgeClass = 'badge-instructor';
 
+    const coins = currentUser.coins || 0;
+    const masterTokens = currentUser.masterTokens || 0;
+
     container.innerHTML = `
       <div class="user-profile-menu">
-        <button class="user-profile-btn" onclick="toggleUserDropdown(event)" title="點擊展開個人選單 / 切換帳號">
+        <button class="user-profile-btn" onclick="toggleUserDropdown(event)" title="點擊展開個人選單 / 查看點數 / 切換帳號">
           <img src="${currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}" class="avatar-img" alt="${currentUser.name}">
           <div class="user-info-text mobile-hide">
             <span class="user-name">${currentUser.name}</span>
@@ -248,14 +353,30 @@ function renderAuthArea() {
             <div style="font-weight:700; color:#fff;">${currentUser.name}</div>
             <div class="text-xs text-muted">帳號: ${currentUser.email}</div>
             <div class="text-xs" style="color: var(--accent-cyan); margin-top:2px;">身分: ${currentUser.roleLabel}</div>
+            
+            <!-- 雙軌點數即時展示 -->
+            <div class="user-points-summary margin-top-xs" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 0.5rem 0.75rem; display: flex; justify-content: space-around; align-items: center;">
+              <div style="text-align: center;">
+                <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 600;"><i class="fa-solid fa-coins"></i> 精幣餘額</div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #fff;">${coins.toLocaleString()} <span style="font-size:0.7rem; font-weight:400; color:var(--text-muted);">枚</span></div>
+              </div>
+              <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.12);"></div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.7rem; color: #c084fc; font-weight: 600;"><i class="fa-solid fa-award"></i> 精通寶</div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #fff;">${masterTokens} <span style="font-size:0.7rem; font-weight:400; color:var(--text-muted);">枚</span></div>
+              </div>
+            </div>
           </div>
           <hr class="dropdown-divider">
           
+          <button class="dropdown-item" onclick="switchView('member-center'); closeAllDropdowns();" style="color: #fbbf24; font-weight:600;">
+            <i class="fa-solid fa-gem text-yellow"></i> 🎓 會員專區 (點數與課程)
+          </button>
           <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
             <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
           </button>
           <button class="dropdown-item" onclick="openCheckoutModal('course-1', 'combo'); closeAllDropdowns();">
-            <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 / 訂單
+            <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 / 使用折抵
           </button>
 
           ${(currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'instructor') ? `
@@ -340,22 +461,9 @@ function closeLoginModal() {
   if (modal) modal.classList.remove('active');
 }
 
-function openRegisterModal(preselectedCourse) {
+function openRegisterModal() {
   const modal = document.getElementById('registerModal');
-  if (!modal) return;
-  
-  if (preselectedCourse) {
-    const courseSelect = document.getElementById('registerCourse');
-    if (courseSelect) {
-      for (let i = 0; i < courseSelect.options.length; i++) {
-        if (courseSelect.options[i].value.includes(preselectedCourse) || preselectedCourse.includes(courseSelect.options[i].value)) {
-          courseSelect.selectedIndex = i;
-          break;
-        }
-      }
-    }
-  }
-  modal.classList.add('active');
+  if (modal) modal.classList.add('active');
 }
 
 function closeRegisterModal() {
@@ -435,35 +543,26 @@ function handleLoginSubmit(e) {
   }
 }
 
-// Student Registration & Lead Form Submission (自動建立學員帳號 + 送出需求表單至 Google Sheet)
+// Student Registration & Member Joining (簡化表單：姓名、稱呼、手機、Email、密碼、生日 + 當月壽星 100 精幣)
 function handleRegisterSubmit(e) {
   e.preventDefault();
 
   const nameInput = document.getElementById('registerName');
+  const titleInput = document.getElementById('registerTitle');
   const phoneInput = document.getElementById('registerPhone');
   const emailInput = document.getElementById('registerEmail');
   const passwordInput = document.getElementById('registerPassword');
-  const courseInput = document.getElementById('registerCourse');
+  const birthdayInput = document.getElementById('registerBirthday');
 
   const name = nameInput ? nameInput.value.trim() : '';
+  const title = (titleInput && titleInput.value) || '先生';
   const phone = phoneInput ? phoneInput.value.trim() : '';
   const email = emailInput ? emailInput.value.trim() : '';
   const password = passwordInput ? passwordInput.value.trim() : '';
-  const course = courseInput ? courseInput.value : '';
+  const birthday = birthdayInput ? birthdayInput.value.trim() : '';
 
-  const identity = (document.getElementById('registerIdentity') && document.getElementById('registerIdentity').value) || '💼 上班族 (想轉職/副業提升)';
-  const goal = (document.getElementById('registerGoal') && document.getElementById('registerGoal').value) || '🎯 想要在 3-6 個月內成功轉職';
-  const experience = (document.getElementById('registerExperience') && document.getElementById('registerExperience').value) || '🌱 零基礎白紙新手 (希望講師手把手入門)';
-  const timePerWeek = (document.getElementById('registerTimePerWeek') && document.getElementById('registerTimePerWeek').value) || '⏱️ 4 ~ 8 小時 (積極學習)';
-  const priorityHelp = (document.getElementById('registerPriorityHelp') && document.getElementById('registerPriorityHelp').value) || '📅 索取課程大綱與免費試聽影片';
-  const notes = (document.getElementById('registerNotes') && document.getElementById('registerNotes').value.trim()) || '學員線上註冊並提交學習需求表單';
-
-  if (!email || !password || !name || !phone) {
-    showToast('⚠️ 請完整填寫姓名、手機、電子郵件與密碼！');
-    return;
-  }
-  if (!course) {
-    showToast('⚠️ 請選擇想諮詢 / 感興趣的課程領域！');
+  if (!name || !phone || !email || !password || !birthday) {
+    showToast('⚠️ 請完整填寫姓名、稱呼、手機、Email、密碼與生日！');
     return;
   }
 
@@ -477,16 +576,36 @@ function handleRegisterSubmit(e) {
     return;
   }
 
+  // Birthday check: 當月壽星加贈 100 精幣
+  let isBirthdayMonth = false;
+  if (birthday) {
+    const birthDate = new Date(birthday);
+    if (!isNaN(birthDate.getTime())) {
+      const birthMonth = birthDate.getMonth();
+      const currentMonth = new Date().getMonth();
+      if (birthMonth === currentMonth) {
+        isBirthdayMonth = true;
+      }
+    }
+  }
+  const startingCoins = isBirthdayMonth ? 100 : 0;
+
   // 1. Create Student User Account
   const newStudent = {
     id: `u-${Date.now()}`,
     name: name,
+    title: title,
+    displayName: `${name} (${title})`,
     email: email,
     phone: phone,
     password: password,
+    birthday: birthday,
+    coins: startingCoins,
     role: 'student',
     roleLabel: '🎓 消費者學員 (Student)',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+    avatar: title === '小姐' 
+      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80' 
+      : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
     registeredAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     purchasedCourses: ['course-1']
   };
@@ -494,20 +613,21 @@ function handleRegisterSubmit(e) {
   mockUsers.push(newStudent);
   saveUsersToStorage();
 
-  // 2. Create Potential Student Lead Record for CRM
+  // 2. Create Potential Student Lead Record for CRM & Sheet
   const newLead = {
     id: `lead-${Date.now()}`,
     createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    name: name,
+    name: `${name} (${title})`,
     phone: phone,
     email: email,
-    course: course,
-    identity: identity,
-    goal: goal,
-    experience: experience,
-    timePerWeek: timePerWeek,
-    priorityHelp: `${priorityHelp} (新註冊學員)`,
-    notes: notes,
+    birthday: birthday,
+    course: '🎓 全站會員註冊 (新進學員)',
+    identity: '🎓 新註冊會員',
+    goal: '💡 探索精五門全域課程',
+    experience: '🌱 新進會員',
+    timePerWeek: '⏱️ 彈性自主學習',
+    priorityHelp: isBirthdayMonth ? '🎂 當月壽星 (贈 100 精幣)' : '🎁 新會員入會',
+    notes: `會員生日：${birthday} | 稱呼：${title}${isBirthdayMonth ? ' | ★ 當月壽星享 100 精幣' : ''}`,
     status: '🆕 新進學員註冊'
   };
 
@@ -531,7 +651,11 @@ function handleRegisterSubmit(e) {
   renderLeadAdminTable();
   renderUserTable();
 
-  showToast(`🎉 我們收到了！感謝您加入精五門會員，已為您自動登入學員專區！`);
+  if (isBirthdayMonth) {
+    showToast(`🎉 歡迎 ${name} ${title} 加入會員！🎂 恭喜為本月壽星，已為您入帳 100 元精幣折抵金！`);
+  } else {
+    showToast(`🎉 我們收到了！感謝 ${name} ${title} 加入精五門會員，已為您自動登入學員專區！🎂 生日當月將享有 100 元精幣壽星禮！`);
+  }
   switchView('marketplace');
 }
 
@@ -606,8 +730,17 @@ function updateUIPermissions() {
     }
   }
 
+  // 6. Update Member Center Link
+  const navMemberLink = document.getElementById('navMemberCenterLink');
+  if (navMemberLink) {
+    navMemberLink.style.display = currentUser ? 'inline-flex' : 'none';
+  }
+
   if (currentView === 'admin-dashboard') {
     renderAdminTables();
+  }
+  if (currentView === 'member-center') {
+    renderMemberCenterView();
   }
 }
 
@@ -620,6 +753,11 @@ function switchView(viewId, pushHistory = true) {
   }
   if (viewId === 'admin-dashboard' && (role !== 'manager' && role !== 'staff' && role !== 'instructor')) {
     showToast('⚠️ 權限不足：【後台管理中心】僅供 👑 主管 與 🧑‍💼 員工 存取');
+    return;
+  }
+  if (viewId === 'member-center' && !currentUser) {
+    showToast('💡 請先登入學員帳號以查看會員專區與精幣餘額！');
+    openLoginModal();
     return;
   }
 
@@ -665,8 +803,85 @@ function switchView(viewId, pushHistory = true) {
   if (viewId === 'admin-dashboard') {
     renderAdminTables();
   }
+  if (viewId === 'member-center') {
+    renderMemberCenterView();
+  }
   if (viewId === 'video-player') {
     loadCloudflareStreamLesson(currentActiveLessonId);
+  }
+}
+
+// Render Member Center / Student Dashboard
+function renderMemberCenterView() {
+  if (!currentUser) return;
+
+  const avatarEl = document.getElementById('memberCenterAvatar');
+  const nameEl = document.getElementById('memberCenterName');
+  const roleEl = document.getElementById('memberCenterRoleBadge');
+  const emailEl = document.getElementById('memberCenterEmail');
+  const coinsEl = document.getElementById('memberCenterCoins');
+  const coinValEl = document.getElementById('memberCenterCoinVal');
+  const tokensEl = document.getElementById('memberCenterTokens');
+  const tokensDiffEl = document.getElementById('memberCenterTokensDiff');
+  const progressTextEl = document.getElementById('memberTokenProgressText');
+  const progressBarEl = document.getElementById('memberTokenProgressBar');
+  const enrolledGrid = document.getElementById('memberEnrolledCourses');
+
+  const coins = currentUser.coins !== undefined ? currentUser.coins : 0;
+  const masterTokens = currentUser.masterTokens !== undefined ? currentUser.masterTokens : 0;
+  const birthday = currentUser.birthday || '未填寫';
+
+  if (avatarEl) avatarEl.src = currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
+  if (nameEl) nameEl.innerText = currentUser.name;
+  if (roleEl) roleEl.innerHTML = `<i class="fa-solid fa-graduation-cap"></i> ${currentUser.roleLabel || '精五門認證學員'}`;
+  if (emailEl) {
+    emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${currentUser.email} &nbsp;|&nbsp; <i class="fa-solid fa-cake-candles text-pink"></i> 生日：<span id="memberCenterBirthday">${birthday}</span>`;
+  }
+  if (coinsEl) coinsEl.innerText = coins.toLocaleString();
+  if (coinValEl) coinValEl.innerText = coins.toLocaleString();
+  if (tokensEl) tokensEl.innerText = masterTokens;
+  
+  const targetTokens = 10;
+  const diffTokens = Math.max(0, targetTokens - masterTokens);
+  if (tokensDiffEl) tokensDiffEl.innerText = diffTokens;
+  
+  const percent = Math.min(100, Math.round((masterTokens / targetTokens) * 100));
+  if (progressTextEl) progressTextEl.innerText = `${masterTokens} / ${targetTokens} 門課 (${percent}%)`;
+  if (progressBarEl) progressBarEl.style.width = `${percent}%`;
+
+  if (enrolledGrid) {
+    const purchased = currentUser.purchasedCourses || ['course-1'];
+    const courses = (typeof mockCourses !== 'undefined' ? mockCourses : []).filter(c => purchased.includes(c.id));
+    if (courses.length === 0 && typeof mockCourses !== 'undefined' && mockCourses.length > 0) {
+      courses.push(mockCourses[0]);
+    }
+    enrolledGrid.innerHTML = courses.map(course => `
+      <div class="course-card" style="border: 1px solid rgba(255,255,255,0.08);">
+        <div class="course-thumb">
+          <img src="${course.coverImage}" alt="${course.title}">
+          <span class="course-tag">${course.categoryLabel}</span>
+          <span class="course-badge" style="background: var(--accent-green);">已開通權限</span>
+        </div>
+        <div class="course-body">
+          <h4 class="course-title">${course.title}</h4>
+          <div class="instructor-info">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="${course.instructor}">
+            <div>
+              <span class="inst-name">${course.instructor}</span>
+              <span class="inst-title">金牌講師</span>
+            </div>
+          </div>
+          <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+            <button class="btn btn-primary btn-sm btn-block" onclick="switchView('video-player')">
+              <i class="fa-solid fa-circle-play"></i> 立即上課
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="switchView('live-classroom')">
+              <i class="fa-solid fa-calendar-check"></i> 預約個教
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 }
 
@@ -796,24 +1011,32 @@ function renderUserTable() {
     let roleBadgeClass = 'badge-student';
     if (user.role === 'manager') roleBadgeClass = 'badge-manager';
     if (user.role === 'staff') roleBadgeClass = 'badge-staff';
+    if (user.role === 'instructor') roleBadgeClass = 'badge-instructor';
+
+    const coins = user.coins !== undefined ? user.coins : 0;
+    const masterTokens = user.masterTokens !== undefined ? user.masterTokens : 0;
 
     return `
       <tr>
         <td>
           <div style="display:flex; align-items:center; gap:0.5rem;">
-            <img src="${user.avatar}" style="width:30px;height:30px;border-radius:50%;">
+            <img src="${user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}" style="width:30px;height:30px;border-radius:50%;">
             <strong>${user.name}</strong>
           </div>
         </td>
         <td><code>${user.email}</code></td>
         <td><code>${user.password}</code></td>
         <td><span class="badge-role ${roleBadgeClass}">${user.roleLabel}</span></td>
+        <td>
+          <div style="font-weight:700; color:#fbbf24; font-size:0.85rem;"><i class="fa-solid fa-coins"></i> ${coins.toLocaleString()} 精幣</div>
+          <div style="font-size:0.75rem; color:#c084fc;"><i class="fa-solid fa-award"></i> ${masterTokens} 精通寶</div>
+        </td>
         <td class="text-sm text-muted">
-          ${user.role === 'manager' ? '全權限 + 帳號密碼 + 創業規劃' : user.role === 'staff' ? '課程 / 講師 / 影片 增修' : '官網瀏覽與課程購買'}
+          ${user.role === 'manager' ? '全權限 + 帳號密碼 + 點數設定 + 創業規劃' : user.role === 'staff' ? '課程 / 講師 / 影片 增修' : user.role === 'instructor' ? '講師排班與作業批改' : '官網瀏覽與課程購買 (含點數折抵)'}
         </td>
         <td>
           ${currentUser && currentUser.role === 'manager' ? `
-            <button class="btn btn-sm btn-outline" onclick="openEditUserModal('${user.id}')"><i class="fa-solid fa-pen"></i> 密碼/權限</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditUserModal('${user.id}')"><i class="fa-solid fa-pen"></i> 密碼/點數/權限</button>
             ${user.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
           ` : '<span class="text-muted">無權限</span>'}
         </td>
@@ -992,16 +1215,18 @@ function exportFinanceReport() {
   showToast("📥 已成功匯出 2026年7月份 講師月結薪資與營收報表 (CSV)");
 }
 
-// Account Creation / Password Edit
+// Account Creation / Password Edit / Points Adjustment (Wen總監專屬)
 function openAddUserModal() {
   if (!currentUser || currentUser.role !== 'manager') {
-    showToast('⚠️ 僅有 👑 Wen總監 可以新增帳號密碼');
+    showToast('⚠️ 僅有 👑 Wen總監 可以新增帳號密碼與調整點數');
     return;
   }
   document.getElementById('editUserId').value = '';
   document.getElementById('inputUserName').value = '';
   document.getElementById('inputUserEmail').value = '';
   document.getElementById('inputUserPassword').value = '';
+  if (document.getElementById('inputUserCoins')) document.getElementById('inputUserCoins').value = '100';
+  if (document.getElementById('inputUserTokens')) document.getElementById('inputUserTokens').value = '0';
   document.getElementById('addUserModal').classList.add('active');
 }
 
@@ -1014,6 +1239,8 @@ function openEditUserModal(userId) {
   document.getElementById('inputUserEmail').value = u.email;
   document.getElementById('inputUserPassword').value = u.password;
   document.getElementById('inputUserRole').value = u.role;
+  if (document.getElementById('inputUserCoins')) document.getElementById('inputUserCoins').value = u.coins !== undefined ? u.coins : 0;
+  if (document.getElementById('inputUserTokens')) document.getElementById('inputUserTokens').value = u.masterTokens !== undefined ? u.masterTokens : 0;
   document.getElementById('addUserModal').classList.add('active');
 }
 
@@ -1028,6 +1255,10 @@ function handleSaveUser(e) {
   const email = document.getElementById('inputUserEmail').value;
   const password = document.getElementById('inputUserPassword').value;
   const role = document.getElementById('inputUserRole').value;
+  const coinsInput = document.getElementById('inputUserCoins');
+  const tokensInput = document.getElementById('inputUserTokens');
+  const coins = coinsInput ? (parseInt(coinsInput.value) || 0) : 0;
+  const masterTokens = tokensInput ? (parseInt(tokensInput.value) || 0) : 0;
 
   let roleLabel = '🎓 消費者學員 (Student)';
   let avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
@@ -1037,6 +1268,9 @@ function handleSaveUser(e) {
   } else if (role === 'staff') {
     roleLabel = '🧑‍💼 營運員工 (Staff)';
     avatar = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80';
+  } else if (role === 'instructor') {
+    roleLabel = '👨‍🏫 金牌講師 (Instructor)';
+    avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80';
   }
 
   if (id) {
@@ -1047,20 +1281,39 @@ function handleSaveUser(e) {
       existing.password = password;
       existing.role = role;
       existing.roleLabel = roleLabel;
+      existing.coins = coins;
+      existing.masterTokens = masterTokens;
     }
-    showToast(`✅ 已更新帳號：${name} 的密碼與權限`);
+    if (currentUser && (currentUser.id === id || (currentUser.email && currentUser.email.toLowerCase() === email.toLowerCase()))) {
+      currentUser.name = name;
+      currentUser.email = email;
+      currentUser.role = role;
+      currentUser.roleLabel = roleLabel;
+      currentUser.coins = coins;
+      currentUser.masterTokens = masterTokens;
+      try {
+        localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+      } catch(err) {}
+    }
+    showToast(`✅ 已更新帳號：${name} 的密碼、點數 (🪙 ${coins} 精幣 / 🏆 ${masterTokens} 精通寶) 與權限`);
   } else {
     const newUser = {
       id: `u-${Date.now()}`,
-      name, email, password, role, roleLabel, avatar
+      name, email, password, role, roleLabel, avatar,
+      coins, masterTokens,
+      purchasedCourses: ['course-1']
     };
     mockUsers.push(newUser);
-    showToast(`✅ 成功新增帳號：${name} (密碼: ${password})`);
+    showToast(`✅ 成功新增帳號：${name} (🪙 ${coins} 精幣 / 🏆 ${masterTokens} 精通寶)`);
   }
 
   saveUsersToStorage();
   closeAddUserModal();
+  renderAuthArea();
   renderUserTable();
+  if (currentView === 'member-center') {
+    renderMemberCenterView();
+  }
 }
 
 function deleteUser(userId) {
@@ -2323,7 +2576,7 @@ function handleLeadFormSubmit(e) {
 
 // Google Sheet Synchronization Engine
 function syncLeadToGoogleSheet(leadData) {
-  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec';
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
   if (!webhookUrl) {
     console.log('ℹ️ 尚未設定 Google Apps Script Webhook URL，資料已安全儲存於本地後台');
     return;
@@ -2512,7 +2765,7 @@ function testGoogleSheetQuoteSync() {
 
 // Google Sheet Synchronization Engine for Custom Quotes
 function syncQuoteToGoogleSheet(quoteData) {
-  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbxr22FPgG5hZAP0eCy6Ad7kP3uypJCGOllrKpVXT3xH7F7Qa0anp2Wkvz73rCCW1N-K0A/exec';
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
   if (!webhookUrl) return;
 
   const payload = {
@@ -2683,44 +2936,6 @@ function doGet(e) {
       }
     }
 
-    if (kw && quotes.length === 0) {
-      var leadSheet = initLeadSheet(ss);
-      if (leadSheet.getLastRow() > 1) {
-        var lRows = leadSheet.getLastRow() - 1;
-        var lValues = leadSheet.getRange(2, 1, lRows, 12).getValues();
-        var matchedLeadEmail = "";
-        for (var j = 0; j < lValues.length; j++) {
-          var lPhone = lValues[j][2] ? lValues[j][2].toString().replace(/[\\s-]/g, "") : "";
-          var lEmail = lValues[j][3] ? lValues[j][3].toString().toLowerCase() : "";
-          if (lPhone && (lPhone === cleanKw || lPhone.indexOf(cleanKw) !== -1)) {
-            matchedLeadEmail = lEmail;
-            break;
-          }
-        }
-        if (matchedLeadEmail) {
-          if (quoteSheet.getLastRow() > 1) {
-            var qValues2 = quoteSheet.getRange(2, 1, quoteSheet.getLastRow() - 1, Math.max(quoteSheet.getLastColumn(), 8)).getValues();
-            for (var k = 0; k < qValues2.length; k++) {
-              if (qValues2[k][1] && qValues2[k][1].toString().toLowerCase() === matchedLeadEmail) {
-                var r = qValues2[k];
-                quotes.push({
-                  id: "q-cloud-" + (k + 1),
-                  updatedAt: r[0] ? r[0].toString() : "",
-                  studentEmail: r[1] ? r[1].toString() : "",
-                  studentName: r[2] ? r[2].toString() : "",
-                  studentPhone: r[3] ? r[3].toString() : "",
-                  courseTitle: r[4] ? r[4].toString() : (r[3] ? r[3].toString() : ""),
-                  customPrice: Number(r[5] || r[4] || 0),
-                  createdBy: r[6] ? r[6].toString() : (r[5] ? r[5].toString() : ""),
-                  details: r[7] ? r[7].toString() : (r[6] ? r[6].toString() : "")
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       count: quotes.length,
@@ -2787,9 +3002,42 @@ function doPost(e) {
       var lastRow = leadSheet.getLastRow();
       leadSheet.getRange(lastRow, 1, 1, 12).setVerticalAlignment("middle");
       leadSheet.setRowHeight(lastRow, 30);
+
+      // 🔔 即時通知 Wen總監 (Email 自動通知)
+      try {
+        var adminEmail = "pey514514@gmail.com";
+        var sName = data.name || "新學員";
+        var sPhone = data.phone || "未填寫";
+        var sEmail = data.email || "未提供";
+        var sCourse = data.course || "全系列諮詢";
+        var sGoal = data.goal || "未指定";
+        var sNotes = data.notes || "無特殊備註";
+        var sTime = data.createdAt || getNowString();
+
+        var subject = "🔔【精五門】收到新學員諮詢：" + sName + " - " + sCourse;
+        var emailBody = "👑 Wen總監 您好：\\n\\n" +
+          "網站剛剛收到一筆新的【潛在學員客製化需求諮詢】，請儘速聯絡對接：\\n\\n" +
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n" +
+          "👤 學員姓名：" + sName + "\\n" +
+          "📱 聯絡手機：" + sPhone + "\\n" +
+          "📧 電子郵件：" + sEmail + "\\n" +
+          "🎯 諮詢課程：" + sCourse + "\\n" +
+          "🚀 學習目標：" + sGoal + "\\n" +
+          "💬 學員需求備註：" + sNotes + "\\n" +
+          "⏰ 填表時間：" + sTime + "\\n" +
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n" +
+          "👉 您可以直接撥打電話聯繫學員，或登入後台一鍵開立專屬報價單：\\n" +
+          "https://online-class.pey514514.workers.dev/#admin-dashboard\\n\\n" +
+          "精五門 PentaSkill 雲端自動化推播";
+
+        MailApp.sendEmail(adminEmail, subject, emailBody);
+      } catch (mailErr) {
+        Logger.log("Email 通知異常: " + mailErr);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({
         status: "success",
-        message: "諮詢表單寫入成功！",
+        message: "諮詢表單寫入成功並已發送通知信！",
         row: lastRow
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -2894,7 +3142,48 @@ function openCheckoutModalDirect(courseId, type) {
   openCheckoutModal(courseId, type);
 }
 
-// Enrollment Checkout & Payment Modal (支援 Wen總監/員工 客製化報價單系統)
+function calculateCheckoutFinalPrice(originalPrice) {
+  const coinInput = document.getElementById('inputUseCoins');
+  const userCoins = currentUser ? (currentUser.coins || 0) : 0;
+  let useCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;
+  const maxAllowed = Math.min(userCoins, originalPrice);
+  
+  if (useCoins > maxAllowed) {
+    useCoins = maxAllowed;
+    if (coinInput) coinInput.value = maxAllowed;
+  }
+  if (useCoins < 0) {
+    useCoins = 0;
+    if (coinInput) coinInput.value = 0;
+  }
+  
+  const finalPrice = Math.max(0, originalPrice - useCoins);
+  const discountSpan = document.getElementById('displayCoinDiscount');
+  const finalSpan = document.getElementById('displayFinalPrice');
+  const submitBtnSpan = document.getElementById('checkoutSubmitAmount');
+  
+  if (discountSpan) discountSpan.innerText = useCoins.toLocaleString();
+  if (finalSpan) finalSpan.innerText = finalPrice.toLocaleString();
+  if (submitBtnSpan) submitBtnSpan.innerText = finalPrice.toLocaleString();
+}
+
+function applyMaxCoins(maxCoins, originalPrice) {
+  const coinInput = document.getElementById('inputUseCoins');
+  if (coinInput) {
+    coinInput.value = maxCoins;
+    calculateCheckoutFinalPrice(originalPrice);
+  }
+}
+
+function clearCoins(originalPrice) {
+  const coinInput = document.getElementById('inputUseCoins');
+  if (coinInput) {
+    coinInput.value = 0;
+    calculateCheckoutFinalPrice(originalPrice);
+  }
+}
+
+// Enrollment Checkout & Payment Modal (支援折扣幣使用 & 客製化報價單系統)
 function openCheckoutModal(courseId, type) {
   const course = (typeof mockCourses !== 'undefined' ? mockCourses : []).find(c => c.id === courseId) || (typeof mockCourses !== 'undefined' ? mockCourses[0] : null);
   if (!course) return;
@@ -2907,6 +3196,11 @@ function openCheckoutModal(courseId, type) {
   const displayPrice = customQuote ? customQuote.customPrice : (isCombo ? course.priceWith1on1 : course.priceRecordOnly);
   const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
   const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次名師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
+
+  const userCoins = currentUser ? (currentUser.coins || 0) : 0;
+  const maxCoinsApplicable = Math.min(userCoins, displayPrice);
+  const initialDiscount = maxCoinsApplicable;
+  const initialFinalPrice = Math.max(0, displayPrice - initialDiscount);
 
   const checkoutModal = document.getElementById('checkoutModal');
   let modalBody = document.getElementById('checkoutModalBody');
@@ -2931,8 +3225,16 @@ function openCheckoutModal(courseId, type) {
         <strong class="text-pink" style="font-size:0.95rem;">${displayTitle}</strong>
       </div>
       <div class="calc-row">
-        <span>專屬對接結帳金額</span>
-        <strong class="text-purple" style="font-size: 1.3rem;">NT$ ${displayPrice.toLocaleString()}</strong>
+        <span>方案原價</span>
+        <strong class="text-white" style="font-size: 1rem;">NT$ ${displayPrice.toLocaleString()}</strong>
+      </div>
+      <div class="calc-row" style="color: #fbbf24;">
+        <span>🪙 精幣折抵金</span>
+        <strong>- NT$ <span id="displayCoinDiscount">${initialDiscount.toLocaleString()}</span></strong>
+      </div>
+      <div class="calc-row" style="border-top:1px solid rgba(255,255,255,0.15); padding-top:0.4rem; margin-top:0.4rem;">
+        <span>應付實結金額</span>
+        <strong class="text-purple" style="font-size: 1.35rem;">NT$ <span id="displayFinalPrice">${initialFinalPrice.toLocaleString()}</span></strong>
       </div>
       ${customQuote ? `
         <div class="calc-row" style="margin-top:0.3rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.3rem;">
@@ -2940,6 +3242,39 @@ function openCheckoutModal(courseId, type) {
           <span class="text-xs text-green"><strong>${quoteDetails}</strong></span>
         </div>
       ` : ''}
+    </div>
+
+    <!-- 🪙 折扣幣 (精幣) 使用區塊 -->
+    <div class="checkout-coins-section margin-top-sm" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div style="font-weight: 700; color: #fbbf24; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem;">
+          <i class="fa-solid fa-coins"></i> 使用折扣幣 (精幣 1幣=NT$1)
+        </div>
+        <div class="text-xs" style="color: #fbbf24;">
+          目前可用精幣：<strong>${userCoins.toLocaleString()}</strong> 枚
+        </div>
+      </div>
+      ${userCoins > 0 ? `
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <div style="flex: 1; position: relative;">
+            <input type="number" id="inputUseCoins" class="form-control text-sm" min="0" max="${maxCoinsApplicable}" value="${initialDiscount}" placeholder="輸入折抵枚數" oninput="calculateCheckoutFinalPrice(${displayPrice})" style="padding-right: 2.5rem;">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.78rem; color: var(--text-muted);">枚</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline" onclick="applyMaxCoins(${maxCoinsApplicable}, ${displayPrice})" style="border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; white-space: nowrap; padding: 0.4rem 0.75rem;">
+            全部折抵
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="clearCoins(${displayPrice})" style="white-space: nowrap; padding: 0.4rem 0.75rem;">
+            不使用
+          </button>
+        </div>
+        <div class="text-xs text-muted margin-top-xs" style="font-size:0.75rem;">
+          💡 本次結帳最多可折抵 <strong class="text-yellow">${maxCoinsApplicable.toLocaleString()}</strong> 精幣 (即折抵 NT$ ${maxCoinsApplicable.toLocaleString()})
+        </div>
+      ` : `
+        <div class="text-xs text-muted" style="line-height: 1.45;">
+          ℹ️ 您目前尚無可用精幣。加入會員並填寫生日（當月贈 100 精幣）或完課好評皆可獲贈精幣！
+        </div>
+      `}
     </div>
 
     <form onsubmit="processPayment(event, '${displayTitle.replace(/'/g, "\\'")}', ${displayPrice}, '${type}')" class="margin-top-md">
@@ -2954,12 +3289,12 @@ function openCheckoutModal(courseId, type) {
 
       <div class="line-consult-box margin-top-sm" style="padding:0.75rem 1rem; margin-bottom:0.5rem;">
         <div class="text-xs text-muted" style="line-height:1.45;">
-          <i class="fa-solid fa-circle-check text-green"></i> 付款完成後系統將自動派發電子發票，並於 3 分鐘內自動開通【錄播學習中心】與【1-on-1 導師預約】存取權限。
+          <i class="fa-solid fa-circle-check text-green"></i> 付款完成後系統將自動扣抵精幣，並派發 🏆 <strong>1 枚精通寶成就勳章</strong>，即時開通學習權限！
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
-        <i class="fa-solid fa-file-signature"></i> 確認報名結帳 NT$ ${displayPrice.toLocaleString()} 並開通專屬權限
+        <i class="fa-solid fa-file-signature"></i> 確認報名結帳 NT$ <span id="checkoutSubmitAmount">${initialFinalPrice.toLocaleString()}</span> 並開通專屬權限
       </button>
     </form>
   `;
@@ -3051,6 +3386,7 @@ function handleSaveCustomQuote(e) {
   try {
     localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
   } catch(err) {}
+  saveCloudData('custom_quotes', mockCustomQuotes);
 
   if (quoteToSync) {
     syncQuoteToGoogleSheet(quoteToSync);
@@ -3353,6 +3689,11 @@ function openDirectPaymentModal(quoteData) {
   const studentEmail = quoteData.email || '';
   const studentName = quoteData.name || '';
 
+  const userCoins = currentUser ? (currentUser.coins || 0) : 0;
+  const maxCoinsApplicable = Math.min(userCoins, displayPrice);
+  const initialDiscount = maxCoinsApplicable;
+  const initialFinalPrice = Math.max(0, displayPrice - initialDiscount);
+
   const checkoutModal = document.getElementById('checkoutModal');
   let modalBody = document.getElementById('checkoutModalBody');
   if (!checkoutModal) return;
@@ -3376,14 +3717,51 @@ function openDirectPaymentModal(quoteData) {
         <strong class="text-pink" style="font-size:0.95rem;">${displayTitle}</strong>
       </div>
       <div class="calc-row">
-        <span>專屬對接結帳金額</span>
-        <strong class="text-purple" style="font-size: 1.35rem;">NT$ ${displayPrice.toLocaleString()}</strong>
+        <span>方案原價</span>
+        <strong class="text-white" style="font-size: 1rem;">NT$ ${displayPrice.toLocaleString()}</strong>
+      </div>
+      <div class="calc-row" style="color: #fbbf24;">
+        <span>🪙 精幣折抵金</span>
+        <strong>- NT$ <span id="displayCoinDiscount">${initialDiscount.toLocaleString()}</span></strong>
+      </div>
+      <div class="calc-row" style="border-top:1px solid rgba(255,255,255,0.15); padding-top:0.4rem; margin-top:0.4rem;">
+        <span>應付實結金額</span>
+        <strong class="text-purple" style="font-size: 1.35rem;">NT$ <span id="displayFinalPrice">${initialFinalPrice.toLocaleString()}</span></strong>
       </div>
       <div class="calc-row" style="margin-top:0.3rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.3rem;">
         <span class="text-xs text-muted">專屬包含與贈品：</span>
         <span class="text-xs text-green"><strong>${quoteDetails}</strong></span>
       </div>
     </div>
+
+    ${userCoins > 0 ? `
+      <!-- 🪙 折扣幣 (精幣) 使用區塊 -->
+      <div class="checkout-coins-section margin-top-sm" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <div style="font-weight: 700; color: #fbbf24; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-coins"></i> 使用折扣幣 (精幣 1幣=NT$1)
+          </div>
+          <div class="text-xs" style="color: #fbbf24;">
+            目前可用精幣：<strong>${userCoins.toLocaleString()}</strong> 枚
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <div style="flex: 1; position: relative;">
+            <input type="number" id="inputUseCoins" class="form-control text-sm" min="0" max="${maxCoinsApplicable}" value="${initialDiscount}" placeholder="輸入折抵枚數" oninput="calculateCheckoutFinalPrice(${displayPrice})" style="padding-right: 2.5rem;">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.78rem; color: var(--text-muted);">枚</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline" onclick="applyMaxCoins(${maxCoinsApplicable}, ${displayPrice})" style="border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; white-space: nowrap; padding: 0.4rem 0.75rem;">
+            全部折抵
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="clearCoins(${displayPrice})" style="white-space: nowrap; padding: 0.4rem 0.75rem;">
+            不使用
+          </button>
+        </div>
+        <div class="text-xs text-muted margin-top-xs" style="font-size:0.75rem;">
+          💡 本次結帳最多可折抵 <strong class="text-yellow">${maxCoinsApplicable.toLocaleString()}</strong> 精幣 (即折抵 NT$ ${maxCoinsApplicable.toLocaleString()})
+        </div>
+      </div>
+    ` : ''}
 
     <form onsubmit="processDirectPayment(event, '${displayTitle.replace(/'/g, "\\'")}', ${displayPrice})" class="margin-top-md">
       <div style="background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.85rem;">
@@ -3417,12 +3795,12 @@ function openDirectPaymentModal(quoteData) {
 
       <div class="line-consult-box margin-top-sm" style="padding:0.65rem 0.85rem; margin-bottom:0.5rem;">
         <div class="text-xs text-muted" style="line-height:1.45;">
-          <i class="fa-solid fa-circle-check text-green"></i> 256-bit 銀行級安全加密。付款完成後系統將自動發送發票並在 3 分鐘內開通線上看課與 1 對 1 預約權限。
+          <i class="fa-solid fa-circle-check text-green"></i> 256-bit 銀行級安全加密。付款完成後系統將自動發送發票並贈送 🏆 1 枚精通寶成就勳章！
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
-        <i class="fa-solid fa-lock"></i> 確認付款 NT$ ${displayPrice.toLocaleString()} 並立即開通權限
+        <i class="fa-solid fa-lock"></i> 確認付款 NT$ <span id="checkoutSubmitAmount">${initialFinalPrice.toLocaleString()}</span> 並立即開通權限
       </button>
     </form>
   `;
@@ -3432,20 +3810,26 @@ function openDirectPaymentModal(quoteData) {
   if (box) box.scrollTop = 0;
 }
 
-function processDirectPayment(e, title, price) {
+function processDirectPayment(e, title, originalPrice) {
   e.preventDefault();
   const nameInput = document.getElementById('directStudentName');
   const emailInput = document.getElementById('directStudentEmail');
   const phoneInput = document.getElementById('directStudentPhone');
+  const coinInput = document.getElementById('inputUseCoins');
 
   const studentName = nameInput ? nameInput.value.trim() : '學員';
   const studentEmail = emailInput ? emailInput.value.trim() : 'student@pentaskill.com';
   const studentPhone = phoneInput ? phoneInput.value.trim() : '';
 
+  let user = mockUsers.find(u => u.email.toLowerCase() === studentEmail.toLowerCase());
+  const userCoins = user ? (user.coins || 0) : (currentUser ? (currentUser.coins || 0) : 0);
+  let usedCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;
+  usedCoins = Math.min(Math.max(0, usedCoins), Math.min(userCoins, originalPrice));
+  const finalPrice = Math.max(0, originalPrice - usedCoins);
+
   closeCheckoutModal();
 
   // Automatically ensure student exists or register/login as this student
-  let user = mockUsers.find(u => u.email.toLowerCase() === studentEmail.toLowerCase());
   if (!user) {
     user = {
       id: `u-${Date.now()}`,
@@ -3453,14 +3837,21 @@ function processDirectPayment(e, title, price) {
       email: studentEmail,
       phone: studentPhone,
       password: 'user123',
+      coins: 0,
+      masterTokens: 1,
       role: 'student',
       roleLabel: '🎓 消費者學員 (Student)',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
       purchasedCourses: ['course-1', 'course-2']
     };
     mockUsers.push(user);
-    saveUsersToStorage();
+  } else {
+    user.coins = Math.max(0, (user.coins || 0) - usedCoins);
+    user.masterTokens = (user.masterTokens || 0) + 1;
+    if (!user.purchasedCourses) user.purchasedCourses = [];
+    if (!user.purchasedCourses.includes('course-1')) user.purchasedCourses.push('course-1');
   }
+  saveUsersToStorage();
 
   // Set as logged in user
   currentUser = user;
@@ -3470,15 +3861,24 @@ function processDirectPayment(e, title, price) {
 
   renderAuthArea();
   updateUIPermissions();
+  renderUserTable();
+  if (currentView === 'member-center') {
+    renderMemberCenterView();
+  }
 
-  cart.push({ title, price });
+  cart.push({ title, price: finalPrice });
   const cartCountEl = document.getElementById('cartCount');
   if (cartCountEl) cartCountEl.innerText = cart.length;
 
-  showToast(`🎉 結帳成功！已為 ${studentName} 自動開通【${title}】的線上學習中心與 1-on-1 導師預約權限！`);
+  let toastMsg = `🎉 結帳成功！已為 ${studentName} 自動開通【${title}】的線上學習中心與 1-on-1 導師預約權限！`;
+  if (usedCoins > 0) {
+    toastMsg += `（使用 ${usedCoins} 精幣折抵，實付 NT$ ${finalPrice.toLocaleString()}）`;
+  }
+  toastMsg += ` 🏆 獲贈 1 枚精通寶成就勳章！`;
+  showToast(toastMsg);
 
   setTimeout(() => {
-    switchView('video-player');
+    switchView('member-center');
   }, 1000);
 }
 
@@ -3492,17 +3892,50 @@ function closeCheckoutModal() {
   document.getElementById('checkoutModal').classList.remove('active');
 }
 
-function processPayment(e, title, price, type) {
+function processPayment(e, title, originalPrice, type) {
   e.preventDefault();
+  const coinInput = document.getElementById('inputUseCoins');
+  const userCoins = currentUser ? (currentUser.coins || 0) : 0;
+  let usedCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;
+  usedCoins = Math.min(Math.max(0, usedCoins), Math.min(userCoins, originalPrice));
+  const finalPrice = Math.max(0, originalPrice - usedCoins);
+
+  if (currentUser) {
+    currentUser.coins = Math.max(0, (currentUser.coins || 0) - usedCoins);
+    currentUser.masterTokens = (currentUser.masterTokens || 0) + 1; // 獲得 1 枚精通寶
+    
+    // update in mockUsers
+    const uIdx = mockUsers.findIndex(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
+    if (uIdx !== -1) {
+      mockUsers[uIdx].coins = currentUser.coins;
+      mockUsers[uIdx].masterTokens = currentUser.masterTokens;
+    }
+    saveUsersToStorage();
+    try {
+      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+    } catch(err) {}
+  }
+
   closeCheckoutModal();
-  showToast(`✅ 報名結帳成功！已立即開通【${title}】的線上學習中心與 1-on-1 個教預約額度！`);
+  renderAuthArea();
+  renderUserTable();
+  if (currentView === 'member-center') {
+    renderMemberCenterView();
+  }
+
+  let toastMsg = `✅ 報名結帳成功！實付 NT$ ${finalPrice.toLocaleString()}`;
+  if (usedCoins > 0) {
+    toastMsg += `（已折抵 ${usedCoins} 精幣）`;
+  }
+  toastMsg += `，並獲贈 🏆 1 枚精通寶成就勳章！`;
+  showToast(toastMsg);
   
-  cart.push({ title, price });
+  cart.push({ title, price: finalPrice });
   const cartCountEl = document.getElementById('cartCount');
   if (cartCountEl) cartCountEl.innerText = cart.length;
 
   setTimeout(() => {
-    switchView('video-player');
+    switchView('member-center');
   }, 1000);
 }
 

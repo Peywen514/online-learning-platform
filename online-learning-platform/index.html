@@ -33,6 +33,11 @@
           <i class="fa-solid fa-compass"></i> 平台首頁
         </button>
 
+        <!-- 會員專區 (點數與學習中心) -->
+        <button class="nav-link" id="navMemberCenterLink" data-target="member-center" onclick="switchView('member-center')">
+          <i class="fa-solid fa-gem text-yellow"></i> 會員專區
+        </button>
+
         <!-- 2. 課程專區 (下拉選單) -->
         <div class="nav-dropdown" id="navCoursesDropdown">
           <button class="nav-link nav-dropdown-btn" type="button" onclick="toggleNavDropdown('navCoursesDropdown', event)">
@@ -563,6 +568,7 @@
               <div class="reward-card-body">
                 <ul class="reward-perks-list">
                   <li><i class="fa-solid fa-gift text-yellow"></i> <strong>消費滿額回饋</strong>：單筆結帳滿 NT$ 3,000 即贈 <strong>30 精幣</strong></li>
+                  <li><i class="fa-solid fa-cake-candles text-pink"></i> <strong>當月壽星專屬禮</strong>：會員生日當月即贈 <strong>100 精幣</strong> 專屬折抵金</li>
                   <li><i class="fa-solid fa-comment-dots text-yellow"></i> <strong>課後好評與社群分享</strong>：填寫問卷心得贈 <strong>30 精幣</strong>，社群發文心得或作品加贈 <strong>30 精幣</strong></li>
                   <li><i class="fa-solid fa-user-plus text-yellow"></i> <strong>好友推薦入學</strong>：分享推薦碼好友首購折 $100，帳戶自動入帳 <strong>50 精幣</strong></li>
                 </ul>
@@ -626,6 +632,153 @@
         <div class="grid grid-3 gap-lg" id="courseGrid">
           <!-- Rendered dynamically by JS -->
         </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2B: MEMBER CENTER & STUDENT DASHBOARD (會員專區 / 精幣與精通寶雙軌看板) -->
+    <section id="view-member-center" class="view-section">
+      <div class="container section-padding">
+        
+        <!-- Member Profile & Points Hero Box -->
+        <div class="admin-header-box" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(245, 158, 11, 0.15) 50%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(245, 158, 11, 0.35);">
+          <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+            <img id="memberCenterAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" style="width: 72px; height: 72px; border-radius: 50%; border: 3px solid #fbbf24; box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); object-fit: cover;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <h2 id="memberCenterName" style="font-size: 1.5rem; margin: 0; color: #fff;">林小明</h2>
+                <span class="badge-tag bg-purple" id="memberCenterRoleBadge"><i class="fa-solid fa-graduation-cap"></i> 精五門認證學員</span>
+                <span class="badge-tag bg-yellow" id="memberBirthdayTag"><i class="fa-solid fa-cake-candles"></i> 壽星享100精幣</span>
+              </div>
+              <p class="text-xs text-muted" id="memberCenterEmail" style="margin-top: 0.35rem; color: #cbd5e1;">
+                <i class="fa-solid fa-envelope"></i> student@pentaskill.com &nbsp;|&nbsp; <i class="fa-solid fa-cake-candles text-pink"></i> 生日：<span id="memberCenterBirthday">1998-08-15</span>
+              </p>
+            </div>
+          </div>
+          <div class="admin-quick-actions">
+            <button class="btn btn-outline btn-sm" onclick="switchView('video-player')">
+              <i class="fa-solid fa-play text-cyan"></i> 進入錄播教室
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="switchView('marketplace')" style="background: linear-gradient(135deg, #f59e0b, #ec4899); border:none;">
+              <i class="fa-solid fa-store"></i> 探索課程 (使用精幣折抵)
+            </button>
+          </div>
+        </div>
+
+        <!-- 🪙 精幣 × 🏆 精通寶 雙軌點數專屬看板 -->
+        <div class="grid grid-2 gap-lg margin-top-lg">
+          <!-- Card 1: 精幣 (Jing Coins) 錢包 -->
+          <div class="reward-card token-card-coins" style="position: relative; overflow: hidden;">
+            <div class="reward-card-header">
+              <div class="reward-icon-box bg-yellow-glow">
+                <i class="fa-solid fa-coins text-yellow"></i>
+              </div>
+              <div>
+                <div class="reward-badge-chip chip-yellow">消費折抵金 • 1幣 = NT$1</div>
+                <h3 class="reward-title">🪙 我的精幣 <small>(Jing Coins)</small></h3>
+              </div>
+              <div class="reward-rate-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+                可用折抵餘額
+              </div>
+            </div>
+
+            <div class="reward-card-body" style="padding-top: 0.5rem;">
+              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin: 0.75rem 0;">
+                <span style="font-size: 2.8rem; font-weight: 800; color: #fbbf24; line-height: 1;" id="memberCenterCoins">100</span>
+                <span style="font-size: 1.1rem; color: #fff; font-weight: 600;">枚精幣</span>
+                <span style="font-size: 0.9rem; color: var(--accent-green); margin-left: auto;">(等值 NT$ <span id="memberCenterCoinVal">100</span> 元)</span>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.75rem;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">
+                  <i class="fa-solid fa-tags text-yellow"></i> 如何使用精幣折抵？
+                </div>
+                <div class="text-xs text-muted" style="line-height: 1.45;">
+                  結帳購買任何實戰課程或 1 對 1 名師個教方案時，<strong>每 1 枚精幣可直接扣抵 NT$ 1 元結帳金額</strong>！
+                </div>
+              </div>
+
+              <ul class="reward-perks-list text-xs" style="margin-top: 0.5rem;">
+                <li><i class="fa-solid fa-cake-candles text-pink"></i> <strong>當月壽星專屬禮</strong>：生日當月由系統派發 <strong>100 精幣</strong></li>
+                <li><i class="fa-solid fa-gift text-yellow"></i> <strong>消費滿額回饋</strong>：單筆結帳滿 NT$ 3,000 即贈 <strong>30 精幣</strong></li>
+                <li><i class="fa-solid fa-comment-dots text-yellow"></i> <strong>課後好評分享</strong>：問卷心得贈 30 精幣，社群發文加贈 30 精幣</li>
+              </ul>
+
+              <div class="reward-card-footer margin-top-sm" style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary btn-sm btn-block" onclick="openCheckoutModal('course-1', 'combo')">
+                  <i class="fa-solid fa-cart-shopping"></i> 前往結帳使用精幣折抵
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: 精通寶 (Master Tokens) 勳章 -->
+          <div class="reward-card token-card-master" style="position: relative; overflow: hidden;">
+            <div class="reward-card-header">
+              <div class="reward-icon-box bg-purple-glow">
+                <i class="fa-solid fa-award text-purple"></i>
+              </div>
+              <div>
+                <div class="reward-badge-chip chip-purple">成就勳章 • 1門課 = 1枚</div>
+                <h3 class="reward-title">🏆 我的精通寶 <small>(Master Tokens)</small></h3>
+              </div>
+              <div class="reward-rate-tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">
+                已累積成就
+              </div>
+            </div>
+
+            <div class="reward-card-body" style="padding-top: 0.5rem;">
+              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin: 0.75rem 0;">
+                <span style="font-size: 2.8rem; font-weight: 800; color: #c084fc; line-height: 1;" id="memberCenterTokens">2</span>
+                <span style="font-size: 1.1rem; color: #fff; font-weight: 600;">枚成就勳章</span>
+                <span style="font-size: 0.85rem; color: var(--accent-cyan); margin-left: auto;">(距 VIP 大獎還差 <span id="memberCenterTokensDiff">8</span> 門課)</span>
+              </div>
+
+              <!-- Progress bar -->
+              <div style="margin-bottom: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                  <span>VIP 大獎解鎖進度</span>
+                  <span id="memberTokenProgressText">2 / 10 門課 (20%)</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                  <div id="memberTokenProgressBar" style="width: 20%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); border-radius: 4px; transition: width 0.4s ease;"></div>
+                </div>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.75rem;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">
+                  <i class="fa-solid fa-crown text-yellow"></i> 滿 10 枚解鎖 VIP 特權 (二選一)：
+                </div>
+                <div class="text-xs text-muted" style="line-height: 1.45;">
+                  ① 任選 1 門新上線錄播課免費兌換（最高省 NT$ 3,680）<br>
+                  ② 免費加贈 1 小時 1 對 1 專屬名師專案指導
+                </div>
+              </div>
+
+              <ul class="reward-perks-list text-xs" style="margin-top: 0.5rem;">
+                <li><i class="fa-solid fa-fire-flame-curved text-pink"></i> <strong>五門通關彩蛋</strong>：修完 5 大領域各 1 門，加贈 <strong>100 精幣</strong></li>
+                <li><i class="fa-solid fa-trophy text-purple"></i> <strong>累積不歸零</strong>：每完課一門永久有效，榮耀勳章持續累積</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 我的課程與學習進度清單 -->
+        <div class="plan-card margin-top-lg">
+          <div class="card-header-flex">
+            <div>
+              <h3><i class="fa-solid fa-book-open-reader text-cyan"></i> 我的已購課程與學習權限</h3>
+              <p class="text-xs text-muted">包含高畫質 4K 錄播、全套雲端講義下載與 1-on-1 個教預約</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="switchView('video-player')">
+              <i class="fa-solid fa-play"></i> 進入錄播學習中心
+            </button>
+          </div>
+
+          <div class="grid grid-3 gap-md margin-top-md" id="memberEnrolledCourses">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -1057,6 +1210,7 @@
                     <th>電子郵件 (登入帳號)</th>
                     <th>登入密碼</th>
                     <th>授權權限角色</th>
+                    <th>🪙 精幣 / 🏆 精通寶</th>
                     <th>介面存取權限說明</th>
                     <th>設定與操作</th>
                   </tr>
@@ -1798,39 +1952,56 @@
     </div>
   </div>
 
-  <!-- MODAL 2B: REGISTER MODAL (學員註冊與學習需求諮詢表單) -->
+  <!-- MODAL 2B: REGISTER MODAL (加入會員 / 學員註冊表單) -->
   <div id="registerModal" class="modal-backdrop">
-    <div class="modal-box" style="max-width: 680px;">
+    <div class="modal-box" style="max-width: 560px;">
       <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-graduation-cap"></i> 精五門學員專區</span>
+          <span class="badge-tag bg-pink" style="font-size:0.75rem;"><i class="fa-solid fa-cake-candles"></i> 壽星送 100 精幣</span>
         </div>
-        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-plus text-cyan"></i> 免費註冊學員 & 填寫學習需求</h3>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-plus text-cyan"></i> 加入會員 / 免費註冊學員</h3>
         <p class="text-xs text-muted margin-top-xs">完成註冊即可立即開通專屬學員專區，解鎖全站學習資源與 1 對 1 名師個教預約資格！</p>
       </div>
 
       <div class="modal-body margin-top-xs">
         <form onsubmit="handleRegisterSubmit(event)">
-          <!-- 帳號基本資料區塊 -->
+          <!-- 姓名與稱呼 (先生/小姐) -->
           <div class="grid grid-2 gap-sm">
             <div class="form-group">
-              <label>真實姓名 / 稱呼 <span class="text-pink">*</span></label>
-              <input type="text" id="registerName" class="form-control" placeholder="例如：林同學" required>
+              <label><i class="fa-solid fa-user text-cyan"></i> 姓名 <span class="text-pink">*</span></label>
+              <input type="text" id="registerName" class="form-control" placeholder="例如：王小明" required>
             </div>
             <div class="form-group">
-              <label>聯絡電話 (手機) <span class="text-pink">*</span></label>
-              <input type="tel" id="registerPhone" class="form-control" placeholder="例如：0912-345-678" required>
+              <label><i class="fa-solid fa-venus-mars text-cyan"></i> 稱呼 (先生/小姐) <span class="text-pink">*</span></label>
+              <select id="registerTitle" class="form-control" required>
+                <option value="先生">先生 (Mr.)</option>
+                <option value="小姐">小姐 (Ms.)</option>
+              </select>
             </div>
           </div>
 
+          <!-- 手機與生日 -->
           <div class="grid grid-2 gap-sm margin-top-sm">
             <div class="form-group">
-              <label>電子郵件 (作為登入帳號) <span class="text-pink">*</span></label>
+              <label><i class="fa-solid fa-phone text-cyan"></i> 手機 <span class="text-pink">*</span></label>
+              <input type="tel" id="registerPhone" class="form-control" placeholder="例如：0912-345-678" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-cake-candles text-pink"></i> 生日 <span class="text-pink">*</span></label>
+              <input type="date" id="registerBirthday" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Email (會設為帳號) 與 密碼 -->
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-envelope text-cyan"></i> Email (會設為帳號) <span class="text-pink">*</span></label>
               <input type="email" id="registerEmail" class="form-control" placeholder="例如：student@gmail.com" required autocomplete="username">
             </div>
             <div class="form-group">
-              <label>設定登入密碼 <span class="text-pink">*</span></label>
+              <label><i class="fa-solid fa-lock text-cyan"></i> 密碼 <span class="text-pink">*</span></label>
               <div style="position: relative;">
                 <input type="password" id="registerPassword" class="form-control" placeholder="請設定 4 位數以上密碼" required minlength="4" autocomplete="new-password">
                 <button type="button" onclick="togglePasswordVisibility('registerPassword', 'regPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
@@ -1840,80 +2011,17 @@
             </div>
           </div>
 
-          <!-- 潛在學員需求調查區塊 -->
-          <div class="grid grid-2 gap-sm margin-top-sm">
-            <div class="form-group">
-              <label>想諮詢 / 感興趣的課程領域 <span class="text-pink">*</span></label>
-              <select id="registerCourse" class="form-control text-sm" required>
-                <option value="" disabled selected>-- 請選擇感興趣的領域 --</option>
-                <option value="AI 程式與全端工作流實戰">AI 程式與全端工作流實戰</option>
-                <option value="UI/UX 產品設計與 3D 擬態">UI/UX 產品設計與 3D 擬態</option>
-                <option value="Python 數據分析與自動化">Python 數據分析與自動化</option>
-                <option value="平面視覺與商業品牌設計">平面視覺與商業品牌設計</option>
-                <option value="短影音剪輯與自媒體行銷">短影音剪輯與自媒體行銷</option>
-                <option value="室內設計與 3D 軟裝渲染">室內設計與 3D 軟裝渲染</option>
-                <option value="1-on-1 專屬金牌名師帶練個教">1-on-1 專屬金牌名師帶練個教</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>目前身分狀態</label>
-              <select id="registerIdentity" class="form-control text-sm">
-                <option value="💼 上班族 (想轉職/副業提升)">💼 上班族 (想轉職/副業提升)</option>
-                <option value="🎓 在學學生 / 應屆畢業生">🎓 在學學生 / 應屆畢業生</option>
-                <option value="🚀 待業中 (全力轉職衝刺)">🚀 待業中 (全力轉職衝刺)</option>
-                <option value="💻 自由接案 / 創業個人">💻 自由接案 / 創業個人</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-2 gap-sm margin-top-sm">
-            <div class="form-group">
-              <label class="text-xs text-muted">核心學習目標</label>
-              <select id="registerGoal" class="form-control text-sm">
-                <option value="🎯 想要在 3-6 個月內成功轉職">🎯 想要在 3-6 個月內成功轉職</option>
-                <option value="💼 職場技能提升 / 爭取加薪升遷">💼 職場技能提升 / 爭取加薪升遷</option>
-                <option value="🚀 建立副業接案管道 / 個人品牌作品集">🚀 建立副業接案管道 / 個人品牌作品集</option>
-                <option value="💡 興趣探索 / 掌握最新 AI 工具">💡 興趣探索 / 掌握最新 AI 工具</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="text-xs text-muted">目前在該領域的實務基礎程度</label>
-              <select id="registerExperience" class="form-control text-sm">
-                <option value="🌱 零基礎白紙新手 (希望講師手把手入門)">🌱 零基礎白紙新手 (希望講師手把手入門)</option>
-                <option value="📖 曾看影片/買書自學，但缺乏實作與批改">📖 曾看影片/買書自學，但缺乏實作與批改</option>
-                <option value="💻 已具備基礎，希望導師幫忙批改星級作品集">💻 已具備基礎，希望導師幫忙批改星級作品集</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-2 gap-sm margin-top-sm">
-            <div class="form-group">
-              <label class="text-xs text-muted">每週預計可投入學習時間</label>
-              <select id="registerTimePerWeek" class="form-control text-sm">
-                <option value="⏱️ 1 ~ 3 小時 (下班/週末時間)">⏱️ 1 ~ 3 小時 (下班/週末時間)</option>
-                <option value="⏱️ 4 ~ 8 小時 (積極學習)">⏱️ 4 ~ 8 小時 (積極學習)</option>
-                <option value="⏱️ 9 小時以上 (全職衝刺/全速個教)">⏱️ 9 小時以上 (全職衝刺/全速個教)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="text-xs text-muted">希望小編 / 導師優先協助的事項</label>
-              <select id="registerPriorityHelp" class="form-control text-sm">
-                <option value="📅 索取課程大綱與免費試聽影片">📅 索取課程大綱與免費試聽影片</option>
-                <option value="🤖 想解決目前使用 AI 工具遇到問題">🤖 想解決目前使用 AI 工具遇到問題</option>
-                <option value="🎨 1-on-1 名師視訊診斷與作品批改">🎨 1-on-1 名師視訊診斷與作品批改</option>
-                <option value="💡 其他">💡 其他</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group margin-top-sm">
-            <label><i class="fa-solid fa-comment-dots text-cyan"></i> 想告訴小編的話 / 其他特殊需求 (選填)</label>
-            <textarea id="registerNotes" class="form-control" rows="2" placeholder="例如：希望了解課程內容細節？或是方便聯絡的時間..."></textarea>
-          </div>
-
-          <div class="line-consult-box margin-top-sm" style="padding:0.6rem 0.8rem;">
-            <div class="text-xs text-muted">
-              <i class="fa-solid fa-circle-check text-green"></i> 我們收到了！感謝您加入精五門會員，送出後將自動為您登入學員專區！
+          <!-- 頁面底下留當月壽星會有100元的精幣 -->
+          <div class="birthday-benefit-card margin-top-md" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); border: 1px solid rgba(236, 72, 153, 0.35); border-radius: var(--radius-md); padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.85rem;">
+            <div style="font-size: 1.8rem; line-height: 1; flex-shrink: 0;">🎂</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #f472b6; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>當月壽星專屬好禮</span>
+                <span class="badge-tag bg-pink" style="font-size:0.7rem; padding: 2px 6px; background: rgba(236, 72, 153, 0.25); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.5);">贈 100 精幣</span>
+              </div>
+              <div class="text-xs text-muted" style="margin-top: 0.25rem; line-height: 1.45; color: #cbd5e1;">
+                加入會員並填寫生日，<strong>當月壽星即可獲得 100 元精幣</strong>（1 精幣 = NT$ 1，可全額折抵全站課程與 1 對 1 名師個教）！
+              </div>
             </div>
           </div>
 
@@ -1937,7 +2045,7 @@
     <div class="modal-box">
       <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
       <div class="modal-header">
-        <h3><i class="fa-solid fa-user-plus text-purple"></i> 新增 / 編輯帳號與密碼 (Wen總監專屬)</h3>
+        <h3><i class="fa-solid fa-user-gear text-purple"></i> 新增 / 編輯帳號、密碼與點數 (Wen總監專屬)</h3>
       </div>
       <div class="modal-body">
         <form onsubmit="handleSaveUser(event)">
@@ -1963,8 +2071,21 @@
               <option value="student">🎓 消費者學員 (僅瀏覽官網與觀看購買課程)</option>
             </select>
           </div>
+          
+          <!-- 🪙 精幣與 🏆 精通寶 點數管理 (Wen總監設定) -->
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label><i class="fa-solid fa-coins text-yellow"></i> 🪙 精幣數量 (Jing Coins)</label>
+              <input type="number" id="inputUserCoins" class="form-control" placeholder="100" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-award text-purple"></i> 🏆 精通寶數量 (Master Tokens)</label>
+              <input type="number" id="inputUserTokens" class="form-control" placeholder="0" min="0" value="0">
+            </div>
+          </div>
+
           <button type="submit" class="btn btn-primary btn-block margin-top-md">
-            儲存帳號密碼與權限設定
+            儲存帳號密碼與點數設定
           </button>
         </form>
       </div>

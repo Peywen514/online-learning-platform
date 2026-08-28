@@ -27,6 +27,9 @@ const mockUsers = [
     role: "student",
     roleLabel: "🎓 消費者學員 (Student)",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+    coins: 100,
+    masterTokens: 2,
+    birthday: "1998-08-15",
     purchasedCourses: ["course-1"]
   },
   {
