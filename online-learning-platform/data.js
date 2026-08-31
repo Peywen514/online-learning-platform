@@ -133,7 +133,7 @@ let mockCourses = [
     videoDuration: "28 小時錄播視訊",
     liveSlotsCount: "4 次 1對1 Figma 作品集重構",
     description: "掌握 Auto-Layout、Design System 與 Prototype。透過 1 對 1 個教微調作品細節，打造能直接面試求職的星級作品集。",
-    badge: "👑 名師陪跑"
+    badge: "👑 教學多年業師陪跑"
   },
   {
     id: "course-3",
@@ -236,7 +236,7 @@ let mockInstructors = [
     name: "林雅涵 (Hannah)",
     role: "數位整合行銷與短影音教練",
     tag: "氣質電商爆款行銷師",
-    exp: "知名教育機構近10年行銷名師 / 品牌電商營運總監",
+    exp: "知名教育機構近10年行銷教學多年業師 / 品牌電商營運總監",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     skills: ["Meta Ads", "SEO", "Short Video", "Conversion Funnel"],
     rating: 4.9,

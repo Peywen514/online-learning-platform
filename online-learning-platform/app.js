@@ -289,7 +289,7 @@ function openInstructorModal(instId) {
   content.innerHTML = `
     <div style="text-align: center;">
       <img src="${inst.avatar}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); box-shadow: var(--shadow-glow);">
-      <h3 class="margin-top-sm">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '名師'}</span></h3>
+      <h3 class="margin-top-sm">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '教學多年業師'}</span></h3>
       <div class="text-sm text-cyan margin-top-xs"><strong>${inst.role}</strong></div>
       <div class="text-xs text-muted margin-top-xs">${inst.exp}</div>
 
@@ -938,7 +938,7 @@ function renderCourseGrid(category = 'all') {
         <div class="course-pricing-box">
           <div class="price-option">
             <span><i class="fa-solid fa-graduation-cap text-purple"></i> 學習方案：</span>
-            <span class="price-val" style="font-size:0.88rem;">純錄播 / 1-on-1 名師陪跑</span>
+            <span class="price-val" style="font-size:0.88rem;">純錄播 / 1-on-1 教學多年業師陪跑</span>
           </div>
           <div class="price-option" style="margin-top:0.35rem;">
             <span><i class="fa-brands fa-line text-green"></i> <strong>個案專屬服務：</strong></span>
@@ -1388,7 +1388,7 @@ function handleSaveCourse(e) {
     const newCourse = {
       id: `course-${Date.now()}`,
       title, category, categoryLabel, instructor,
-      instructorTitle: '近10年資深名師講師',
+      instructorTitle: '近10年教學多年資深業師講師',
       instructorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
       priceRecordOnly, priceWith1on1,
@@ -2030,7 +2030,7 @@ function renderInstructors() {
   grid.innerHTML = mockInstructors.map(inst => `
     <div class="instructor-card" onclick="openInstructorModal('${inst.id}')" style="cursor:pointer;">
       <img class="inst-img" src="${inst.avatar}" alt="${inst.name}">
-      <div class="inst-name">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '名師'}</span></div>
+      <div class="inst-name">${inst.name} <span class="tag-badge bg-purple">${inst.tag || '教學多年業師'}</span></div>
       <div class="inst-role">${inst.role}</div>
       <div class="inst-exp">${inst.exp}</div>
       
@@ -2429,7 +2429,7 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
       </span>
       <h3 style="margin-top:0.75rem; font-size:1.25rem; color:#fff;">${title}</h3>
       <div style="font-size:0.88rem; color:var(--accent-cyan); margin-top:0.3rem;">
-        ${isCombo ? '🔥 1-on-1 名師陪跑 + 錄播全套視訊個案服務' : '📹 純錄播自學講義諮詢方案'}
+        ${isCombo ? '🔥 1-on-1 教學多年業師陪跑 + 錄播全套視訊個案服務' : '📹 純錄播自學講義諮詢方案'}
       </div>
     </div>
 
@@ -2440,7 +2440,7 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
       <ul class="consult-perks-list">
         <li>
           <i class="fa-solid fa-circle-check"></i>
-          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與名師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
+          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與教學多年業師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
         </li>
         <li>
           <i class="fa-solid fa-circle-check"></i>
@@ -2720,7 +2720,7 @@ function testGoogleSheetSync() {
     goal: "🎯 驗證 Google Sheet 自動化傳送",
     experience: "🌱 零基礎新手",
     timePerWeek: "⏱️ 4 ~ 8 小時",
-    priorityHelp: "🎨 1-on-1 名師視訊診斷",
+    priorityHelp: "🎨 1-on-1 教學多年業師視訊診斷",
     notes: "這是一筆由精五門後台發出的連線測試紀錄",
     status: "✅ 連線測試成功"
   };
@@ -2747,7 +2747,7 @@ function testGoogleSheetQuoteSync() {
     courseTitle: "AI 驅動 Full-Stack 實戰營 (👑 總監專屬優惠包)",
     customPrice: 10880,
     createdBy: currentUser ? currentUser.name : "👑 Wen總監",
-    details: "包含全套錄播 + 4次名師1對1個教 + 贈送專案元件庫 (雲端同步測試)"
+    details: "包含全套錄播 + 4次教學多年業師1對1個教 + 贈送專案元件庫 (雲端同步測試)"
   };
 
   const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook');
@@ -3102,7 +3102,7 @@ function convertLeadToQuote(leadId) {
   }
   document.getElementById('inputQuoteCourseTitle').value = `${lead.course} (👑 LINE/電話 對接專屬優惠包)`;
   document.getElementById('inputQuotePrice').value = '10880';
-  document.getElementById('inputQuoteDetails').value = `來自 LINE/電話 對接。學習目標：${lead.goal}。包含錄播全套 + 1對1名師個教帶練。`;
+  document.getElementById('inputQuoteDetails').value = `來自 LINE/電話 對接。學習目標：${lead.goal}。包含錄播全套 + 1對1教學多年業師個教帶練。`;
 
   document.getElementById('customQuoteModal').classList.add('active');
   showToast(`已為 ${lead.name} 自動帶入諮詢資料（含手機號碼），請設定結帳金額後儲存！`);
@@ -3195,7 +3195,7 @@ function openCheckoutModal(courseId, type) {
   const displayTitle = customQuote ? customQuote.courseTitle : course.title;
   const displayPrice = customQuote ? customQuote.customPrice : (isCombo ? course.priceWith1on1 : course.priceRecordOnly);
   const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
-  const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次名師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
+  const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次教學多年業師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
 
   const userCoins = currentUser ? (currentUser.coins || 0) : 0;
   const maxCoinsApplicable = Math.min(userCoins, displayPrice);
@@ -3684,7 +3684,7 @@ function checkUrlDirectCheckout() {
 function openDirectPaymentModal(quoteData) {
   const displayTitle = quoteData.title || '精選實務課程';
   const displayPrice = parseInt(quoteData.price) || 0;
-  const quoteDetails = quoteData.details || '全套錄播視訊 + 名師 1 對 1 個教輔導';
+  const quoteDetails = quoteData.details || '全套錄播視訊 + 教學多年業師 1 對 1 個教輔導';
   const createdBy = quoteData.by || 'Wen總監';
   const studentEmail = quoteData.email || '';
   const studentName = quoteData.name || '';
@@ -4042,3 +4042,17 @@ function closePrivacyPolicyModal() {
   const modal = document.getElementById('privacyPolicyModal');
   if (modal) modal.classList.remove('active');
 }
+
+// Floating Social Widget Tooltip Close & Interactivity
+function closeSocialTooltip(event) {
+  if (event) event.stopPropagation();
+  const tooltip = document.getElementById('socialTooltip');
+  if (tooltip) {
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translateY(10px)';
+    setTimeout(() => {
+      tooltip.style.display = 'none';
+    }, 300);
+  }
+}
+

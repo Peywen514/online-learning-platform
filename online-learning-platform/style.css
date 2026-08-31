@@ -239,16 +239,16 @@ a {
   background: rgba(9, 13, 22, 0.92);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--bg-card-border);
-  padding: 0.45rem 0;
+  padding: 0.35rem 0;
   width: 100%;
   max-width: 100vw;
 }
 
 .nav-container {
-  max-width: 1200px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1rem 0 0.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -257,22 +257,32 @@ a {
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.7rem;
   cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  margin-left: -2px;
+}
+
+.brand-logo:hover {
+  opacity: 0.95;
+}
+
+.brand-logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.5));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
   flex-shrink: 0;
 }
 
-.logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  color: #fff;
-  box-shadow: 0 0 12px var(--primary-glow);
+.brand-logo:hover .brand-logo-img {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.75));
 }
 
 .logo-text {
@@ -299,6 +309,31 @@ a {
   font-size: 0.65rem;
   color: var(--text-muted);
   line-height: 1.2;
+}
+
+.modal-logo-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+  transition: transform 0.25s ease;
+}
+
+.footer-logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.35));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.footer-logo-img:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
 }
 
 .nav-menu {
@@ -2294,3 +2329,179 @@ select option {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Floating Social Action Widget (LINE & IG 右下角常駐懸浮組件)
+   ========================================================================== */
+
+.floating-social-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+/* 互動智能提示氣泡 */
+.social-tooltip {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(52, 211, 153, 0.2);
+  border-radius: var(--radius-md);
+  padding: 10px 32px 10px 14px;
+  position: relative;
+  max-width: 260px;
+  font-size: 0.82rem;
+  color: #ffffff;
+  line-height: 1.45;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: socialTooltipFloat 3.5s ease-in-out infinite alternate;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.social-tooltip .tooltip-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.social-tooltip .tooltip-close:hover {
+  color: #f87171;
+}
+
+.social-tooltip strong {
+  color: #34d399;
+}
+
+/* 懸浮按鈕群組 (極簡小圓鈕) */
+.social-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.social-btn {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  color: #ffffff !important;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.social-btn i {
+  font-size: 1.28rem;
+  line-height: 1;
+}
+
+.social-btn:hover {
+  transform: translateY(-2px) scale(1.08);
+  color: #ffffff !important;
+}
+
+/* LINE 綠色專屬風格 */
+.btn-line-float {
+  background: linear-gradient(135deg, #06c755 0%, #00b900 100%);
+  box-shadow: 0 4px 16px rgba(6, 199, 85, 0.4), 0 0 10px rgba(6, 199, 85, 0.2);
+}
+
+.btn-line-float:hover {
+  box-shadow: 0 8px 24px rgba(6, 199, 85, 0.65), 0 0 16px rgba(6, 199, 85, 0.45);
+}
+
+/* 呼吸綠點 */
+.online-pulse-dot {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 9px;
+  height: 9px;
+  background-color: #22c55e;
+  border: 2px solid #090d16;
+  border-radius: 50%;
+  animation: pulseDotGlow 2s infinite;
+}
+
+/* IG 經典霓虹漸層風格 */
+.btn-ig-float {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  box-shadow: 0 4px 16px rgba(220, 39, 67, 0.4), 0 0 10px rgba(236, 72, 153, 0.2);
+}
+
+.btn-ig-float:hover {
+  box-shadow: 0 8px 24px rgba(220, 39, 67, 0.65), 0 0 16px rgba(236, 72, 153, 0.45);
+}
+
+@keyframes socialTooltipFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes pulseDotGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* 手機響應式適配 (RWD Mobile) */
+@media (max-width: 768px) {
+  .brand-logo-img {
+    width: 46px;
+    height: 46px;
+  }
+  .floating-social-widget {
+    bottom: 16px;
+    right: 16px;
+    gap: 7px;
+  }
+  .social-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .social-btn i {
+    font-size: 1.15rem;
+  }
+  .online-pulse-dot {
+    width: 8px;
+    height: 8px;
+  }
+  .social-tooltip {
+    max-width: 210px;
+    font-size: 0.76rem;
+    padding: 8px 26px 8px 10px;
+  }
+}
+
+
