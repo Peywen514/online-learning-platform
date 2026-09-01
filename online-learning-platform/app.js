@@ -30,6 +30,63 @@ async function saveCloudData(key, data) {
   }
 }
 
+// ⚡ 一鍵將全站資料全量推送到 Cloudflare KV 雲端資料庫
+async function syncAllDataToCloudflareKV() {
+  if (typeof showToast === 'function') {
+    showToast('⚡ 正在將全站資料打包寫入 Cloudflare KV 雲端...', 'info');
+  }
+  
+  try {
+    const payload = {
+      users: mockUsers,
+      custom_quotes: mockCustomQuotes,
+      leads: mockLeads,
+      courses: mockCourses,
+      instructors: mockInstructors
+    };
+
+    // 優先嘗試批次同步端點 /api/cloud-sync-all
+    try {
+      const batchRes = await fetch('/api/cloud-sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (batchRes.ok) {
+        if (typeof showToast === 'function') {
+          showToast('🎉 全站資料已成功全量寫入 Cloudflare KV！請至 Cloudflare 後台 KV Pairs 重新整理查看！', 'success');
+        }
+        return true;
+      }
+    } catch(e) {}
+
+    // Fallback: 逐一 key 同步
+    let successCount = 0;
+    for (const [k, d] of Object.entries(payload)) {
+      const ok = await saveCloudData(k, d);
+      if (ok) successCount++;
+    }
+
+    if (successCount > 0) {
+      if (typeof showToast === 'function') {
+        showToast(`🎉 已成功同步 ${successCount} 項資料表至 Cloudflare KV！請至 Cloudflare 後台 KV Pairs 查看！`, 'success');
+      }
+      return true;
+    } else {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ 同步失敗，請確認 Cloudflare Worker 設定中已將 KV 綁定名稱 (Variable Name) 設為 PENTASKILL_KV。', 'warning');
+      }
+      return false;
+    }
+  } catch (err) {
+    console.error('全量同步異常:', err);
+    if (typeof showToast === 'function') {
+      showToast('❌ 同步異常: ' + err.message, 'error');
+    }
+    return false;
+  }
+}
+
 // 雲端開機自動同步載入
 async function initCloudSync() {
   try {

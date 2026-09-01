@@ -66,7 +66,9 @@
     3. **雙向即時雲端儲存與跨裝置即時查單 (Live Cloud Query)**：學員於前台填寫問卷、或 Wen總監/員工 於後台新增/修改客製化報價單時，系統即時透過 Webhook 分流寫入 Google Sheet 雙工作表；前台「專屬報價結帳」查單時，亦支援即時連線 Google Sheet 雲端比對手機與 Email，跨裝置、跨電腦即時秒開結帳畫面！
     4. **全方位串接控制中心 (`#atab-sheets` & `#googleSheetConfigModal`)**：後台管理中心新增專屬「📊 Google Sheet 雙軌自動化串接中心」面板與 Modal，支援 1-Click 複製腳本、即時設定 Webhook URL 與一鍵分別發送「諮詢紀錄」與「客製報價單」測試資料。
 - **☁️ ⚡ Cloudflare KV 全域雲端資料庫雙向同步 (Namespace: `PENTASKILL_KV`)**：
-  - **解決跨裝置資料同步痛點**：除本地 `localStorage` 快取外，全面接入 Cloudflare KV 雲端儲存，提供 `/api/cloud-sync`（`GET` / `POST`）REST 端點。
+  - **解決跨裝置資料同步痛點**：除本地 `localStorage` 快取外，全面接入 Cloudflare KV 雲端儲存，提供 `/api/cloud-sync`（`GET` / `POST`）與 `/api/cloud-sync-all`（批次全量同步）REST 端點。
+  - **後端 Worker 腳本**：專案根目錄已建立 [worker.js](file:///D:/Users/peggy_chien/Downloads/online-learning-platform-main/online-learning-platform-main/online-learning-platform-main/online-learning-platform/worker.js)，直接貼上 Cloudflare Workers 即可支援 KV 雙向存取。
+  - **⚡ 一鍵全量推送按鈕 (`syncAllDataToCloudflareKV()`)**：後台管理中心（主管權限）點擊「⚡ 一鍵推送資料至 Cloudflare KV」，即可將全站 `users`、`custom_quotes`、`leads`、`courses`、`instructors` 瞬間打包寫入 KV Pairs！
   - **自動雙向即時同步**：
     1. **網頁啟動**：自動非同步自 Cloudflare KV 拉取最新 `users`、`custom_quotes`、`leads` 並融合本地資料庫。
     2. **會員註冊 / 結帳扣幣 / 總監後台修改點數**：操作完成後立即寫入 Cloudflare KV，換手機、換電腦或清除瀏覽器快取皆能 100% 完整保留並即時同步！
@@ -110,6 +112,8 @@
   - `style.css`：手機/平板/電腦全裝置適配 CSS 設計系統
   - `app.js`：權限驗證引擎、輪播圖控制、CMS 全後台編修 (課程/講師照片/講義/星級作品集)、預約與即時改期同步/月結薪資引擎
   - `data.js`：成員帳號、課程、帥哥/美女講師全身照資料庫
+  - `CLOUDFLARE_KV_教學與操作指南.md`：Cloudflare Workers KV 雲端資料庫全同步操作手冊（含原因解析、worker.js 代碼與 3 步驟實操）
+  - `worker.js`：Cloudflare Worker 後端腳本（處理 /api/cloud-sync 與 /api/cloud-sync-all 路由）
   - `創業完整規劃書_簡報檔.html`：可直接列印為 PDF 的商業計畫書簡報 (含商業獲利模式、金流串接與學員權限開通機制)
   - `講師合作分潤與契約條款規範指南.md`：講師合作契約分潤機制對照條款、成本扣除淨利公式、SLA課後答疑服務水準與談判話術備忘錄
 - **GitHub 儲存庫**：`https://github.com/Peywen514/online-learning-platform`

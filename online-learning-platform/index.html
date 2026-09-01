@@ -1148,6 +1148,9 @@
             <p>權限說明：系統已根據您登入的帳號，開通相對應的管理介面與功能模組。</p>
           </div>
           <div class="admin-quick-actions">
+            <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="display: none; border-color: var(--accent-yellow); color: var(--accent-yellow);" title="一鍵將全站使用者、報價單、課程與諮詢資料全量寫入 Cloudflare KV">
+              <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 一鍵推送資料至 Cloudflare KV
+            </button>
             <button class="btn btn-primary manager-only-btn" onclick="openAddUserModal()" style="display: none;">
               <i class="fa-solid fa-user-plus"></i> 新增帳號密碼 (Wen總監)
             </button>
@@ -1196,9 +1199,14 @@
                 <h3><i class="fa-solid fa-users-viewfinder text-purple"></i> 全站成員帳號、密碼與權限清單</h3>
                 <span class="text-sm text-muted">目前共有 <strong id="userTotalCount">4</strong> 個使用者帳號</span>
               </div>
-              <button class="btn btn-primary btn-sm manager-only-btn" onclick="openAddUserModal()">
-                <i class="fa-solid fa-user-plus"></i> 新增帳號密碼與權限 (Wen總監專屬)
-              </button>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="border-color: var(--accent-yellow); color: var(--accent-yellow);" title="將目前的成員名單與點數全量寫入 Cloudflare KV">
+                  <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 同步至 Cloudflare KV
+                </button>
+                <button class="btn btn-primary btn-sm manager-only-btn" onclick="openAddUserModal()">
+                  <i class="fa-solid fa-user-plus"></i> 新增帳號密碼與權限 (Wen總監專屬)
+                </button>
+              </div>
             </div>
 
             <div class="table-responsive margin-top-md">

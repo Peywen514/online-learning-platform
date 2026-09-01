@@ -1,0 +1,10 @@
+﻿name = "online-class"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+[assets]
+directory = "."
+
+[[kv_namespaces]]
+binding = "PENTASKILL_KV"
+id = "665a93c3eb174a419f2d31e027e9598f"
