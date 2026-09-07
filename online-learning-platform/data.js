@@ -430,9 +430,9 @@ let mockCustomQuotes = [
     id: "quote-101",
     studentEmail: "student@pentaskill.com",
     studentName: "林小明 (學員)",
-    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 Wen總監專屬對接 85 折優惠包)",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (陳顧問專屬對接特惠包)",
     customPrice: 10880,
-    createdBy: "👑 Wen總監",
+    createdBy: "陳顧問",
     details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
     updatedAt: "2026-07-26 16:30"
   }

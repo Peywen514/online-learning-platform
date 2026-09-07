@@ -432,7 +432,7 @@ function renderAuthArea() {
           <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
             <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
           </button>
-          <button class="dropdown-item" onclick="openCheckoutModal('course-1', 'combo'); closeAllDropdowns();">
+          <button class="dropdown-item" onclick="openCheckoutModal(); closeAllDropdowns();">
             <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 / 使用折抵
           </button>
 
@@ -3240,23 +3240,46 @@ function clearCoins(originalPrice) {
   }
 }
 
-// Enrollment Checkout & Payment Modal (支援折扣幣使用 & 客製化報價單系統)
+// Enrollment Checkout & Payment Modal (支援未選課預設 0 元空白、折扣幣使用 & 客製化報價單系統)
 function openCheckoutModal(courseId, type) {
-  const course = (typeof mockCourses !== 'undefined' ? mockCourses : []).find(c => c.id === courseId) || (typeof mockCourses !== 'undefined' ? mockCourses[0] : null);
-  if (!course) return;
-
-  const userEmail = currentUser ? currentUser.email : 'student@pentaskill.com';
-  const customQuote = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
-
+  type = type || 'combo';
   const isCombo = type === 'combo';
-  const displayTitle = customQuote ? customQuote.courseTitle : course.title;
-  const displayPrice = customQuote ? customQuote.customPrice : (isCombo ? course.priceWith1on1 : course.priceRecordOnly);
-  const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
-  const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次教學多年業師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
+
+  const allCourses = typeof mockCourses !== 'undefined' ? mockCourses : [];
+  const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+  const userQuotes = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).filter(q => userEmail && (q.studentEmail || '').toLowerCase() === userEmail);
+
+  let displayTitle = '';
+  let displayPrice = 0;
+  let createdBy = '';
+  let quoteDetails = '';
+  let isCustomQuote = false;
+  let selectedCourseId = courseId || '';
+
+  if (courseId) {
+    if (courseId.startsWith('quote-')) {
+      const q = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).find(item => item.id === courseId);
+      if (q) {
+        displayTitle = q.courseTitle || '';
+        displayPrice = q.customPrice || 0;
+        createdBy = q.createdBy || '陳顧問';
+        quoteDetails = q.details || '';
+        isCustomQuote = true;
+      }
+    } else {
+      const c = allCourses.find(item => item.id === courseId);
+      if (c) {
+        displayTitle = c.title || '';
+        displayPrice = isCombo ? (c.priceWith1on1 || 0) : (c.priceRecordOnly || 0);
+        quoteDetails = isCombo ? '🔥 錄播全套 + 4次教學多年業師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義';
+        isCustomQuote = false;
+      }
+    }
+  }
 
   const userCoins = currentUser ? (currentUser.coins || 0) : 0;
   const maxCoinsApplicable = Math.min(userCoins, displayPrice);
-  const initialDiscount = maxCoinsApplicable;
+  const initialDiscount = displayPrice > 0 ? maxCoinsApplicable : 0;
   const initialFinalPrice = Math.max(0, displayPrice - initialDiscount);
 
   const checkoutModal = document.getElementById('checkoutModal');
@@ -3267,19 +3290,47 @@ function openCheckoutModal(courseId, type) {
   }
   if (!modalBody) return;
 
+  const courseOptionsHtml = allCourses.map(c => `
+    <option value="${c.id}" ${selectedCourseId === c.id ? 'selected' : ''}>
+      ${c.title} (NT$ ${(isCombo ? c.priceWith1on1 : c.priceRecordOnly).toLocaleString()})
+    </option>
+  `).join('');
+
+  const quotesOptionsHtml = userQuotes.map(q => `
+    <option value="${q.id}" ${selectedCourseId === q.id ? 'selected' : ''}>
+      🏷️ 專屬報價單：${q.courseTitle} (由 ${q.createdBy || '顧問'} 親自設定 - NT$ ${(q.customPrice || 0).toLocaleString()})
+    </option>
+  `).join('');
+
   modalBody.innerHTML = `
     <div style="text-align: center; margin-bottom: 1.25rem;">
       <span class="badge-tag bg-purple"><i class="fa-solid fa-shield-halved"></i> 256-bit SSL 安全加密報名通道</span>
-      <h4 style="margin-top:0.5rem; font-size:1.15rem; color:#fff;">${displayTitle}</h4>
-      <div class="text-xs text-cyan margin-top-xs">
-        ${customQuote ? `👑 由【${createdBy}】親自設定之專屬學員結帳金額與課程方案` : '🔒 與專屬小編洽詢確認後之學員結帳與權限開通頁面'}
+      <h4 style="margin-top:0.5rem; font-size:1.15rem; color:#fff;" id="checkoutHeaderTitle">
+        ${displayTitle ? displayTitle : '<span style="color:var(--text-muted); font-weight:normal;">尚未選擇欲購買的課程</span>'}
+      </h4>
+      <div class="text-xs text-cyan margin-top-xs" id="checkoutHeaderSubtitle">
+        ${isCustomQuote ? `👑 由【${createdBy}】親自設定之專屬學員結帳金額與課程方案` : (displayTitle ? '🔒 與專屬小編洽詢確認後之學員結帳與權限開通頁面' : '🔒 預設未選課程為 0 元空白，請由下方選單挑選欲報名之課程')}
       </div>
+    </div>
+
+    <!-- 選擇購買課程方案下拉選單 -->
+    <div class="form-group margin-bottom-md" style="text-align: left; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); padding: 0.75rem 0.85rem;">
+      <label style="font-size: 0.82rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fa-solid fa-graduation-cap text-cyan"></i> 選擇購買課程 / 報價方案
+      </label>
+      <select class="form-control text-sm" id="checkoutCourseSelect" onchange="onCheckoutCourseChange(this.value, '${type}')" style="font-size: 0.88rem; padding: 0.5rem 0.75rem;">
+        <option value="" ${!selectedCourseId ? 'selected' : ''}>-- 請選擇欲購買課程方案 (未選擇為 0 元空白) --</option>
+        ${courseOptionsHtml}
+        ${quotesOptionsHtml ? `<optgroup label="📋 我的專屬報價單">${quotesOptionsHtml}</optgroup>` : ''}
+      </select>
     </div>
 
     <div class="fin-calc-box">
       <div class="calc-row">
         <span>對接報名方案</span>
-        <strong class="text-pink" style="font-size:0.95rem;">${displayTitle}</strong>
+        <strong class="${displayTitle ? 'text-pink' : 'text-muted'}" style="font-size:0.95rem;">
+          ${displayTitle || '（尚未選擇課程）'}
+        </strong>
       </div>
       <div class="calc-row">
         <span>方案原價</span>
@@ -3293,9 +3344,9 @@ function openCheckoutModal(courseId, type) {
         <span>應付實結金額</span>
         <strong class="text-purple" style="font-size: 1.35rem;">NT$ <span id="displayFinalPrice">${initialFinalPrice.toLocaleString()}</span></strong>
       </div>
-      ${customQuote ? `
+      ${quoteDetails ? `
         <div class="calc-row" style="margin-top:0.3rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.3rem;">
-          <span class="text-xs text-muted">專屬優惠與贈品：</span>
+          <span class="text-xs text-muted">專屬包含與贈品：</span>
           <span class="text-xs text-green"><strong>${quoteDetails}</strong></span>
         </div>
       ` : ''}
@@ -3311,7 +3362,11 @@ function openCheckoutModal(courseId, type) {
           目前可用精幣：<strong>${userCoins.toLocaleString()}</strong> 枚
         </div>
       </div>
-      ${userCoins > 0 ? `
+      ${displayPrice <= 0 ? `
+        <div class="text-xs text-muted" style="line-height: 1.45;">
+          💡 尚未選擇課程（金額 0 元），請先由上方選單挑選課程後即可使用精幣折抵！
+        </div>
+      ` : (userCoins > 0 ? `
         <div style="display: flex; gap: 0.5rem; align-items: center;">
           <div style="flex: 1; position: relative;">
             <input type="number" id="inputUseCoins" class="form-control text-sm" min="0" max="${maxCoinsApplicable}" value="${initialDiscount}" placeholder="輸入折抵枚數" oninput="calculateCheckoutFinalPrice(${displayPrice})" style="padding-right: 2.5rem;">
@@ -3331,7 +3386,7 @@ function openCheckoutModal(courseId, type) {
         <div class="text-xs text-muted" style="line-height: 1.45;">
           ℹ️ 您目前尚無可用精幣。加入會員並填寫生日（當月贈 100 精幣）或完課好評皆可獲贈精幣！
         </div>
-      `}
+      `)}
     </div>
 
     <form onsubmit="processPayment(event, '${displayTitle.replace(/'/g, "\\'")}', ${displayPrice}, '${type}')" class="margin-top-md">
@@ -3350,13 +3405,41 @@ function openCheckoutModal(courseId, type) {
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
+      <!-- 📜 購課服務條款與退費政策勾選區塊 -->
+      <div class="terms-agreement-box margin-top-sm" id="termsAgreementBox" style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; transition: all 0.3s ease;">
+        <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0; font-size: 0.85rem; line-height: 1.5; color: #e2e8f0;">
+          <input type="checkbox" id="agreeTermsCheckbox" required onchange="onAgreeTermsChange(this.checked, '')" style="margin-top: 0.2rem; width: 1.15rem; height: 1.15rem; accent-color: var(--accent-purple); cursor: pointer;">
+          <span>
+            我已閱讀並同意
+            <a href="javascript:void(0)" onclick="openTermsModal(event)" style="color: var(--accent-cyan); font-weight: 700; text-decoration: underline;">
+              【精五門學員購課服務條款與退費政策】
+            </a>
+            <span class="text-pink">*</span>
+            <span style="display: block; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+              (含錄播課程以及1對1個教服務與退費須知)
+            </span>
+          </span>
+        </label>
+        <div style="margin-top: 0.5rem; text-align: right;">
+          <button type="button" class="btn btn-xs btn-outline" onclick="openTermsModal(event)" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-color: rgba(6, 182, 212, 0.5); color: var(--accent-cyan);">
+            <i class="fa-solid fa-file-lines"></i> 詳閱完整條款
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" id="checkoutSubmitBtn" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
         <i class="fa-solid fa-file-signature"></i> 確認報名結帳 NT$ <span id="checkoutSubmitAmount">${initialFinalPrice.toLocaleString()}</span> 並開通專屬權限
       </button>
     </form>
   `;
 
   checkoutModal.classList.add('active');
+  const box = checkoutModal.querySelector('.modal-box');
+  if (box) box.scrollTop = 0;
+}
+
+function onCheckoutCourseChange(newCourseId, type) {
+  openCheckoutModal(newCourseId || null, type || 'combo');
 }
 
 // Student Custom Quotation Management Engine (Manager & Staff CMS)
@@ -3367,7 +3450,11 @@ function openAddQuoteModal() {
   if (document.getElementById('inputQuoteStudentPhone')) {
     document.getElementById('inputQuoteStudentPhone').value = '';
   }
-  document.getElementById('inputQuoteCourseTitle').value = 'AI 驅動 Full-Stack 開發實戰營 (👑 專屬對接 85 折優惠包)';
+  const defaultCreator = currentUser ? currentUser.name : '陳顧問';
+  if (document.getElementById('inputQuoteCreatedBy')) {
+    document.getElementById('inputQuoteCreatedBy').value = defaultCreator;
+  }
+  document.getElementById('inputQuoteCourseTitle').value = 'AI 驅動 Full-Stack 開發實戰營 (專屬對接特惠包)';
   document.getElementById('inputQuotePrice').value = '10880';
   document.getElementById('inputQuoteDetails').value = '包含全套錄播 + 4次個教點評 + 贈送設計元件庫';
   document.getElementById('customQuoteModal').classList.add('active');
@@ -3382,6 +3469,9 @@ function openEditQuoteModal(quoteId) {
   document.getElementById('inputQuoteStudentName').value = quote.studentName || '';
   if (document.getElementById('inputQuoteStudentPhone')) {
     document.getElementById('inputQuoteStudentPhone').value = quote.studentPhone || '';
+  }
+  if (document.getElementById('inputQuoteCreatedBy')) {
+    document.getElementById('inputQuoteCreatedBy').value = quote.createdBy || (currentUser ? currentUser.name : '陳顧問');
   }
   document.getElementById('inputQuoteCourseTitle').value = quote.courseTitle || '';
   document.getElementById('inputQuotePrice').value = quote.customPrice || 0;
@@ -3402,9 +3492,10 @@ function handleSaveCustomQuote(e) {
   const studentPhone = phoneEl ? phoneEl.value.trim() : '';
   const courseTitle = document.getElementById('inputQuoteCourseTitle').value.trim();
   const customPrice = parseInt(document.getElementById('inputQuotePrice').value) || 0;
+  const createdByEl = document.getElementById('inputQuoteCreatedBy');
+  const creatorName = (createdByEl && createdByEl.value.trim()) ? createdByEl.value.trim() : (currentUser ? currentUser.name : '陳顧問');
   const details = document.getElementById('inputQuoteDetails').value.trim();
 
-  const creatorName = currentUser ? currentUser.name : '👑 Wen總監';
   const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
   let quoteToSync = null;
@@ -3422,7 +3513,7 @@ function handleSaveCustomQuote(e) {
       existing.updatedAt = nowStr;
       quoteToSync = existing;
     }
-    showToast(`✅ 已更新 ${studentName} 的專屬結帳報價單（金額：NT$ ${customPrice.toLocaleString()}）並同步 Google Sheet`);
+    showToast(`✅ 已更新 ${studentName} 的專屬結帳報價單（金額：NT$ ${customPrice.toLocaleString()}，設定者：${creatorName}）並同步 Google Sheet`);
   } else {
     const newQuote = {
       id: `quote-${Date.now()}`,
@@ -3437,7 +3528,7 @@ function handleSaveCustomQuote(e) {
     };
     mockCustomQuotes.unshift(newQuote);
     quoteToSync = newQuote;
-    showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}）並同步 Google Sheet`);
+    showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}，設定者：${creatorName}）並同步 Google Sheet`);
   }
 
   try {
@@ -3638,16 +3729,16 @@ async function lookupAndCheckoutQuote(e) {
       let quotePrice = Number(cloudQuote.customPrice) || 0;
       let quotePhone = cloudQuote.studentPhone || '';
       let quoteDetails = cloudQuote.details || '';
-      let quoteBy = cloudQuote.createdBy || '👑 Wen總監';
+      let quoteBy = cloudQuote.createdBy || (currentUser ? currentUser.name : '陳顧問');
 
       // 智慧校正：若舊版試算表欄位未對齊（如金額跑到 courseTitle，課程名稱跑到 studentPhone）
       if (quotePrice === 0 && !isNaN(Number(cloudQuote.courseTitle)) && Number(cloudQuote.courseTitle) > 0) {
         quotePrice = Number(cloudQuote.courseTitle);
         quoteTitle = cloudQuote.studentPhone || '專屬對接客製化課程';
         quotePhone = '';
-        if (!quoteDetails && cloudQuote.createdBy && cloudQuote.createdBy !== 'Wen總監' && cloudQuote.createdBy !== '👑 Wen總監') {
+        if (!quoteDetails && cloudQuote.createdBy) {
           quoteDetails = cloudQuote.createdBy;
-          quoteBy = '👑 Wen總監';
+          quoteBy = cloudQuote.createdBy;
         }
       }
 
@@ -3742,7 +3833,7 @@ function openDirectPaymentModal(quoteData) {
   const displayTitle = quoteData.title || '精選實務課程';
   const displayPrice = parseInt(quoteData.price) || 0;
   const quoteDetails = quoteData.details || '全套錄播視訊 + 教學多年業師 1 對 1 個教輔導';
-  const createdBy = quoteData.by || 'Wen總監';
+  const createdBy = quoteData.by || quoteData.createdBy || (currentUser ? currentUser.name : '陳顧問');
   const studentEmail = quoteData.email || '';
   const studentName = quoteData.name || '';
 
@@ -3764,7 +3855,7 @@ function openDirectPaymentModal(quoteData) {
       <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-bolt"></i> 專屬免登入 • 直通快速結帳通道</span>
       <h4 style="margin-top:0.4rem; font-size:1.15rem; color:#fff;">${displayTitle}</h4>
       <div class="text-xs text-cyan margin-top-xs">
-        👑 由【${createdBy}】為您客製化之專屬特惠方案與結帳頁面
+        👑 由【${createdBy}】親自設定之專屬學員結帳金額與課程方案
       </div>
     </div>
 
@@ -3856,6 +3947,28 @@ function openDirectPaymentModal(quoteData) {
         </div>
       </div>
 
+      <!-- 📜 購課服務條款與退費政策勾選區塊 -->
+      <div class="terms-agreement-box margin-top-sm" id="termsAgreementDirectBox" style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-md); padding: 0.85rem 1rem; transition: all 0.3s ease;">
+        <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0; font-size: 0.85rem; line-height: 1.5; color: #e2e8f0;">
+          <input type="checkbox" id="agreeTermsDirectCheckbox" required onchange="onAgreeTermsChange(this.checked, 'direct')" style="margin-top: 0.2rem; width: 1.15rem; height: 1.15rem; accent-color: var(--accent-purple); cursor: pointer;">
+          <span>
+            我已閱讀並同意
+            <a href="javascript:void(0)" onclick="openTermsModal(event)" style="color: var(--accent-cyan); font-weight: 700; text-decoration: underline;">
+              【精五門學員購課服務條款與退費政策】
+            </a>
+            <span class="text-pink">*</span>
+            <span style="display: block; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+              (含錄播課程以及1對1個教服務與退費須知)
+            </span>
+          </span>
+        </label>
+        <div style="margin-top: 0.5rem; text-align: right;">
+          <button type="button" class="btn btn-xs btn-outline" onclick="openTermsModal(event)" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-color: rgba(6, 182, 212, 0.5); color: var(--accent-cyan);">
+            <i class="fa-solid fa-file-lines"></i> 詳閱完整條款
+          </button>
+        </div>
+      </div>
+
       <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
         <i class="fa-solid fa-lock"></i> 確認付款 NT$ <span id="checkoutSubmitAmount">${initialFinalPrice.toLocaleString()}</span> 並立即開通權限
       </button>
@@ -3869,6 +3982,18 @@ function openDirectPaymentModal(quoteData) {
 
 function processDirectPayment(e, title, originalPrice) {
   e.preventDefault();
+  const agreeDirectCheck = document.getElementById('agreeTermsDirectCheckbox');
+  if (!agreeDirectCheck || !agreeDirectCheck.checked) {
+    showToast('⚠️ 必須先勾選同意【精五門學員購課服務條款與退費政策】才可以進行下一步！');
+    const box = document.getElementById('termsAgreementDirectBox');
+    if (box) {
+      box.style.border = '2px solid #ef4444';
+      box.style.background = 'rgba(239, 68, 68, 0.15)';
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
   const nameInput = document.getElementById('directStudentName');
   const emailInput = document.getElementById('directStudentEmail');
   const phoneInput = document.getElementById('directStudentPhone');
@@ -3949,8 +4074,80 @@ function closeCheckoutModal() {
   document.getElementById('checkoutModal').classList.remove('active');
 }
 
+// 📜 Terms & Refund Policy Modal Engine (精五門學員購課服務條款與退費政策)
+function openTermsModal(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const modal = document.getElementById('termsModal');
+  if (modal) {
+    modal.classList.add('active');
+    const box = modal.querySelector('.modal-box');
+    if (box) box.scrollTop = 0;
+  }
+}
+
+function closeTermsModal() {
+  const modal = document.getElementById('termsModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function onAgreeTermsChange(isChecked, type) {
+  const boxId = type === 'direct' ? 'termsAgreementDirectBox' : 'termsAgreementBox';
+  const box = document.getElementById(boxId);
+  if (box) {
+    if (isChecked) {
+      box.style.border = '1px solid rgba(34, 197, 94, 0.5)';
+      box.style.background = 'rgba(34, 197, 94, 0.08)';
+    } else {
+      box.style.border = '1px solid rgba(139, 92, 246, 0.3)';
+      box.style.background = 'rgba(139, 92, 246, 0.08)';
+    }
+  }
+}
+
+function acceptTermsAndClose() {
+  const cb1 = document.getElementById('agreeTermsCheckbox');
+  if (cb1) {
+    cb1.checked = true;
+    onAgreeTermsChange(true, '');
+  }
+  const cb2 = document.getElementById('agreeTermsDirectCheckbox');
+  if (cb2) {
+    cb2.checked = true;
+    onAgreeTermsChange(true, 'direct');
+  }
+  closeTermsModal();
+  showToast('✅ 已同意【精五門學員購課服務條款與退費政策】');
+}
+
 function processPayment(e, title, originalPrice, type) {
   e.preventDefault();
+
+  // 1. 檢查是否尚未選擇欲購買的課程（未選課程預設為 0 元空白）
+  const courseSelect = document.getElementById('checkoutCourseSelect');
+  const selectedCourseVal = courseSelect ? courseSelect.value : '';
+  if (!selectedCourseVal || !title || originalPrice <= 0) {
+    showToast('⚠️ 尚未選擇欲購買的課程（目前金額為 NT$ 0 元），請先由上方選單挑選欲報名的課程方案！');
+    if (courseSelect) {
+      courseSelect.focus();
+      courseSelect.style.border = '2px solid #ef4444';
+      setTimeout(() => { courseSelect.style.border = ''; }, 3000);
+    }
+    return;
+  }
+
+  // 2. 檢查是否勾選同意服務條款
+  const agreeCheck = document.getElementById('agreeTermsCheckbox');
+  if (!agreeCheck || !agreeCheck.checked) {
+    showToast('⚠️ 必須先勾選同意【精五門學員購課服務條款與退費政策】才可以進行下一步！');
+    const box = document.getElementById('termsAgreementBox');
+    if (box) {
+      box.style.border = '2px solid #ef4444';
+      box.style.background = 'rgba(239, 68, 68, 0.15)';
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
   const coinInput = document.getElementById('inputUseCoins');
   const userCoins = currentUser ? (currentUser.coins || 0) : 0;
   let usedCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;

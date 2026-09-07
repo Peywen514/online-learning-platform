@@ -112,7 +112,7 @@
         <button class="btn btn-line btn-sm mobile-hide" onclick="openLeadFormModal()">
           <i class="fa-solid fa-comments"></i> 洽小編諮詢
         </button>
-        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal('course-1', 'combo')" title="專屬學員報名結帳與權限開通通道">
+        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal()" title="專屬學員報名結帳與權限開通通道">
           <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 <span class="badge" id="cartCount">0</span>
         </button>
         
@@ -703,7 +703,7 @@
               </ul>
 
               <div class="reward-card-footer margin-top-sm" style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary btn-sm btn-block" onclick="openCheckoutModal('course-1', 'combo')">
+                <button class="btn btn-primary btn-sm btn-block" onclick="openCheckoutModal()">
                   <i class="fa-solid fa-cart-shopping"></i> 前往結帳使用精幣折抵
                 </button>
               </div>
@@ -2257,6 +2257,192 @@
     </div>
   </div>
 
+  <!-- MODAL 10.5: Student Terms of Service & Refund Policy Modal (精五門學員購課服務條款與退費政策) -->
+  <div id="termsModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 820px; max-height: 88vh; display: flex; flex-direction: column;">
+      <button class="modal-close" onclick="closeTermsModal()" title="關閉視窗">&times;</button>
+      
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.85rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+          <span class="badge-tag bg-purple"><i class="fa-solid fa-file-contract"></i> 法定權益與服務約定</span>
+          <span class="badge-tag bg-cyan"><i class="fa-solid fa-shield-check"></i> 消費者權益保障</span>
+        </div>
+        <h3 style="color: #fff; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          📜 精五門 學員購課服務條款與退費政策
+        </h3>
+        <p class="text-xs text-muted margin-top-xs" style="margin-bottom: 0;">
+          歡迎使用精五門（PentaSkill）。請於購課結帳前詳細審閱本條款全部內容，勾選同意或完成付款即具法律效力。
+        </p>
+      </div>
+
+      <div class="modal-body terms-modal-content" style="flex: 1; overflow-y: auto; padding-right: 0.5rem; font-size: 0.88rem; line-height: 1.7; color: #cbd5e1;">
+        
+        <!-- 重要醒目提示區塊 -->
+        <div style="background: rgba(236, 72, 153, 0.1); border-left: 4px solid var(--accent-pink); padding: 0.85rem 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+          <div style="color: #f472b6; font-weight: 700; font-size: 0.92rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> 結帳前核心宣告提醒（消保法合理例外情事準則）
+          </div>
+          <p style="margin: 0; font-size: 0.82rem; color: #fce7f3; line-height: 1.55;">
+            1. <strong>線上錄播課程</strong>：屬於「非以有形媒介提供之數位內容」，付款後即刻開通存取權限，<strong>不適用消費者保護法第 19 條第 1 項之 7 日猶豫期（鑑賞期）解除權</strong>，開通後原則上不接受退費。<br>
+            2. <strong>一對一個教預約</strong>：如需請假改期，<strong>最遲須於上課前 48 小時通知</strong>；若於 48 小時內取消或當日缺席未到，視同自願放棄該堂上課權利，將全額扣除堂數時數且不予退費或補課。
+          </p>
+        </div>
+
+        <!-- 前言 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+          <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted);">
+            歡迎您使用「精五門」（以下簡稱「本平台」或「本公司」）所提供之各項線上教育學習服務，包含線上錄播課程、數位影音教材及一對一個別指導教學（以下統稱「本服務」）。為保障您的消費權益並確立雙方權利義務，請於購買本平台任何付費服務前，詳細閱讀本《學員購課服務條款與退費政策》（以下簡稱「本條款」）。當您於結帳頁面勾選同意、點擊購買或完成付款時，即視為您已完整審閱、充分理解並同意遵守本條款之全部內容，本條款即具有法律拘束力。
+          </p>
+        </div>
+
+        <!-- 壹、通用條款 -->
+        <div class="terms-section" style="margin-bottom: 1.5rem;">
+          <h4 style="color: #38bdf8; font-size: 1.05rem; border-bottom: 1px solid rgba(56, 189, 248, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-gavel"></i> 壹、通用條款（適用所有付費服務）
+          </h4>
+          
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第一條、服務主體與契約成立</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 本服務由「精五門」營運並提供。</p>
+            <p style="margin: 0 0 0.4rem 0;">2. 學員於本平台選購課程、勾選同意本條款並完成付款後，線上契約即告成立。</p>
+            <p style="margin: 0;">3. 學員註冊時應提供真實、完整且最新之個人資料，並妥善保管帳號與密碼，不得轉借、轉讓或與第三人共用帳號。</p>
+          </div>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第二條、智慧財產權與教材使用規範</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 本平台提供之所有錄播影音、直播畫面、一對一個教過程、投影片、電子講義、程式代碼及相關教材，其著作權與智慧財產權均屬本公司或授課講師所有，受智慧財產權法保護。</p>
+            <p style="margin: 0 0 0.4rem 0;">2. <strong style="color: #f87171;">學員僅取得個人非商業用途之學習使用權。未經本公司事前書面許可，嚴禁以任何形式進行全程側錄、截圖轉傳、公開散布、轉售、重製，或上傳至任何公開社群平台（如 YouTube、Facebook 等）。</strong></p>
+            <p style="margin: 0;">3. 學員若違反前項規定，本公司有權立即終止其會員帳號與所有課程使用權（不予退費），並依法追究民、刑事責任及請求損害賠償。</p>
+          </div>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第三條、嚴禁與平台講師私下交易（防跳單）</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 本公司投入大量行銷獲客、師資招募、審核培訓與軟硬體維運成本。</p>
+            <p style="margin: 0 0 0.4rem 0;">2. <strong style="color: #fbbf24;">學員嚴禁利用因本平台取得之聯絡管道，私下與本平台講師洽談、約定脫離本平台之私下一對一付費教學、私人諮詢或任何形式之私下收費交易。</strong></p>
+            <p style="margin: 0;">3. 若學員有誘導、參與私下交易之情事，本公司有權立即停權該學員帳號、沒收所有已購課程與堂數且不予退費，並保留損害賠償請求權。</p>
+          </div>
+
+          <div>
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第四條、行為準則與學習風紀</strong>
+            <p style="margin: 0;">學員於討論區互動、課後問答或一對一個教過程中，應秉持禮貌尊重，嚴禁發表任何侮辱、恐嚇、歧視、性騷擾、廣告推銷或違反公序良俗之言論。違反者本公司得視情節予以警告、禁言或終止帳號使用權。</p>
+          </div>
+        </div>
+
+        <!-- 貳、線上錄播課程 特別約定 -->
+        <div class="terms-section" style="margin-bottom: 1.5rem;">
+          <h4 style="color: #a78bfa; font-size: 1.05rem; border-bottom: 1px solid rgba(167, 139, 250, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-play-circle"></i> 貳、線上錄播課程 特別約定
+          </h4>
+
+          <div>
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第五條、錄播課程性質與排除「七日猶豫期」宣告（重要法定事項）</strong>
+            <div style="background: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.6rem;">
+              <strong style="color: #c4b5fd;">1. 排除消保法 7 日猶豫期（鑑賞期）宣告：</strong>
+              <p style="margin: 0.3rem 0 0.3rem 0;">依中華民國《消費者保護法》第十九條第二項及行政院訂定之《通訊交易解除權合理例外情事準則》第二條第五款規定：<strong>「非以有形媒介提供之數位內容或一經提供即為完成之線上服務，經消費者事先同意始提供者，不適用消費者保護法第十九條第一項之七日解除權（無條件退費）。」</strong></p>
+              <p style="margin: 0;">本平台之線上錄播課程屬於<strong>「非以有形媒介提供之數位內容」</strong>。學員於結帳時勾選同意本條款，即代表學員<strong>明確認知並同意本服務於付款完成後立即開通存取權限，確認不再適用七日猶豫期（鑑賞期）之無條件解除契約與退款規定</strong>。</p>
+            </div>
+            
+            <p style="margin: 0 0 0.4rem 0;"><strong>2. 觀看權限與期限：</strong> 學員購買錄播課程後，<strong>於本平台服務營運存續期間內，享有不限次數、不限時間登入複習觀看之權利</strong>。本公司將盡商業上合理之努力維持平台系統之穩定運作；若遇不可抗力之天災、電信機房障礙或定期系統維護，本公司將提前或儘速公告排除。</p>
+            
+            <p style="margin: 0;"><strong>3. 錄播課程退費標準：</strong> 線上錄播課程自購買開通起，即屬數位內容交付完畢，<strong>原則上一經購買開通即不接受任何理由之退費申請</strong>。<br>
+            <span style="color: #38bdf8;">★ 唯一退費例外：若因本平台系統發生重大技術障礙，致影片全數無法播放，且經學員通知客服後逾 <strong>3 個工作天</strong> 仍完全無法修復排除者，學員得申請全額退費。</span></p>
+          </div>
+        </div>
+
+        <!-- 參、一對一個教課程 特別約定 -->
+        <div class="terms-section" style="margin-bottom: 1.5rem;">
+          <h4 style="color: #34d399; font-size: 1.05rem; border-bottom: 1px solid rgba(52, 211, 153, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-chalkboard-user"></i> 參、一對一個教課程 特別約定
+          </h4>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第六條、上課系統與硬體設備責任</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. <strong>上課教室系統：</strong> 一對一個教課程原則上全面使用精五門平台內建線上教室進行；若遇系統例行維護或突發連線異常，經本公司通知後，得以備選之第三方線上工具（如 Zoom 或 Google Meet 等）進行替代授課。</p>
+            <p style="margin: 0;">2. <strong>學員硬體與網路責任：</strong> 學員應自備清晰之麥克風、視訊鏡頭與穩定頻寬之網路環境。因學員個人端設備故障、未開啟麥克風/鏡頭或網路延遲致影響教學者，由學員自負其責，不得藉此要求補償時數或免費補課。</p>
+          </div>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第七條、異動、請假與缺席規範（重要核心規則）</strong>
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.5rem;">
+              <p style="margin: 0 0 0.4rem 0;"><strong style="color: #fbbf24;">1. 請假改期時限（最遲須於 48 小時前告知）：</strong><br>
+              學員如因故需調整已預約之上課時間或請假，<strong>最遲必須於「預定上課日前 2 天（48 小時前）」</strong>，透過平台系統申請改期，或向官方客服正式告知。於開課 48 小時前依規定完成請假者，該堂課時數完整保留，學員可另行重新預約其他時段。</p>
+              
+              <p style="margin: 0 0 0.4rem 0;"><strong style="color: #f87171;">2. 逾時請假與當日未到（視同放棄上課）：</strong><br>
+              <strong>若學員於開課前「未滿 48 小時內」突發取消、或於上課「當天未出席上課（放鴿子）」者，均視同已完成該堂授課，並視為學員自願放棄該堂上課權利。該堂課時數將照常全額扣除，不予補課，亦不接受該堂費用之退費申請。</strong></p>
+              
+              <p style="margin: 0 0 0.4rem 0;"><strong>3. 遲到處理：</strong> 學員因個人因素遲到者，講師仍將於原訂下課時間準時結束，遲到之時間不予後延或補足。若學員開課後逾 <strong>15 分鐘</strong> 仍未進入線上教室，視同「當日曠課缺席」，講師得逕行離開教室，該堂課時數全額扣除，不予補課或退費。</p>
+              
+              <p style="margin: 0;"><strong>4. 重大突發事故例外：</strong> 若因學員本人突發急性重大傷病住院、或重大天然災害政府公告停班停課等不可抗力，致無法於 48 小時前請假者，得於事由發生後 3 日內檢具公信證明（如醫療院所住院/診斷證明）向本公司申請，經審核同意後得破例保留時數改期一次。</p>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第八條、個教堂數使用有效期限</strong>
+            <p style="margin: 0 0 0.4rem 0;">為維持學習連貫性，個教學員所購堂數自<strong>付款完成日起算</strong>享有下列使用期限：</p>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.84rem;">
+              <li>購買 1 ~ 5 堂者：使用效期為 <strong>3 個月</strong>。</li>
+              <li>購買 6 ~ 10 堂者：使用效期為 <strong>6 個月</strong>。</li>
+              <li>購買 11 堂以上者：使用效期為 <strong>12 個月</strong>。</li>
+            </ul>
+            <p style="margin: 0.4rem 0 0 0; font-size: 0.82rem; color: var(--text-muted);">學員應於效期內預約完畢，逾期未使用完畢之堂數自動失效。</p>
+          </div>
+
+          <div>
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第九條、一對一個教退費標準</strong>
+            <p style="margin: 0 0 0.4rem 0;">個教課程之退費依學員購買之總堂數標準依序辦理：</p>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.75rem 0.85rem;">
+              <strong style="color: #fff;">1. 完全尚未預約使用任何堂數者：</strong>
+              <p style="margin: 0.2rem 0 0.4rem 0.5rem; font-size: 0.84rem;">
+                • 自購買日起算 <strong>7 日內</strong>，且尚未開始任何一堂上課者，可申請全額退費（扣除必要金流手續費）。<br>
+                • 購買超過 7 日但尚未開始使用者，退還實付總金額之 <strong>90%</strong>。
+              </p>
+              <strong style="color: #fff;">2. 已開始使用部分堂數者：</strong>
+              <p style="margin: 0.2rem 0 0 0.5rem; font-size: 0.84rem;">
+                • 已使用堂數未達總堂數之 <strong>三分之一（1/3）</strong> 者：依學員實際付款金額，扣除已使用堂數（以該課程之<strong>「單堂原價牌價」</strong>計算，非組合優惠折讓價）及 10% 行政手續費後，退還其餘額。<br>
+                • 已使用堂數達總堂數 <strong>三分之一（1/3）以上，但未滿二分之一（1/2）</strong> 者：退還實際支付金額之 <strong>30%</strong>。<br>
+                • 已使用堂數達總堂數 <strong>二分之一（1/2）以上</strong> 者：恕不接受任何退費申請。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 肆、其他條款 -->
+        <div class="terms-section">
+          <h4 style="color: #fb7185; font-size: 1.05rem; border-bottom: 1px solid rgba(251, 113, 133, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-scale-balanced"></i> 肆、其他條款
+          </h4>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十條、退款手續與作業時間</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 符合退費條件之申請，學員應以正式電子郵件（platform@pentaskill.com）或官方客服管道提出申請。</p>
+            <p style="margin: 0;">2. 本公司審核核可後，將於 15 至 30 個工作天內，扣除跨行轉帳手續費後，匯款至學員指定之本人帳戶。</p>
+          </div>
+
+          <div>
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十一條、條款修訂與管轄法院</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 本公司保留隨時修改、增刪本條款之權利，修改後之條款公佈於本平台網站即行生效。學員於條款修訂後繼續使用本服務者，視同同意修改後之內容。</p>
+            <p style="margin: 0;">2. 本條款之解釋與適用均依中華民國法律為準據法。因本服務所生之任何爭議，雙方合意以<strong>臺灣臺北地方法院</strong>為第一審管轄法院。</p>
+          </div>
+
+          <div style="text-align: right; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+            <strong>精五門 保留本條款之最終解釋與修訂權利</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.85rem; margin-top: 0.75rem;">
+        <button type="button" class="btn btn-primary btn-block" onclick="acceptTermsAndClose()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+          <i class="fa-solid fa-circle-check"></i> 我已閱讀並同意本條款（勾選並返回結帳）
+        </button>
+        <button type="button" class="btn btn-outline btn-block btn-sm margin-top-xs" onclick="closeTermsModal()" style="border-color: rgba(255,255,255,0.2); color: var(--text-muted);">
+          關閉條款視窗
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MODAL 11: Comprehensive Lead Form Modal (無 LINE / 偏好網頁留訊專用) -->
   <div id="leadFormModal" class="modal-backdrop">
     <div class="modal-box" style="max-width: 680px;">
@@ -2404,6 +2590,10 @@
           <div class="form-group margin-top-sm">
             <label>客製化對接結帳金額 (NT$) <span class="text-pink">*</span></label>
             <input type="number" id="inputQuotePrice" class="form-control" placeholder="10880" required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-user-tie text-cyan"></i> 設定主管 / 營運員工 / 諮詢顧問姓名 (顯示於結帳畫面) <span class="text-pink">*</span></label>
+            <input type="text" id="inputQuoteCreatedBy" class="form-control" placeholder="例如：陳顧問 或 李專案經理" value="陳顧問" required>
           </div>
           <div class="form-group margin-top-sm">
             <label>專屬開通備註與優惠說明</label>
@@ -2673,9 +2863,13 @@
         <img src="logos/logonew.png" alt="精五門 PentaSkill" class="footer-logo-img">
       </div>
       <p>© 2026 精五門 PentaSkill | 結合近10年深厚經驗之教學多年業師資源創新型學習平台</p>
-      <div class="flex-center gap-sm margin-top-xs text-xs text-muted">
+      <div class="flex-center gap-sm margin-top-xs text-xs text-muted" style="flex-wrap: wrap; justify-content: center; gap: 1rem;">
         <a href="javascript:void(0)" onclick="openPrivacyPolicyModal()" style="color:var(--accent-cyan); text-decoration:underline;">
           <i class="fa-solid fa-shield-halved"></i> 🔒 隱私權保護政策與個資金流資安聲明 (符合個資法 & PCI-DSS)
+        </a>
+        <span style="color: rgba(255,255,255,0.2);">|</span>
+        <a href="javascript:void(0)" onclick="openTermsModal()" style="color:var(--accent-purple); text-decoration:underline;">
+          <i class="fa-solid fa-file-contract"></i> 📜 精五門學員購課服務條款與退費政策
         </a>
       </div>
     </div>
