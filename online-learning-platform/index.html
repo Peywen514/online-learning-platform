@@ -829,7 +829,7 @@
                       <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">const</span> [chapter, setChapter] = <span class="c-func">useState</span>(<span class="c-string">'AI Agent Deployment'</span>);</div>
                       <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">return</span> (</div>
                       <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">div</span> className=<span class="c-string">"classroom-container"</span>&gt;</div>
-                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;實用小班 1-on-1 個教作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
+                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;專屬 1-on-1 個教陪跑作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
                       <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="c-tag">div</span>&gt;</div>
                       <div class="code-line">&nbsp;&nbsp;);</div>
                       <div class="code-line">}</div>
@@ -991,19 +991,22 @@
         <div class="section-header text-center">
           <div class="sub-title">SYNCHRONOUS LEARNING & 1-ON-1 APPOINTMENT</div>
           <h2>同步線上直播教室 & 1對1個教預約中心</h2>
-          <p>獨家亮點：告別大班淹沒感，3~6人極致小班與專屬 1-on-1 講師現場陪跑批改</p>
+          <p>獨家亮點：告別大班淹沒感，全由專屬 1-on-1 講師現場陪跑批改與實戰診斷</p>
         </div>
 
         <div class="grid grid-12 gap-lg">
           <div class="col-span-7">
             <div class="live-room-card">
               <div class="room-header">
-                <div class="room-badge"><span class="pulse-dot"></span> LIVE 直播中</div>
+                <div class="room-badge"><span class="pulse-dot"></span> LIVE 專屬 1-on-1 直播中</div>
                 <h3 id="liveRoomTitle">【1-on-1個教陪跑】Full-Stack & AI 專案架構 1 對 1 現場診斷與 Code Review</h3>
-                <span class="room-timer"><i class="fa-regular fa-clock"></i> 剩餘 60 分鐘 (1小時)</span>
+                <span class="room-timer"><i class="fa-regular fa-clock"></i> 專屬 60 分鐘 (1小時)</span>
+              </div>
+              <div class="text-xs text-cyan margin-bottom-sm" style="line-height:1.45;">
+                <i class="fa-solid fa-circle-info"></i> 💡 專屬 1-on-1 線上教室：學員與講師於 <strong>上課前 10 分鐘</strong> 開放點擊進入教室上課！
               </div>
 
-              <div class="live-video-grid">
+              <div class="live-video-grid live-video-grid-1on1">
                 <div class="video-box main-instructor">
                   <img id="liveInstructorAvatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" alt="講師">
                   <div class="user-label" id="liveInstructorLabel">
@@ -1012,17 +1015,12 @@
                   <div class="speaking-wave"><span></span><span></span><span></span></div>
                 </div>
 
-                <div class="video-box student">
-                  <div class="avatar-ph">學員 A</div>
-                  <div class="user-label">Alex (你)</div>
-                </div>
-                <div class="video-box student">
-                  <div class="avatar-ph">學員 B</div>
-                  <div class="user-label">Jessica</div>
-                </div>
-                <div class="video-box student">
-                  <div class="avatar-ph">學員 C</div>
-                  <div class="user-label">David</div>
+                <div class="video-box student-1on1">
+                  <img id="liveStudentAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="學員" style="width:100%; height:100%; object-fit:cover;">
+                  <div class="user-label" id="liveStudentLabel">
+                    <i class="fa-solid fa-user-graduate text-cyan"></i> 學員：林小明 (你)
+                  </div>
+                  <div class="speaking-wave" style="right:8px; left:auto;"><span></span><span></span><span></span></div>
                 </div>
               </div>
 
@@ -1092,7 +1090,7 @@
 
                 <div class="form-group margin-top-sm">
                   <label><i class="fa-solid fa-calendar-days"></i> 選擇日期與可預約時段</label>
-                  <input type="date" id="bookingDate" class="form-control" value="2026-07-25">
+                  <input type="date" id="bookingDate" class="form-control" onchange="updateAvailableSlots()">
                   <div class="slots-grid margin-top-xs" id="slotsGrid">
                     <div class="slot-chip active">14:00 - 15:00</div>
                     <div class="slot-chip">15:30 - 16:30</div>
@@ -1701,7 +1699,7 @@
       <div class="container section-padding">
         <div class="plan-hero">
           <div class="badge-tag">👑 Wen總監 權限限定 • 商業機密</div>
-          <h2>近10年培訓機構資源轉化：創新型小班與個教 platform 完整商業計劃書</h2>
+          <h2>近10年培訓機構資源轉化：創新型 1-on-1 個教陪跑 platform 完整商業計劃書</h2>
           <p>這是一套專門為您量身打造的創業行動藍圖，全面解決「錄播課完課率低」與「傳統補習班昂貴」的市場痛點。</p>
         </div>
 
@@ -1742,7 +1740,7 @@
                       <tr>
                         <td><strong>課堂趴 (ClassParty)</strong></td>
                         <td>「課堂 Buddy / 夥伴」</td>
-                        <td>強調小班個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</td>
+                        <td>強調專屬 1-on-1 個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</td>
                         <td><span class="badge badge-info">備選</span></td>
                       </tr>
                     </tbody>
@@ -1769,7 +1767,7 @@
                         <td><strong>學習模式</strong></td>
                         <td>純看影片，遇到問題無人解答</td>
                         <td>大班面授，團體進度無法兼顧個體</td>
-                        <td><strong class="text-purple">「錄播打底 + 1對1個教 + 小班攻堅」</strong></td>
+                        <td><strong class="text-purple">「錄播打底 + 專屬 1-on-1 個教陪跑」</strong></td>
                       </tr>
                       <tr>
                         <td><strong>完課率</strong></td>
@@ -1815,7 +1813,7 @@
                   <ul>
                     <li>包含全套錄播資源</li>
                     <li><strong>4 次教學多年業師 1-on-1 Code/作品批改</strong></li>
-                    <li>小班同步直播研討會權限</li>
+                    <li>專屬 1-on-1 直播診斷連線權限</li>
                     <li>專案求職與接案背書</li>
                   </ul>
                 </div>
@@ -1893,7 +1891,7 @@
                 <div class="t-item">
                   <div class="t-badge">Day 46-90</div>
                   <div class="t-text">
-                    <strong>首批種子學員招募與小班運行</strong>
+                    <strong>首批種子學員招募與 1-on-1 個教運行</strong>
                     <p>利用舊生口碑回饋、FB/LINE 社群推廣，提供「1-on-1 免費體驗 20 分鐘」，達成高轉化率。</p>
                   </div>
                 </div>
@@ -2764,6 +2762,67 @@
             <i class="fa-solid fa-comments"></i> 立即免費預約諮詢
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 1-on-1 Reschedule Booking Modal (48小時前線上改期專用) -->
+  <div id="rescheduleBookingModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="closeRescheduleModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-calendar-pen"></i> 48 小時前線上預約改期</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-clock-rotate-left text-purple"></i> 變更 1-on-1 個教時段</h3>
+        <p class="text-xs text-muted margin-top-xs">依契約規範，距上課時間 48 小時前可免費線上異動時段，新時段將即時鎖定並同步講師！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveReschedule(event)">
+          <input type="hidden" id="rescheduleBookingId">
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;" class="text-xs">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
+              <span class="text-muted">預約講師：</span>
+              <strong class="text-cyan" id="rescheduleInstName">張哲銘 (Ethan)</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span class="text-muted">原定時間：</span>
+              <strong class="text-pink" id="rescheduleOldTime">2026-07-25 (14:00 - 15:00)</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-calendar-day text-cyan"></i> 選擇異動後的新日期 (防呆限制：須為 48 小時後)</label>
+            <input type="date" id="rescheduleNewDate" class="form-control" onchange="updateRescheduleSlots()" required>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-regular fa-clock text-purple"></i> 選擇新時段 (已被預約時段自動防呆鎖定)</label>
+            <div class="slots-grid margin-top-xs" id="rescheduleSlotsGrid">
+              <!-- Dynamically populated by updateRescheduleSlots() -->
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-pen-to-square text-muted"></i> 改期原因說明 (將同步通知講師)</label>
+            <input type="text" id="rescheduleReason" class="form-control text-sm" placeholder="例如：臨時有會議衝突，申請改期至新時段" required value="臨時時段衝突，申請調整">
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-top: 1rem;" class="text-xs">
+            <i class="fa-solid fa-triangle-exclamation text-danger"></i> <strong>退費與請假契約提示：</strong><br>
+            <span class="text-muted" style="line-height:1.4; display:block; margin-top:0.25rem;">
+              最遲需於原預約上課時間 <strong>48 小時前</strong> 完成異動。距上課不足 48 小時系統將鎖定禁止自行改期，若遇緊急不可抗力事故請洽官方客服小編。
+            </span>
+          </div>
+
+          <div style="display:flex; gap:0.5rem; margin-top:1.25rem;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeRescheduleModal()">取消</button>
+            <button type="submit" class="btn btn-primary" style="flex:2;">
+              <i class="fa-solid fa-check"></i> 確認改期並即時同步鎖定
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

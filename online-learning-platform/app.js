@@ -42,7 +42,8 @@ async function syncAllDataToCloudflareKV() {
       custom_quotes: mockCustomQuotes,
       leads: mockLeads,
       courses: mockCourses,
-      instructors: mockInstructors
+      instructors: mockInstructors,
+      bookings: (typeof mockBookings !== 'undefined' ? mockBookings : [])
     };
 
     // 優先嘗試批次同步端點 /api/cloud-sync-all
@@ -90,10 +91,11 @@ async function syncAllDataToCloudflareKV() {
 // 雲端開機自動同步載入
 async function initCloudSync() {
   try {
-    const [cloudUsers, cloudQuotes, cloudLeads] = await Promise.all([
+    const [cloudUsers, cloudQuotes, cloudLeads, cloudBookings] = await Promise.all([
       fetchCloudData('users'),
       fetchCloudData('custom_quotes'),
-      fetchCloudData('leads')
+      fetchCloudData('leads'),
+      fetchCloudData('bookings')
     ]);
 
     let updated = false;
@@ -130,7 +132,16 @@ async function initCloudSync() {
       updated = true;
     }
 
-    // 4. 若當前登入者有最新雲端點數，即時刷新
+    // 4. 同步 1-on-1 個教預約行程 (避免重複預訂與即時防呆)
+    if (Array.isArray(cloudBookings) && cloudBookings.length > 0) {
+      mockBookings = cloudBookings;
+      try {
+        localStorage.setItem('pentaskill_bookings', JSON.stringify(mockBookings));
+      } catch(err) {}
+      updated = true;
+    }
+
+    // 5. 若當前登入者有最新雲端點數，即時刷新
     if (currentUser) {
       const refreshed = mockUsers.find(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
       if (refreshed) {
@@ -146,6 +157,9 @@ async function initCloudSync() {
       renderUserTable();
       renderCustomQuotesAdminTable();
       renderLeadAdminTable();
+      renderStudentBookings();
+      renderBookingAdminTable();
+      updateAvailableSlots();
       if (currentView === 'member-center') {
         renderMemberCenterView();
       }
@@ -179,6 +193,26 @@ function saveUsersToStorage(syncToCloud = true) {
   } catch (err) {}
   if (syncToCloud) {
     saveCloudData('users', mockUsers);
+  }
+}
+
+// Bookings Storage & Conflict Prevention Sync Engine
+try {
+  const savedBookings = localStorage.getItem('pentaskill_bookings');
+  if (savedBookings) {
+    const parsed = JSON.parse(savedBookings);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      mockBookings = parsed;
+    }
+  }
+} catch (err) {}
+
+function saveBookingsToStorage(syncToCloud = true) {
+  try {
+    localStorage.setItem('pentaskill_bookings', JSON.stringify(mockBookings));
+  } catch (err) {}
+  if (syncToCloud) {
+    saveCloudData('bookings', mockBookings);
   }
 }
 
@@ -246,6 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPortfolios();
   renderStudentBookings();
   renderChapters();
+  
+  // 預約日曆初始化 (防呆鎖定不能選擇過去日期)
+  const dateInput = document.getElementById('bookingDate');
+  if (dateInput) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    dateInput.min = todayStr;
+    if (!dateInput.value || dateInput.value < todayStr) {
+      dateInput.value = todayStr;
+    }
+  }
+  updateAvailableSlots();
+
   setupFilterEvents();
   setupTabEvents();
   initCarousel();
@@ -1210,7 +1256,9 @@ function renderBookingAdminTable() {
         <span class="badge ${b.status==='已完成'?'badge-success':'badge-warning'}">${b.status}</span>
       </td>
       <td>
-        <button class="btn btn-sm btn-primary" onclick="quickBookInstructor('${b.instructor}')"><i class="fa-solid fa-video"></i> 進入帶課教室</button>
+        <button class="btn btn-sm ${getBookingTimeInfo(b).canEnter ? 'btn-primary' : 'btn-outline'}" onclick="joinUpcomingRoom('${b.id}')" title="${getBookingTimeInfo(b).canEnter ? '上課前 10 分鐘已開放，點擊進入 1-on-1 帶課教室' : '依平台規範：上課前 10 分鐘開放點擊進入教室'}">
+          <i class="fa-solid ${getBookingTimeInfo(b).canEnter ? 'fa-video' : 'fa-clock'}"></i> ${getBookingTimeInfo(b).canEnter ? '進入帶課教室 (即時)' : '上課前10分進入'}
+        </button>
       </td>
     </tr>
   `).join('');
@@ -2156,6 +2204,13 @@ function updateLiveRoomUI(instructorName) {
   if (labelEl) labelEl.innerHTML = `<i class="fa-solid fa-crown text-yellow"></i> 講師：${data.name}`;
   if (cursorEl) cursorEl.innerHTML = `<i class="fa-solid fa-arrow-pointer text-pink"></i> ${data.cursor}`;
   if (mockDesignEl) mockDesignEl.innerText = data.designContent;
+
+  const studentLabelEl = document.getElementById('liveStudentLabel');
+  const studentAvatarEl = document.getElementById('liveStudentAvatar');
+  const sName = currentUser ? currentUser.name : '林小明';
+  const sAvatar = (currentUser && currentUser.avatar) ? currentUser.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+  if (studentLabelEl) studentLabelEl.innerHTML = `<i class="fa-solid fa-user-graduate text-cyan"></i> 學員：${sName} (你)`;
+  if (studentAvatarEl) studentAvatarEl.src = sAvatar;
 }
 
 function quickBookInstructor(name) {
@@ -2215,6 +2270,58 @@ function sendAiMsg() {
   }, 700);
 }
 
+// Instructor Name Matcher Normalization
+function isSameInstructor(name1, name2) {
+  if (!name1 || !name2) return false;
+  const clean = s => s.replace(/[\s\(\)（）]/g, '').toLowerCase();
+  const c1 = clean(name1);
+  const c2 = clean(name2);
+  return c1 === c2 || c1.includes(c2) || c2.includes(c1);
+}
+
+// Booking Time Info Helper (48h & 10-min rule)
+function getBookingTimeInfo(b) {
+  if (!b || !b.date || !b.slotTime) {
+    return {
+      diffMinutesToStart: 9999,
+      diffMinutesToEnd: 9999,
+      diffHoursToStart: 9999,
+      canEnter: false,
+      canModify: false
+    };
+  }
+  const startSlot = (b.slotTime.split(' - ')[0] || '14:00').trim();
+  const endSlot = (b.slotTime.split(' - ')[1] || '15:00').trim();
+  const startTime = new Date(`${b.date}T${startSlot}:00`);
+  let endTime = new Date(`${b.date}T${endSlot}:00`);
+  if (isNaN(endTime.getTime()) || endTime <= startTime) {
+    endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+  }
+  const now = new Date();
+
+  const diffMinutesToStart = Math.floor((startTime - now) / (1000 * 60));
+  const diffMinutesToEnd = Math.floor((endTime - now) / (1000 * 60));
+  const diffHoursToStart = (startTime - now) / (1000 * 60 * 60);
+
+  // 上課前 10 分鐘開放點擊進入教室，直到課程結束
+  const canEnter = diffMinutesToStart <= 10 && diffMinutesToEnd >= 0;
+
+  // 上課前 48 小時才可以異動上課日期，不到 48 小時不能自己修改
+  const canModify = diffHoursToStart >= 48;
+
+  return {
+    startTime,
+    endTime,
+    diffMinutesToStart,
+    diffMinutesToEnd,
+    diffHoursToStart,
+    canEnter,
+    canModify,
+    startSlot,
+    endSlot
+  };
+}
+
 // Dynamic Slot Availability & Conflict Prevention
 function updateAvailableSlots() {
   const dateInput = document.getElementById('bookingDate');
@@ -2233,7 +2340,7 @@ function updateAvailableSlots() {
   ];
 
   const bookedTimes = mockBookings
-    .filter(b => (b.instructor === selectedInst || selectedInst.includes(b.instructor.split(' ')[0])) && b.date === selectedDate && b.status !== '已取消')
+    .filter(b => b.status !== '已取消' && b.date === selectedDate && isSameInstructor(b.instructor, selectedInst))
     .map(b => b.slotTime);
 
   let firstAvailableSet = false;
@@ -2241,7 +2348,7 @@ function updateAvailableSlots() {
   slotsContainer.innerHTML = standardSlots.map(slot => {
     const isBooked = bookedTimes.includes(slot);
     if (isBooked) {
-      return `<div class="slot-chip disabled"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已被預約)</div>`;
+      return `<div class="slot-chip disabled" title="該時段已被其他學員預約並鎖定"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已被預約)</div>`;
     } else {
       const isActive = !firstAvailableSet;
       if (isActive) firstAvailableSet = true;
@@ -2264,6 +2371,11 @@ function handleBooking(e) {
   const date = document.getElementById('bookingDate').value;
   const notes = document.getElementById('bookingNotes') ? document.getElementById('bookingNotes').value : '';
 
+  if (!date) {
+    showToast('⚠️ 請先選擇欲預約的個教日期！');
+    return;
+  }
+
   const activeSlot = document.querySelector('#slotsGrid .slot-chip.active');
   if (!activeSlot || activeSlot.classList.contains('disabled')) {
     showToast('⚠️ 該時段已被其他學員優先預約或不可選，請選擇其他可預約時段！');
@@ -2273,11 +2385,11 @@ function handleBooking(e) {
   const rawSlotText = activeSlot.innerText;
   const slotTimeText = rawSlotText.split(' ')[0] + ' - ' + rawSlotText.split(' ')[2]; // e.g. "14:00 - 15:00"
 
-  // Prevent double booking conflict
-  const conflict = mockBookings.find(b => (b.instructor === inst || inst.includes(b.instructor.split(' ')[0])) && b.date === date && b.slotTime === slotTimeText && b.status !== '已取消');
+  // 防呆衝突鎖定檢查：避免被重複預定
+  const conflict = mockBookings.find(b => b.status !== '已取消' && b.date === date && b.slotTime === slotTimeText && isSameInstructor(b.instructor, inst));
 
   if (conflict) {
-    showToast(`⚠️ 抱歉！${inst} 講師於 ${date} ${slotTimeText} 已被搶先預約！請改選其他時段。`);
+    showToast(`⚠️ 抱歉！${inst} 講師於 ${date} ${slotTimeText} 已被預約！系統已為您刷新最新時段。`);
     updateAvailableSlots();
     return;
   }
@@ -2300,9 +2412,10 @@ function handleBooking(e) {
     payout: Math.round(fee * 0.6)
   };
 
-  mockBookings.push(newBooking);
+  mockBookings.unshift(newBooking);
+  saveBookingsToStorage();
 
-  showToast(`🎉 預約成功！已防重疊鎖定 ${inst} 講師於 ${date} (${slotTimeText}) 的 1 小時個教！`);
+  showToast(`🎉 預約成功！已防呆鎖定 ${inst} 講師於 ${date} (${slotTimeText}) 的專屬 1-on-1 個教，已即時同步講師端！`);
 
   updateAvailableSlots();
   renderStudentBookings();
@@ -2310,9 +2423,42 @@ function handleBooking(e) {
   renderMentorSalaryTable();
 }
 
-function joinUpcomingRoom() {
+function joinUpcomingRoom(bookingId) {
+  let booking = null;
+  if (bookingId) {
+    booking = mockBookings.find(b => b.id === bookingId);
+  } else {
+    // 未傳入 bookingId 時，優先匹配當前登入學員的下一個預約行程
+    const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+    booking = mockBookings.find(b => b.status !== '已取消' && (userEmail ? (b.studentEmail || '').toLowerCase() === userEmail : true));
+  }
+
+  if (booking) {
+    const timeInfo = getBookingTimeInfo(booking);
+    // 學生端與講師端統一規則：上課前 10 分鐘才可以點進入教室上課
+    if (!timeInfo.canEnter) {
+      if (timeInfo.diffMinutesToStart > 10) {
+        const hoursRem = Math.floor(timeInfo.diffMinutesToStart / 60);
+        const minsRem = timeInfo.diffMinutesToStart % 60;
+        const waitText = hoursRem > 0 ? `${hoursRem} 小時 ${minsRem} 分鐘` : `${minsRem} 分鐘`;
+        showToast(`⏳ 尚未開放進入：依平台規範，學員與講師於【上課前 10 分鐘】方可點擊進入 1-on-1 直播教室！(距開課還有 ${waitText}，預約時段：${booking.date} ${booking.slotTime})`);
+        return;
+      } else if (timeInfo.diffMinutesToEnd < 0) {
+        showToast(`ℹ️ 此 1-on-1 個教時段 (${booking.date} ${booking.slotTime}) 已結束，如需進一步輔導請預約新時段！`);
+        return;
+      }
+    }
+  }
+
   switchView('live-classroom');
-  showToast('進入 1-on-1 直播教室中...已連線講師音訊與共享畫布！');
+  if (booking) {
+    updateLiveRoomUI(booking.instructor);
+    const titleEl = document.getElementById('liveRoomTitle');
+    if (titleEl) {
+      titleEl.innerText = `【1-on-1專屬個教】${booking.topic} (與 ${booking.instructor} 現場診斷)`;
+    }
+  }
+  showToast('🎉 已連線進入專屬 1-on-1 直播教室！已接通業師音訊與共享畫布。');
 }
 
 // Student Bookings Management & Real-time Reschedule System
@@ -2320,26 +2466,54 @@ function renderStudentBookings() {
   const container = document.getElementById('studentUpcomingList');
   if (!container) return;
 
-  const studentBookings = mockBookings.filter(b => b.status !== '已取消');
+  const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+  const studentBookings = mockBookings.filter(b => b.status !== '已取消' && (!userEmail || (b.studentEmail || '').toLowerCase() === userEmail || b.studentEmail === 'student@pentaskill.com'));
 
   if (studentBookings.length === 0) {
     container.innerHTML = `<div class="text-sm text-muted" style="padding:0.75rem 0;">您目前尚無預約的個教行程</div>`;
     return;
   }
 
-  container.innerHTML = studentBookings.map(b => `
-    <div class="booking-item">
-      <div class="b-info">
-        <div class="b-title">${b.instructor} 講師 • ${b.topic.substring(0, 14)}... ${b.status==='已改期'?'<span class="badge badge-cyan" style="font-size:0.68rem; padding:2px 6px;">已改期</span>':''}</div>
-        <div class="b-time"><i class="fa-regular fa-clock"></i> ${b.date} (${b.slotTime})</div>
+  container.innerHTML = studentBookings.map(b => {
+    const timeInfo = getBookingTimeInfo(b);
+    const canEnter = timeInfo.canEnter;
+    const canModify = timeInfo.canModify;
+
+    return `
+      <div class="booking-item" style="border-left: 3px solid ${canEnter ? 'var(--accent-green)' : (canModify ? 'var(--accent-purple)' : '#f87171')}; padding: 0.85rem; margin-bottom: 0.65rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm);">
+        <div class="b-info">
+          <div class="b-title" style="font-weight: 700; color: #fff;">
+            ${b.instructor} 講師 • ${b.topic.substring(0, 16)}... 
+            ${b.status==='已改期'?'<span class="badge badge-cyan" style="font-size:0.68rem; padding:2px 6px;">已改期</span>':''}
+            ${canEnter ? '<span class="badge badge-success" style="font-size:0.68rem; padding:2px 6px; animation:pulse 1.5s infinite;">● 進入時間已開放</span>' : ''}
+          </div>
+          <div class="b-time text-xs" style="color: #cbd5e1; margin-top: 0.25rem;">
+            <i class="fa-regular fa-clock text-cyan"></i> ${b.date} (${b.slotTime})
+          </div>
+          ${!canModify ? `
+            <div class="text-xs margin-top-xs" style="color: #fca5a5; font-size: 0.72rem; display: flex; align-items: center; gap: 0.3rem;">
+              <i class="fa-solid fa-lock"></i> 距上課不足 48 小時，系統已鎖定無法自行改期（緊急事故請洽小編）
+            </div>
+          ` : `
+            <div class="text-xs margin-top-xs" style="color: #94a3b8; font-size: 0.72rem;">
+              <i class="fa-solid fa-circle-check text-green"></i> 距上課超過 48 小時，可自由線上改期異動
+            </div>
+          `}
+        </div>
+        <div class="flex-center gap-xs" style="margin-top: 0.5rem; flex-wrap: wrap;">
+          <button class="btn btn-sm ${canEnter ? 'btn-primary' : 'btn-outline'}" onclick="joinUpcomingRoom('${b.id}')" style="${canEnter ? 'background: var(--accent-green); border-color: var(--accent-green); color: #000; font-weight: 700;' : ''}" title="${canEnter ? '已到上課前 10 分鐘，點擊進入教室' : '上課前 10 分鐘開放點擊進入'}">
+            <i class="fa-solid ${canEnter ? 'fa-video' : 'fa-clock'}"></i> ${canEnter ? '進入教室 (即時連線)' : '上課前10分鐘進入'}
+          </button>
+          <button class="btn btn-sm btn-outline" onclick="openRescheduleModal('${b.id}')" style="${!canModify ? 'opacity: 0.5; border-color: rgba(239,68,68,0.3); color: #fca5a5;' : 'border-color: rgba(139,92,246,0.5);'}" title="${canModify ? '點擊申請 48 小時前時段改期' : '距上課不足 48 小時，無法自行改期'}">
+            <i class="fa-solid ${canModify ? 'fa-calendar-pen text-purple' : 'fa-lock text-danger'}"></i> 改期
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="cancelBooking('${b.id}')" style="${!canModify ? 'opacity: 0.4;' : ''}" title="${canModify ? '取消預約' : '距上課不足 48 小時，無法自行取消'}">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
-      <div class="flex-center gap-xs">
-        <button class="btn btn-sm btn-outline" onclick="joinUpcomingRoom()">進入教室</button>
-        <button class="btn btn-sm btn-outline" onclick="openRescheduleModal('${b.id}')" title="改期時段"><i class="fa-solid fa-calendar-pen text-purple"></i> 改期</button>
-        <button class="btn btn-sm btn-danger" onclick="cancelBooking('${b.id}')" title="取消預約"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 let activeRescheduleBookingId = null;
@@ -2348,25 +2522,47 @@ function openRescheduleModal(bookingId) {
   const booking = mockBookings.find(b => b.id === bookingId);
   if (!booking) return;
 
+  // 上課前 48 小時才可以異動上課日期，不到 48 小時的不能自己修改
+  const timeInfo = getBookingTimeInfo(booking);
+  if (!timeInfo.canModify) {
+    showToast('⚠️ 依契約規範：距離上課時間已不足 48 小時，系統已鎖定無法自行改期！若有緊急不可抗力事故，請加 LINE 洽專屬客服小編專案協助。');
+    return;
+  }
+
   activeRescheduleBookingId = bookingId;
-  document.getElementById('rescheduleBookingId').value = booking.id;
-  document.getElementById('rescheduleInstName').innerText = booking.instructor;
-  document.getElementById('rescheduleOldTime').innerText = `${booking.date} (${booking.slotTime})`;
-  document.getElementById('rescheduleNewDate').value = '2026-07-28';
+  const idInput = document.getElementById('rescheduleBookingId');
+  if (idInput) idInput.value = booking.id;
+  const instNameEl = document.getElementById('rescheduleInstName');
+  if (instNameEl) instNameEl.innerText = booking.instructor;
+  const oldTimeEl = document.getElementById('rescheduleOldTime');
+  if (oldTimeEl) oldTimeEl.innerText = `${booking.date} (${booking.slotTime})`;
   
+  // 新日期限制：最少在 48 小時之後 (例如後天)
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() + 2);
+  const minDateStr = minDate.toISOString().split('T')[0];
+  const newDateInput = document.getElementById('rescheduleNewDate');
+  if (newDateInput) {
+    newDateInput.min = minDateStr;
+    newDateInput.value = minDateStr;
+  }
+
   updateRescheduleSlots();
-  document.getElementById('rescheduleBookingModal').classList.add('active');
+  const modal = document.getElementById('rescheduleBookingModal');
+  if (modal) modal.classList.add('active');
 }
 
 function closeRescheduleModal() {
-  document.getElementById('rescheduleBookingModal').classList.remove('active');
+  const modal = document.getElementById('rescheduleBookingModal');
+  if (modal) modal.classList.remove('active');
 }
 
 function updateRescheduleSlots() {
   const booking = mockBookings.find(b => b.id === activeRescheduleBookingId);
-  const newDate = document.getElementById('rescheduleNewDate').value;
+  const newDateInput = document.getElementById('rescheduleNewDate');
+  const newDate = newDateInput ? newDateInput.value : '';
   const slotsContainer = document.getElementById('rescheduleSlotsGrid');
-  if (!slotsContainer || !booking) return;
+  if (!slotsContainer || !booking || !newDate) return;
 
   const standardSlots = [
     "14:00 - 15:00",
@@ -2376,7 +2572,7 @@ function updateRescheduleSlots() {
   ];
 
   const bookedTimes = mockBookings
-    .filter(b => b.id !== booking.id && (b.instructor === booking.instructor || booking.instructor.includes(b.instructor.split(' ')[0])) && b.date === newDate && b.status !== '已取消')
+    .filter(b => b.id !== booking.id && b.status !== '已取消' && b.date === newDate && isSameInstructor(b.instructor, booking.instructor))
     .map(b => b.slotTime);
 
   let firstAvailableSet = false;
@@ -2384,7 +2580,7 @@ function updateRescheduleSlots() {
   slotsContainer.innerHTML = standardSlots.map(slot => {
     const isBooked = bookedTimes.includes(slot);
     if (isBooked) {
-      return `<div class="slot-chip disabled"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已滿額)</div>`;
+      return `<div class="slot-chip disabled" title="該時段已被預約"><i class="fa-solid fa-lock text-danger"></i> ${slot} (已滿額)</div>`;
     } else {
       const isActive = !firstAvailableSet;
       if (isActive) firstAvailableSet = true;
@@ -2405,23 +2601,28 @@ function handleSaveReschedule(e) {
   const newDate = document.getElementById('rescheduleNewDate').value;
   const reason = document.getElementById('rescheduleReason').value;
 
+  const booking = mockBookings.find(b => b.id === bookingId);
+  if (!booking) return;
+
+  // 再次防呆檢驗原預約是否仍在 48 小時前
+  const timeInfo = getBookingTimeInfo(booking);
+  if (!timeInfo.canModify) {
+    showToast('⚠️ 依契約規範：距離上課時間已不足 48 小時，系統已鎖定無法自行改期！');
+    closeRescheduleModal();
+    return;
+  }
+
   const activeSlot = document.querySelector('#rescheduleSlotsGrid .slot-chip.active');
   if (!activeSlot || activeSlot.classList.contains('disabled')) {
-    showToast('⚠️ 該時段已被搶先預約，請選擇其他可預約時段！');
+    showToast('⚠️ 該時段已被其他學員優先預約，請選擇其他可預約時段！');
     return;
   }
 
   const rawSlotText = activeSlot.innerText;
   const newSlotTime = rawSlotText.split(' ')[0] + ' - ' + rawSlotText.split(' ')[2]; // e.g. "14:00 - 15:00"
 
-  const booking = mockBookings.find(b => b.id === bookingId);
-  if (!booking) return;
-
-  const oldDate = booking.date;
-  const oldSlot = booking.slotTime;
-
-  // Double check conflict
-  const conflict = mockBookings.find(b => b.id !== bookingId && (b.instructor === booking.instructor || booking.instructor.includes(b.instructor.split(' ')[0])) && b.date === newDate && b.slotTime === newSlotTime && b.status !== '已取消');
+  // 防呆衝突檢驗：避免重新預定衝突
+  const conflict = mockBookings.find(b => b.id !== bookingId && b.status !== '已取消' && b.date === newDate && b.slotTime === newSlotTime && isSameInstructor(b.instructor, booking.instructor));
 
   if (conflict) {
     showToast(`⚠️ 抱歉！${booking.instructor} 講師於 ${newDate} ${newSlotTime} 已被搶先預約！`);
@@ -2434,7 +2635,9 @@ function handleSaveReschedule(e) {
   booking.notes = `${booking.notes} (改期備註: ${reason})`;
   booking.status = "已改期";
 
-  showToast(`🎉 改期成功！已將 ${booking.instructor} 講師個教改期至 ${newDate} (${newSlotTime})，已即時同步講師與後台！`);
+  saveBookingsToStorage();
+
+  showToast(`🎉 改期成功！已將 ${booking.instructor} 講師個教改期至 ${newDate} (${newSlotTime})，已即時防呆鎖定並同步講師端！`);
 
   closeRescheduleModal();
   updateAvailableSlots();
@@ -2443,15 +2646,23 @@ function handleSaveReschedule(e) {
 }
 
 function cancelBooking(bookingId) {
-  if (confirm('確定要取消此 1-on-1 個教預約嗎？取消後該時段將重新釋放給其他學員。')) {
-    const booking = mockBookings.find(b => b.id === bookingId);
-    if (booking) {
-      booking.status = "已取消";
-      showToast(`已成功取消 ${booking.instructor} 講師的預約，原時段已即時釋出。`);
-      updateAvailableSlots();
-      renderStudentBookings();
-      renderBookingAdminTable();
-    }
+  const booking = mockBookings.find(b => b.id === bookingId);
+  if (!booking) return;
+
+  const timeInfo = getBookingTimeInfo(booking);
+  if (!timeInfo.canModify) {
+    showToast('⚠️ 依契約條款規範：距離上課時間已不足 48 小時，無法自行取消退款！如遇緊急不可抗力狀況請洽官方客服小編協助。');
+    return;
+  }
+
+  if (confirm(`確定要取消與 ${booking.instructor} 講師於 ${booking.date} (${booking.slotTime}) 的 1-on-1 個教預約嗎？取消後該時段將重新釋放給其他學員。`)) {
+    booking.status = "已取消";
+    saveBookingsToStorage();
+    showToast(`已成功取消 ${booking.instructor} 講師的預約，原時段已即時釋出。`);
+    updateAvailableSlots();
+    renderStudentBookings();
+    renderBookingAdminTable();
+    renderMentorSalaryTable();
   }
 }
 

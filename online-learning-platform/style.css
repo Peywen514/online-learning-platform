@@ -1473,6 +1473,8 @@ a {
 .pulse-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
 
 .live-video-grid { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(3, 85px); gap: 0.75rem; margin-bottom: 1.25rem; }
+.live-video-grid-1on1 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem; height: 230px; }
+.live-video-grid-1on1 .video-box { height: 100%; border: 1px solid rgba(139, 92, 246, 0.25); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
 .video-box { background: #111827; border-radius: var(--radius-md); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
 .video-box.main-instructor { grid-row: span 3; }
 .video-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -1781,6 +1783,13 @@ select option {
   .live-video-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
+  }
+  .live-video-grid-1on1 {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .live-video-grid-1on1 .video-box {
+    height: 170px;
   }
   .video-box.main-instructor {
     grid-row: auto;
