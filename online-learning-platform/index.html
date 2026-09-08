@@ -32,12 +32,12 @@
           <i class="fa-solid fa-compass"></i> 平台首頁
         </button>
 
-        <!-- 會員專區 (點數與學習中心) -->
+        <!-- 2. 會員專區 (點數與學習中心) -->
         <button class="nav-link" id="navMemberCenterLink" data-target="member-center" onclick="switchView('member-center')">
           <i class="fa-solid fa-gem text-yellow"></i> 會員專區
         </button>
 
-        <!-- 2. 課程專區 (下拉選單) -->
+        <!-- 3. 課程專區 (下拉選單) -->
         <div class="nav-dropdown" id="navCoursesDropdown">
           <button class="nav-link nav-dropdown-btn" type="button" onclick="toggleNavDropdown('navCoursesDropdown', event)">
             <i class="fa-solid fa-graduation-cap"></i> 課程專區 <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
@@ -60,8 +60,8 @@
             <button class="dropdown-item nav-item-btn" data-target="live-classroom" onclick="selectDropdownNav('live-classroom')">
               <i class="fa-solid fa-video text-pink"></i>
               <div class="dropdown-text">
-                <span class="dropdown-title">直播教室 & 1-on-1 個教</span>
-                <span class="dropdown-subtitle">教學多年業師即時帶練與預約排班</span>
+                <span class="dropdown-title">1 對 1 專屬個教教室</span>
+                <span class="dropdown-subtitle">教學多年業師即時手把手帶練與預約</span>
               </div>
             </button>
             <button class="dropdown-item nav-item-btn" data-target="instructors" onclick="selectDropdownNav('instructors')">
@@ -74,7 +74,44 @@
           </div>
         </div>
 
-        <!-- 3. 管理專區 (下拉選單 - 主管/員工權限可見) -->
+        <!-- 4. 好康與諮詢 (下拉選單 - 整合推薦好友、報價查單、洽小編、結帳) -->
+        <div class="nav-dropdown" id="navServicesDropdown">
+          <button class="nav-link nav-dropdown-btn" type="button" onclick="toggleNavDropdown('navServicesDropdown', event)" style="color: #fbbf24;">
+            <i class="fa-solid fa-gift text-pink"></i> 好康與諮詢 <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+          </button>
+          <div class="nav-dropdown-menu">
+            <button class="dropdown-item nav-item-btn" onclick="openReferralShareModal(); closeAllDropdowns();">
+              <i class="fa-solid fa-gift text-pink"></i>
+              <div class="dropdown-text">
+                <span class="dropdown-title">推薦好友賺 200 精幣</span>
+                <span class="dropdown-subtitle">邀請好友填問卷 • 雙方各獲 200 折抵金</span>
+              </div>
+            </button>
+            <button class="dropdown-item nav-item-btn" onclick="openQuoteLookupModal(); closeAllDropdowns();">
+              <i class="fa-solid fa-receipt text-cyan"></i>
+              <div class="dropdown-text">
+                <span class="dropdown-title">專屬報價單查單結帳</span>
+                <span class="dropdown-subtitle">輸入電話/Email 快速查詢專屬方案</span>
+              </div>
+            </button>
+            <button class="dropdown-item nav-item-btn" onclick="openLeadFormModal(); closeAllDropdowns();">
+              <i class="fa-solid fa-comments text-green"></i>
+              <div class="dropdown-text">
+                <span class="dropdown-title">洽小編 / 學習需求諮詢</span>
+                <span class="dropdown-subtitle">客製化 1-on-1 業師帶練諮詢</span>
+              </div>
+            </button>
+            <button class="dropdown-item nav-item-btn" onclick="openCheckoutModal('course-1', 'combo'); closeAllDropdowns();">
+              <i class="fa-solid fa-cart-shopping text-purple"></i>
+              <div class="dropdown-text">
+                <span class="dropdown-title">快速開通 / 報名結帳</span>
+                <span class="dropdown-subtitle">錄播課程與個教組合立即報名</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. 管理專區 (下拉選單 - 主管/員工權限可見) -->
         <div class="nav-dropdown admin-only-link" id="navAdminDropdown" style="display: none;">
           <button class="nav-link nav-dropdown-btn highlight" type="button" onclick="toggleNavDropdown('navAdminDropdown', event)">
             <i class="fa-solid fa-sliders text-pink"></i> 管理中心 <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
@@ -106,14 +143,14 @@
       </nav>
 
       <div class="nav-actions">
-        <button class="btn btn-outline btn-sm mobile-hide" onclick="openQuoteLookupModal()" title="已有電話/LINE專屬客製報價單？點此輸入手機/Email快速查單結帳" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
-          <i class="fa-solid fa-receipt"></i> 專屬報價結帳
-        </button>
-        <button class="btn btn-line btn-sm mobile-hide" onclick="openLeadFormModal()">
+        <!-- 洽小編諮詢按鈕 -->
+        <button class="btn btn-line btn-sm mobile-hide" onclick="openLeadFormModal()" title="立即洽小編諮詢 / 填寫學習需求表單">
           <i class="fa-solid fa-comments"></i> 洽小編諮詢
         </button>
-        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal()" title="專屬學員報名結帳與權限開通通道">
-          <i class="fa-solid fa-file-invoice-dollar text-purple"></i> 報名結帳 <span class="badge" id="cartCount">0</span>
+
+        <!-- 購物/結帳快捷 (精簡購物車膠囊) -->
+        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal('course-1', 'combo')" title="報名結帳與折抵通道" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc;">
+          <i class="fa-solid fa-bag-shopping text-purple"></i> 結帳 <span class="badge" id="cartCount">0</span>
         </button>
         
         <!-- Login / User Auth Area -->
@@ -362,23 +399,6 @@
             <!-- Portfolio Cards Grid (JS rendered from mockPortfolios) -->
             <div class="grid grid-4 gap-md margin-top-lg" id="portfolioGrid">
               <!-- Populated by JS renderPortfolios() -->
-            </div>
-          </div>
-        </div>
-                </div>
-                <div class="p-card-body">
-                  <div class="p-mentor-info">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="林雅涵">
-                    <span>林雅涵 講師 1-on-1 指導修稿</span>
-                  </div>
-                  <h3 class="p-title">CyberPulse — 百萬流量品牌 4K 影音特效與電影調色</h3>
-                  <p class="p-desc">結合 Premiere/AE 節奏剪輯與聲音設計，經過 Hannah 講師修稿腳本上架後短影音破 50萬觀看。</p>
-                  <div class="p-footer">
-                    <span class="p-student"><i class="fa-solid fa-user-graduate"></i> 學員：張宇彤 (短影音導演)</span>
-                    <button class="btn btn-sm btn-outline" onclick="openPortfolioModal('CyberPulse 4K 電影級調色與短影音特效專案', 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80', '林雅涵', '張宇彤', '涵蓋動態字幕、音效蒙太奇與色彩階調微調。講師林雅涵個教點評腳本鉤子 (Hook) 與轉場節奏，成功帶動品牌客戶業績翻倍。')">預覽全幅作品</button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -654,6 +674,9 @@
             </div>
           </div>
           <div class="admin-quick-actions">
+            <button class="btn btn-outline btn-sm" onclick="openReferralShareModal()" style="border-color:#f59e0b; color:#fbbf24;">
+              <i class="fa-solid fa-gift text-pink"></i> 推薦親朋好友 (雙方各得 200 精幣)
+            </button>
             <button class="btn btn-outline btn-sm" onclick="switchView('video-player')">
               <i class="fa-solid fa-play text-cyan"></i> 進入錄播教室
             </button>
@@ -697,14 +720,18 @@
               </div>
 
               <ul class="reward-perks-list text-xs" style="margin-top: 0.5rem;">
+                <li><i class="fa-solid fa-gift text-pink"></i> <strong>推薦好友送好禮</strong>：邀請親朋好友填寫諮詢問卷，<strong>雙方立即各贈 200 精幣</strong></li>
                 <li><i class="fa-solid fa-cake-candles text-pink"></i> <strong>當月壽星專屬禮</strong>：生日當月由系統派發 <strong>100 精幣</strong></li>
-                <li><i class="fa-solid fa-gift text-yellow"></i> <strong>消費滿額回饋</strong>：單筆結帳滿 NT$ 3,000 即贈 <strong>30 精幣</strong></li>
+                <li><i class="fa-solid fa-coins text-yellow"></i> <strong>消費滿額回饋</strong>：單筆結帳滿 NT$ 3,000 即贈 <strong>30 精幣</strong></li>
                 <li><i class="fa-solid fa-comment-dots text-yellow"></i> <strong>課後好評分享</strong>：問卷心得贈 30 精幣，社群發文加贈 30 精幣</li>
               </ul>
 
               <div class="reward-card-footer margin-top-sm" style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary btn-sm btn-block" onclick="openCheckoutModal()">
-                  <i class="fa-solid fa-cart-shopping"></i> 前往結帳使用精幣折抵
+                <button class="btn btn-outline btn-sm" onclick="openReferralShareModal()" style="border-color:#f59e0b; color:#fbbf24; flex:1;">
+                  <i class="fa-solid fa-gift text-pink"></i> 推薦好友 (各獲200)
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openCheckoutModal('course-1', 'combo')" style="flex:1;">
+                  <i class="fa-solid fa-cart-shopping"></i> 前往結帳使用折抵
                 </button>
               </div>
             </div>
@@ -829,7 +856,7 @@
                       <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">const</span> [chapter, setChapter] = <span class="c-func">useState</span>(<span class="c-string">'AI Agent Deployment'</span>);</div>
                       <div class="code-line">&nbsp;&nbsp;<span class="c-keyword">return</span> (</div>
                       <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">div</span> className=<span class="c-string">"classroom-container"</span>&gt;</div>
-                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;專屬 1-on-1 個教陪跑作業現場&lt;/<span class="c-tag">h2</span>&gt;</div>
+                      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="c-tag">h2</span>&gt;實用 1-on-1 專屬個教與修稿現場&lt;/<span class="c-tag">h2</span>&gt;</div>
                       <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="c-tag">div</span>&gt;</div>
                       <div class="code-line">&nbsp;&nbsp;);</div>
                       <div class="code-line">}</div>
@@ -928,7 +955,7 @@
                     <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> 待個教講師批改</span>
                     <h4>作業題目：完成 AI 聊天對話框與 Error Boundary 機制</h4>
                   </div>
-                  <p class="text-sm">您已於 2026-07-20 18:30 繳交 GitHub 倉庫連結。講師張哲銘預計於明日 14:00 個教時段進行實時 Code Review。</p>
+                  <p class="text-sm">您已於 2026-09-08 11:30 繳交 GitHub 倉庫連結。講師張哲銘預計於明日 14:00 個教時段進行即時 Code Review。</p>
                   <button class="btn btn-primary btn-sm margin-top-sm" onclick="openAssignmentModal()">重新上傳 / 更新專案檔</button>
                 </div>
               </div>
@@ -985,37 +1012,37 @@
       </div>
     </section>
 
-    <!-- VIEW 4: SYNCHRONOUS LIVE CLASSROOM & 1-ON-1 SCHEDULING -->
+    <!-- VIEW 4: 1-ON-1 LIVE MENTORSHIP & APPOINTMENT CENTER -->
     <section id="view-live-classroom" class="view-section">
       <div class="container section-padding">
         <div class="section-header text-center">
-          <div class="sub-title">SYNCHRONOUS LEARNING & 1-ON-1 APPOINTMENT</div>
-          <h2>同步線上直播教室 & 1對1個教預約中心</h2>
-          <p>獨家亮點：告別大班淹沒感，全由專屬 1-on-1 講師現場陪跑批改與實戰診斷</p>
+          <div class="sub-title">1-ON-1 LIVE MENTORSHIP & APPOINTMENT CENTER</div>
+          <h2>教學多年業師 1 對 1 專屬個教教室 ＆ 預約中心</h2>
+          <p>獨家亮點：告別傳統錄播無人解惑與大班淹沒感！教學多年金牌業師 1 對 1 專屬手把手帶練、即時 Code Review 與作品精細修稿</p>
         </div>
 
         <div class="grid grid-12 gap-lg">
           <div class="col-span-7">
             <div class="live-room-card">
               <div class="room-header">
-                <div class="room-badge"><span class="pulse-dot"></span> LIVE 專屬 1-on-1 直播中</div>
-                <h3 id="liveRoomTitle">【1-on-1個教陪跑】Full-Stack & AI 專案架構 1 對 1 現場診斷與 Code Review</h3>
-                <span class="room-timer"><i class="fa-regular fa-clock"></i> 專屬 60 分鐘 (1小時)</span>
-              </div>
-              <div class="text-xs text-cyan margin-bottom-sm" style="line-height:1.45;">
-                <i class="fa-solid fa-circle-info"></i> 💡 專屬 1-on-1 線上教室：學員與講師於 <strong>上課前 10 分鐘</strong> 開放點擊進入教室上課！
+                <div class="room-badge"><span class="pulse-dot"></span> 1-on-1 專屬連線中</div>
+                <h3 id="liveRoomTitle">【1-on-1 個教陪跑】Full-Stack & AI 專案架構 1 對 1 現場診斷與 Code Review</h3>
+                <span class="room-timer"><i class="fa-regular fa-clock"></i> 專屬個教 60 分鐘 (1小時)</span>
               </div>
 
+              <div class="text-xs text-cyan margin-bottom-sm" style="line-height:1.45;">
+                <i class="fa-solid fa-circle-info"></i> 💡 專屬 1-on-1 線上教室：上課前 10 分鐘開放入場連線測試；開課逾 10 分鐘仍可隨時進場繼續上課，下課時間不予順延，請老師與學員留意掌握課堂時間！
+              </div>
               <div class="live-video-grid live-video-grid-1on1">
                 <div class="video-box main-instructor">
                   <img id="liveInstructorAvatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" alt="講師">
                   <div class="user-label" id="liveInstructorLabel">
-                    <i class="fa-solid fa-crown text-yellow"></i> 講師：張哲銘 (Full-Stack & AI 技術專家)
+                    <i class="fa-solid fa-crown text-yellow"></i> 專屬講師：張哲銘 (Full-Stack & AI 技術專家)
                   </div>
                   <div class="speaking-wave"><span></span><span></span><span></span></div>
                 </div>
 
-                <div class="video-box student-1on1">
+                <div class="video-box student-1on1 student-self">
                   <img id="liveStudentAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="學員" style="width:100%; height:100%; object-fit:cover;">
                   <div class="user-label" id="liveStudentLabel">
                     <i class="fa-solid fa-user-graduate text-cyan"></i> 學員：林小明 (你)
@@ -1064,8 +1091,11 @@
             <div class="booking-card">
               <div class="card-header">
                 <h3><i class="fa-solid fa-calendar-plus text-purple"></i> 預約專屬 1-on-1 個教時段</h3>
-                <p class="text-sm text-muted">根據您的學習進度，預約講師進行 1 對 1 作品診斷與職涯導導</p>
+                <p class="text-sm text-muted">根據您的學習進度，預約已開通講師進行 1 對 1 作品診斷與職涯輔導</p>
               </div>
+
+              <!-- 權限不足/未付費提示區塊 (由 JS 自動驗證控制) -->
+              <div id="bookingLockedAlert" style="display: none;"></div>
 
               <form id="bookingForm" onsubmit="handleBooking(event)">
                 <div class="form-group">
@@ -1089,9 +1119,14 @@
                 </div>
 
                 <div class="form-group margin-top-sm">
-                  <label><i class="fa-solid fa-calendar-days"></i> 選擇日期與可預約時段</label>
-                  <input type="date" id="bookingDate" class="form-control" onchange="updateAvailableSlots()">
-                  <div class="slots-grid margin-top-xs" id="slotsGrid">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <label style="margin: 0;"><i class="fa-solid fa-calendar-days text-purple"></i> 選擇預約日期 (當月起往後預約)</label>
+                    <span class="text-xs text-cyan"><i class="fa-solid fa-bolt"></i> 快捷選日</span>
+                  </div>
+                  <!-- 快捷選日標籤列 (當月向後滾動) -->
+                  <div class="quick-date-chips" id="bookingQuickDateChips"></div>
+                  <input type="date" id="bookingDate" class="form-control margin-top-xs" value="2026-09-08" min="2026-09-08" onchange="updateAvailableSlots()">
+                  <div class="slots-grid margin-top-sm" id="slotsGrid">
                     <div class="slot-chip active">14:00 - 15:00</div>
                     <div class="slot-chip">15:30 - 16:30</div>
                     <div class="slot-chip">19:00 - 20:00</div>
@@ -1150,7 +1185,7 @@
               <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 一鍵推送資料至 Cloudflare KV
             </button>
             <button class="btn btn-primary manager-only-btn" onclick="openAddUserModal()" style="display: none;">
-              <i class="fa-solid fa-user-plus"></i> 新增帳號密碼 (Wen總監)
+              <i class="fa-solid fa-user-plus"></i> 新增帳號密碼 (主管/顧問)
             </button>
             <button class="btn btn-secondary staff-manager-btn" onclick="openAddCourseModal()" style="display: none;">
               <i class="fa-solid fa-folder-plus"></i> 新增線上課程
@@ -1161,7 +1196,7 @@
         <!-- Admin Sub Tabs -->
         <div class="admin-tab-bar margin-top-lg">
           <button class="admin-tab active manager-only-tab" data-atab="users" onclick="switchAdminTab('users')">
-            <i class="fa-solid fa-users-gear"></i> 帳號密碼與權限設定 (Wen總監專屬)
+            <i class="fa-solid fa-users-gear"></i> 帳號密碼與權限設定 (主管/顧問專屬)
           </button>
           <button class="admin-tab" data-atab="courses" onclick="switchAdminTab('courses')">
             <i class="fa-solid fa-book-open"></i> 課程上架與價格管理
@@ -1176,7 +1211,7 @@
             <i class="fa-solid fa-calendar-check text-cyan"></i> 📅 講師個教預約與排班管理 (學生預約清單)
           </button>
           <button class="admin-tab manager-only-tab" data-atab="finance" onclick="switchAdminTab('finance')">
-            <i class="fa-solid fa-chart-column text-yellow"></i> 📊 營運統計與講師月結薪資 (Wen總監專屬)
+            <i class="fa-solid fa-chart-column text-yellow"></i> 📊 營運統計與講師月結薪資 (管理專屬)
           </button>
           <button class="admin-tab" data-atab="leads" onclick="switchAdminTab('leads')">
             <i class="fa-solid fa-clipboard-list text-pink"></i> 📋 潛在學員需求表單紀錄
@@ -1195,14 +1230,14 @@
             <div class="card-header-flex">
               <div>
                 <h3><i class="fa-solid fa-users-viewfinder text-purple"></i> 全站成員帳號、密碼與權限清單</h3>
-                <span class="text-sm text-muted">目前共有 <strong id="userTotalCount">4</strong> 個使用者帳號</span>
+                <span class="text-sm text-muted">目前共有 <strong id="userTotalCount">5</strong> 個使用者帳號</span>
               </div>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                 <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="border-color: var(--accent-yellow); color: var(--accent-yellow);" title="將目前的成員名單與點數全量寫入 Cloudflare KV">
                   <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 同步至 Cloudflare KV
                 </button>
                 <button class="btn btn-primary btn-sm manager-only-btn" onclick="openAddUserModal()">
-                  <i class="fa-solid fa-user-plus"></i> 新增帳號密碼與權限 (Wen總監專屬)
+                  <i class="fa-solid fa-user-plus"></i> 新增帳號密碼與權限 (主管/顧問專屬)
                 </button>
               </div>
             </div>
@@ -1215,6 +1250,7 @@
                     <th>電子郵件 (登入帳號)</th>
                     <th>登入密碼</th>
                     <th>授權權限角色</th>
+                    <th>🏦 薪資轉帳帳戶</th>
                     <th>🪙 精幣 / 🏆 精通寶</th>
                     <th>介面存取權限說明</th>
                     <th>設定與操作</th>
@@ -1303,8 +1339,11 @@
         <div class="admin-content-pane" id="atab-bookings">
           <div class="plan-card margin-top-md">
             <div class="card-header-flex">
-              <h3><i class="fa-solid fa-calendar-days text-purple"></i> 講師 1-on-1 個教預約排班與學生預約清單</h3>
-              <div class="flex-center gap-xs">
+              <div>
+                <h3><i class="fa-solid fa-calendar-days text-purple"></i> 講師 1-on-1 個教預約排班與學生預約清單</h3>
+                <span class="text-sm text-muted">管理學員預約排班、調整時段與帶課狀態 (支援線上即時編輯與同步)</span>
+              </div>
+              <div class="flex-center gap-xs" style="flex-wrap: wrap;">
                 <label class="text-sm text-muted">篩選講師：</label>
                 <select id="adminBookingFilter" class="form-control" style="width: auto;" onchange="renderBookingAdminTable()">
                   <option value="all">全部金牌講師</option>
@@ -1313,6 +1352,12 @@
                   <option value="歐陽翔 (Shawn)">歐陽翔 (Shawn)</option>
                   <option value="林雅涵 (Hannah)">林雅涵 (Hannah)</option>
                 </select>
+                <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="border-color: var(--accent-yellow); color: var(--accent-yellow);" title="將目前的排班名單寫入 Cloudflare KV">
+                  <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 同步至 Cloudflare KV
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openAddBookingModal()">
+                  <i class="fa-solid fa-calendar-plus"></i> 新增個教排班 / 預約
+                </button>
               </div>
             </div>
 
@@ -1338,121 +1383,162 @@
           </div>
         </div>
 
-        <!-- Admin Tab Content 6: Finance & Monthly Salary Settlement -->
+        <!-- Admin Tab Content 6: Finance & Monthly Salary Settlement (整合式損益與薪資發放中心) -->
         <div class="admin-content-pane manager-only-pane" id="atab-finance">
-          <!-- Financial KPI Cards -->
-          <div class="grid grid-4 gap-md margin-top-md">
+          
+          <!-- 5 大財務核心 KPI 數據看板 (即時連動計算) -->
+          <div class="grid grid-4 gap-md margin-top-md" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            
+            <!-- 1. 全站月總營收 -->
             <div class="stat-card glass-stat">
               <div class="stat-card-header">
                 <div class="stat-icon-box bg-purple-glow"><i class="fa-solid fa-sack-dollar text-purple"></i></div>
-                <span class="stat-badge">月營收總計</span>
+                <span class="stat-badge">全站月總營收</span>
               </div>
-              <div class="stat-num gradient-text-purple">NT$ 286,400</div>
-              <div class="stat-title">本月平台總營收</div>
-              <div class="stat-label">包含錄播自學與 1-on-1 個教銷售</div>
+              <div class="stat-num gradient-text-purple" id="kpiTotalRevenue">NT$ 408,080</div>
+              <div class="stat-title">錄播課程 ＋ 1-on-1 個教營收</div>
+              <div class="stat-label">學員線上購課與預約款項總額</div>
             </div>
 
+            <!-- 2. 講師月結薪資支出 -->
             <div class="stat-card glass-stat">
               <div class="stat-card-header">
-                <div class="stat-icon-box bg-cyan-glow"><i class="fa-solid fa-clock text-cyan"></i></div>
-                <span class="stat-badge">個教完成數</span>
+                <div class="stat-icon-box bg-pink-glow"><i class="fa-solid fa-chalkboard-user text-pink"></i></div>
+                <span class="stat-badge">講師薪資支出</span>
               </div>
-              <div class="stat-num gradient-text-cyan">148 場</div>
-              <div class="stat-title">完成 1 小時個教</div>
-              <div class="stat-label">學員實務滿意度 99.2%</div>
+              <div class="stat-num text-yellow" id="kpiMentorSalaries">-NT$ 162,216</div>
+              <div class="stat-title">錄播 2 成分潤 ＋ 個教全額</div>
+              <div class="stat-label">每月 10 日審核撥款</div>
             </div>
 
+            <!-- 3. 員工薪資支出 -->
             <div class="stat-card glass-stat">
               <div class="stat-card-header">
-                <div class="stat-icon-box bg-pink-glow"><i class="fa-solid fa-hand-holding-dollar text-pink"></i></div>
-                <span class="stat-badge">講師月結薪資</span>
+                <div class="stat-icon-box bg-cyan-glow"><i class="fa-solid fa-users text-cyan"></i></div>
+                <span class="stat-badge">員工薪資支出</span>
               </div>
-              <div class="stat-num gradient-text-pink">NT$ 171,840</div>
-              <div class="stat-title">講師拆帳總撥款 (60%)</div>
-              <div class="stat-label">依每位講師完課場次精算</div>
+              <div class="stat-num text-cyan" id="kpiStaffSalaries">-NT$ 73,000</div>
+              <div class="stat-title">營運企劃 / 小編 / 剪輯師</div>
+              <div class="stat-label">團隊內部月薪與獎金發放</div>
             </div>
 
+            <!-- 4. 平台固定運營花費 -->
             <div class="stat-card glass-stat">
               <div class="stat-card-header">
-                <div class="stat-icon-box bg-purple-glow"><i class="fa-solid fa-piggy-bank text-purple"></i></div>
-                <span class="stat-badge">平台淨利</span>
+                <div class="stat-icon-box bg-purple-glow"><i class="fa-solid fa-server text-purple"></i></div>
+                <span class="stat-badge">平台營運花費</span>
               </div>
-              <div class="stat-num gradient-text-purple">NT$ 114,560</div>
-              <div class="stat-title">平台保留營運淨利 (40%)</div>
-              <div class="stat-label">支應伺服器與行銷預算</div>
+              <div class="stat-num text-pink" id="kpiPlatformExpenses">-NT$ 24,500</div>
+              <div class="stat-title">串流伺服器 / 金流 / 廣告</div>
+              <div class="stat-label">系統維護與官方獲客支出</div>
+            </div>
+
+            <!-- 5. 平台實際最終淨利 -->
+            <div class="stat-card glass-stat" style="border: 2px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(15,23,42,0.85) 100%);">
+              <div class="stat-card-header">
+                <div class="stat-icon-box bg-green-glow"><i class="fa-solid fa-gem text-green"></i></div>
+                <span class="stat-badge badge-green" style="background:#10b981; color:#000; font-weight:bold;">平台最終淨利</span>
+              </div>
+              <div class="stat-num text-green" style="font-size:1.65rem; font-weight:800;" id="kpiNetProfit">NT$ 148,364</div>
+              <div class="stat-title" style="color:#34d399; font-weight:700;">扣除師資/員工/花費後純益</div>
+              <div class="stat-label">淨利率約 <span id="kpiNetProfitRate" style="color:#fbbf24; font-weight:700;">36.4%</span></div>
             </div>
           </div>
 
-          <!-- Visual Analytics & Charts Section -->
+          <!-- 視覺化圖表與月結規範 Banner -->
           <div class="plan-card margin-top-lg">
             <div class="card-header-flex">
-              <h3><i class="fa-solid fa-chart-line text-cyan"></i> 各講師個教預約熱度與營收貢獻統計圖表</h3>
-              <button class="btn btn-sm btn-outline" onclick="exportFinanceReport()"><i class="fa-solid fa-file-csv"></i> 匯出月結財務報表 (CSV)</button>
+              <div>
+                <h3><i class="fa-solid fa-chart-pie text-cyan"></i> 全站營收分流佔比與講師完課統計</h3>
+                <span class="text-sm text-muted">包含各項營收分流百分比、師資個教熱度與損益結構</span>
+              </div>
+              <button class="btn btn-sm btn-outline" onclick="exportFinanceReport()"><i class="fa-solid fa-file-csv"></i> 匯出月結整合財務報表 (CSV)</button>
             </div>
 
             <div class="grid grid-2 gap-lg margin-top-md">
               <!-- Chart 1: Mentor Booking Share -->
               <div>
-                <h4 style="font-size:0.92rem; color:var(--text-muted); margin-bottom:0.75rem;"><i class="fa-solid fa-chart-pie text-purple"></i> 講師個教預約場次佔比</h4>
-                <div class="chart-progress-list flex-column gap-sm">
+                <h4 style="font-size:0.92rem; color:var(--text-muted); margin-bottom:0.75rem;"><i class="fa-solid fa-chart-pie text-purple"></i> 講師個教預約場次佔比 (共 <span id="displayTotalCoachingSessions">55</span> 場)</h4>
+                <div class="chart-progress-list flex-column gap-sm" id="mentorSessionsProgressList">
                   <div>
                     <div class="flex-between text-sm margin-bottom-xs">
                       <span><strong>張哲銘 (Ethan)</strong> • Full-Stack & AI</span>
-                      <strong class="text-purple">56 場 (38%)</strong>
+                      <strong class="text-purple">18 場 (33%)</strong>
                     </div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-purple-glow" style="width: 38%;"></div></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-purple-glow" style="width: 33%;"></div></div>
                   </div>
                   <div>
                     <div class="flex-between text-sm margin-bottom-xs">
                       <span><strong>陳婷俐 (Tina)</strong> • UI/UX 設計</span>
-                      <strong class="text-pink">47 場 (32%)</strong>
+                      <strong class="text-pink">15 場 (27%)</strong>
                     </div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-pink-glow" style="width: 32%;"></div></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-pink-glow" style="width: 27%;"></div></div>
                   </div>
                   <div>
                     <div class="flex-between text-sm margin-bottom-xs">
                       <span><strong>歐陽翔 (Shawn)</strong> • Python 數據</span>
-                      <strong class="text-cyan">27 場 (18%)</strong>
+                      <strong class="text-cyan">12 場 (22%)</strong>
                     </div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-cyan-glow" style="width: 18%;"></div></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-cyan-glow" style="width: 22%;"></div></div>
                   </div>
                   <div>
                     <div class="flex-between text-sm margin-bottom-xs">
                       <span><strong>林雅涵 (Hannah)</strong> • 短影音行銷</span>
-                      <strong class="text-green">18 場 (12%)</strong>
+                      <strong class="text-green">10 場 (18%)</strong>
                     </div>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-green-glow" style="width: 12%;"></div></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill bg-green-glow" style="width: 18%;"></div></div>
                   </div>
                 </div>
               </div>
 
               <!-- Chart 2: Payout Breakdown Bar -->
               <div>
-                <h4 style="font-size:0.92rem; color:var(--text-muted); margin-bottom:0.75rem;"><i class="fa-solid fa-chart-column text-pink"></i> 月結薪資拆帳發放比例 (講師 60% vs 平台 40%)</h4>
-                <div class="financial-split-box">
-                  <div class="flex-between margin-bottom-sm">
-                    <span>講師團隊實收月薪總額 (60%)</span>
-                    <strong class="text-green" style="font-size:1.15rem;">NT$ 171,840</strong>
+                <h4 style="font-size:0.92rem; color:var(--text-muted); margin-bottom:0.75rem;"><i class="fa-solid fa-calculator text-green"></i> 平台財務收支分流比例 (每月 10 日結算發放)</h4>
+                <div class="financial-split-box" style="background: rgba(16, 185, 129, 0.06); border: 1.5px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 1.15rem;">
+                  <div class="flex-between margin-bottom-xs text-sm">
+                    <span>👨‍🏫 講師月結總薪資 (錄播2成 + 個教100%)</span>
+                    <strong class="text-yellow" id="calcPercentMentor">NT$ 162,216 (39.8%)</strong>
                   </div>
-                  <div class="flex-between margin-bottom-sm">
-                    <span>平台營運與伺服器維護費 (40%)</span>
-                    <strong class="text-purple">NT$ 114,560</strong>
+                  <div class="flex-between margin-bottom-xs text-sm">
+                    <span>🧑‍💼 營運團隊員工薪資總額</span>
+                    <strong class="text-cyan" id="calcPercentStaff">NT$ 73,000 (17.9%)</strong>
                   </div>
-                  <hr class="dropdown-divider">
-                  <div class="flex-between margin-top-sm">
-                    <span><strong>預計月結撥款發放日期</strong></span>
-                    <strong class="text-yellow">2026 年 08 月 05 日</strong>
+                  <div class="flex-between margin-bottom-xs text-sm">
+                    <span>☁️ 平台伺服器與固定運營花費</span>
+                    <strong class="text-pink" id="calcPercentExpense">NT$ 24,500 (6.0%)</strong>
+                  </div>
+                  <hr class="dropdown-divider" style="margin: 0.5rem 0;">
+                  <div class="flex-between">
+                    <span style="font-weight:700; color:#fff;">💎 平台留存實際淨利潤</span>
+                    <strong class="text-green" style="font-size:1.25rem;" id="calcPercentNetProfit">NT$ 148,364 (36.3%)</strong>
+                  </div>
+                  <div class="flex-between margin-top-xs text-xs text-muted">
+                    <span>固定月結撥款發放日：<strong class="text-yellow">每月 10 日</strong></span>
+                    <span class="text-cyan">由平台主管/顧問審核確認後撥款</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Mentor Salary Settlement Table -->
+          <!-- 表單 1：講師月結薪資結算表 (錄播 20% + 個教 100% 全額) -->
           <div class="plan-card margin-top-lg">
             <div class="card-header-flex">
-              <h3><i class="fa-solid fa-file-invoice-dollar text-pink"></i> 講師月結薪資拆帳結算表 (Wen總監審核)</h3>
-              <button class="btn btn-primary btn-sm" onclick="processMonthlyPayout()"><i class="fa-solid fa-check-double"></i> 一鍵確認撥款發放</button>
+              <div>
+                <h3><i class="fa-solid fa-chalkboard-user text-green"></i> 1. 講師月結薪資結算表 (錄播 20% + 個教 100% 全額)</h3>
+                <span class="text-sm text-muted">綁定講師個人名下錄播課程銷售加總 × 20% ＋ 1對1個教鐘點費全額 ＋ 獎金 (支援線上即時修改)</span>
+              </div>
+              <div class="flex-center gap-xs" style="flex-wrap: wrap;">
+                <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="border-color: var(--accent-yellow); color: var(--accent-yellow);" title="將目前的薪資與花費資料寫入 Cloudflare KV">
+                  <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 同步至 Cloudflare KV
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openAddSalaryModal()">
+                  <i class="fa-solid fa-plus"></i> 新增講師月結單
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="processMonthlyPayout()">
+                  <i class="fa-solid fa-check-double"></i> 一鍵確認全數撥款
+                </button>
+              </div>
             </div>
 
             <div class="table-responsive margin-top-md">
@@ -1460,14 +1546,17 @@
                 <thead>
                   <tr>
                     <th>講師姓名</th>
-                    <th>專業頭銜</th>
-                    <th>單場個教費率</th>
-                    <th>本月完成個教</th>
-                    <th>總產生營收</th>
-                    <th>講師拆帳率</th>
-                    <th>本月應發薪資 (月結)</th>
+                    <th>專業領域</th>
+                    <th style="min-width: 220px;">個人名下錄播課程銷售明細 (各課定價 × 當月售出堂數)</th>
+                    <th>個人錄播總營收</th>
+                    <th>錄播分潤 (2成 / 20%)</th>
+                    <th>個教鐘點費 (100%全額)</th>
+                    <th>完成場次</th>
+                    <th>個教鐘點總額</th>
+                    <th>獎金/補貼</th>
+                    <th>本月實發總薪資 (實發)</th>
                     <th>撥款狀態</th>
-                    <th>操作</th>
+                    <th>編輯操作</th>
                   </tr>
                 </thead>
                 <tbody id="mentorSalaryTableBody">
@@ -1476,6 +1565,78 @@
               </table>
             </div>
           </div>
+
+          <!-- 表單 2：營運團隊員工薪資發放表 (Staff Payroll Sheet) -->
+          <div class="plan-card margin-top-lg">
+            <div class="card-header-flex">
+              <div>
+                <h3><i class="fa-solid fa-users text-cyan"></i> 2. 營運團隊員工薪資發放表 (主管/顧問審核發放)</h3>
+                <span class="text-sm text-muted">包含營運主管、LINE@客服小編、影音剪輯師與助理之月薪與績效獎金</span>
+              </div>
+              <div class="flex-center gap-xs" style="flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="openAddStaffModal()">
+                  <i class="fa-solid fa-user-plus"></i> 新增員工薪資單
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="processMonthlyStaffPayout()">
+                  <i class="fa-solid fa-check-double"></i> 一鍵發放全體員工薪資
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>員工姓名</th>
+                    <th>職位角色</th>
+                    <th>基本月薪 / 底薪</th>
+                    <th>績效獎金 / 津貼</th>
+                    <th>獎金事由備註</th>
+                    <th>本月實發薪資</th>
+                    <th>發放狀態</th>
+                    <th>編輯操作</th>
+                  </tr>
+                </thead>
+                <tbody id="staffSalaryTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 表單 3：平台運營與伺服器固定花費表 (Platform & Server Expenses Sheet) -->
+          <div class="plan-card margin-top-lg">
+            <div class="card-header-flex">
+              <div>
+                <h3><i class="fa-solid fa-server text-purple"></i> 3. 平台運營與伺服器固定花費明細 (由淨利扣除)</h3>
+                <span class="text-sm text-muted">包含 Cloudflare 串流播放、主機頻寬、第三方金流手續費、AI Token 與行銷廣告支出</span>
+              </div>
+              <div class="flex-center gap-xs" style="flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="openAddExpenseModal()">
+                  <i class="fa-solid fa-plus"></i> 新增花費項目
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive margin-top-md">
+              <table class="styled-table">
+                <thead>
+                  <tr>
+                    <th>支出項目名稱</th>
+                    <th>費用類別</th>
+                    <th>每月固定金額 (NT$)</th>
+                    <th>計費週期</th>
+                    <th>用途與備註說明</th>
+                    <th>編輯操作</th>
+                  </tr>
+                </thead>
+                <tbody id="platformExpensesTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
         <!-- Admin Tab Content 7: Lead Enquiries -->
@@ -1698,8 +1859,8 @@
     <section id="view-business-plan" class="view-section">
       <div class="container section-padding">
         <div class="plan-hero">
-          <div class="badge-tag">👑 Wen總監 權限限定 • 商業機密</div>
-          <h2>近10年培訓機構資源轉化：創新型 1-on-1 個教陪跑 platform 完整商業計劃書</h2>
+          <div class="badge-tag">👑 主管與顧問權限限定 • 商業機密</div>
+          <h2>近10年培訓機構資源轉化：創新型小班與個教 platform 完整商業計劃書</h2>
           <p>這是一套專門為您量身打造的創業行動藍圖，全面解決「錄播課完課率低」與「傳統補習班昂貴」的市場痛點。</p>
         </div>
 
@@ -1740,7 +1901,7 @@
                       <tr>
                         <td><strong>課堂趴 (ClassParty)</strong></td>
                         <td>「課堂 Buddy / 夥伴」</td>
-                        <td>強調專屬 1-on-1 個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</td>
+                        <td>強調小班個教的親密互動，學習就像參加輕鬆交流的實戰 Party。</td>
                         <td><span class="badge badge-info">備選</span></td>
                       </tr>
                     </tbody>
@@ -1767,7 +1928,7 @@
                         <td><strong>學習模式</strong></td>
                         <td>純看影片，遇到問題無人解答</td>
                         <td>大班面授，團體進度無法兼顧個體</td>
-                        <td><strong class="text-purple">「錄播打底 + 專屬 1-on-1 個教陪跑」</strong></td>
+                        <td><strong class="text-purple">「錄播打底 + 1對1個教 + 小班攻堅」</strong></td>
                       </tr>
                       <tr>
                         <td><strong>完課率</strong></td>
@@ -1813,7 +1974,7 @@
                   <ul>
                     <li>包含全套錄播資源</li>
                     <li><strong>4 次教學多年業師 1-on-1 Code/作品批改</strong></li>
-                    <li>專屬 1-on-1 直播診斷連線權限</li>
+                    <li>小班同步直播研討會權限</li>
                     <li>專案求職與接案背書</li>
                   </ul>
                 </div>
@@ -1891,7 +2052,7 @@
                 <div class="t-item">
                   <div class="t-badge">Day 46-90</div>
                   <div class="t-text">
-                    <strong>首批種子學員招募與 1-on-1 個教運行</strong>
+                    <strong>首批種子學員招募與小班運行</strong>
                     <p>利用舊生口碑回饋、FB/LINE 社群推廣，提供「1-on-1 免費體驗 20 分鐘」，達成高轉化率。</p>
                   </div>
                 </div>
@@ -1923,17 +2084,25 @@
           <img src="logos/logonew.png" alt="精五門 PentaSkill" class="modal-logo-img">
         </div>
         <h3 style="margin-top:0.3rem;">學員 / 會員安全登入</h3>
-        <p class="text-sm text-muted">請輸入您的電子郵件帳號與密碼以登入專屬學習專區</p>
+        <p class="text-sm text-muted">輸入電子郵件自動驗證會員身分，登入專屬學習專區</p>
       </div>
 
       <div class="modal-body margin-top-sm">
         <form onsubmit="handleLoginSubmit(event)">
           <div class="form-group">
             <label><i class="fa-solid fa-envelope"></i> 電子郵件 (帳號) <span class="text-pink">*</span></label>
-            <input type="email" id="loginEmail" class="form-control" placeholder="請輸入電子郵件 (例如：student@gmail.com)" required autocomplete="username">
+            <input type="email" id="loginEmail" class="form-control" placeholder="請輸入電子郵件 (例如：student@gmail.com)" required autocomplete="username" oninput="handleLoginEmailInput()">
+            <!-- Email 即時驗證狀態反饋區 -->
+            <div id="loginEmailCheckFeedback" class="margin-top-xs" style="min-height: 20px; font-size: 0.8rem;"></div>
           </div>
+
           <div class="form-group margin-top-sm">
-            <label><i class="fa-solid fa-lock"></i> 登入密碼 <span class="text-pink">*</span></label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="margin-bottom: 0;"><i class="fa-solid fa-lock"></i> 登入密碼 <span class="text-pink">*</span></label>
+              <button type="button" onclick="openForgotPasswordModal()" style="background: none; border: none; color: var(--accent-cyan); font-size: 0.8rem; cursor: pointer; text-decoration: underline; padding: 0;">
+                <i class="fa-solid fa-key"></i> 忘記密碼？
+              </button>
+            </div>
             <div style="position: relative;">
               <input type="password" id="loginPassword" class="form-control" placeholder="請輸入登入密碼" required autocomplete="current-password">
               <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
@@ -1997,8 +2166,11 @@
               <input type="tel" id="registerPhone" class="form-control" placeholder="例如：0912-345-678" required>
             </div>
             <div class="form-group">
-              <label><i class="fa-solid fa-cake-candles text-pink"></i> 生日 <span class="text-pink">*</span></label>
-              <input type="date" id="registerBirthday" class="form-control" required>
+              <label><i class="fa-solid fa-cake-candles text-pink"></i> 出生年月日 (生日) <span class="text-pink">*</span></label>
+              <input type="date" id="registerBirthday" class="form-control" required onchange="handleRegisterBirthdayChange()">
+              <div id="regBirthdayFeedback" class="text-xs margin-top-xs" style="font-size:0.75rem; color:#f472b6; font-weight:600;">
+                🎂 填寫生日：當月壽星註冊立即獲贈 100 元精幣生日禮！
+              </div>
             </div>
           </div>
 
@@ -2006,7 +2178,9 @@
           <div class="grid grid-2 gap-sm margin-top-sm">
             <div class="form-group">
               <label><i class="fa-solid fa-envelope text-cyan"></i> Email (會設為帳號) <span class="text-pink">*</span></label>
-              <input type="email" id="registerEmail" class="form-control" placeholder="例如：student@gmail.com" required autocomplete="username">
+              <input type="email" id="registerEmail" class="form-control" placeholder="例如：student@gmail.com" required autocomplete="username" oninput="handleRegisterEmailInput()">
+              <!-- Email 即時檢查反饋區 -->
+              <div id="registerEmailCheckFeedback" class="margin-top-xs" style="min-height: 18px; font-size: 0.8rem;"></div>
             </div>
             <div class="form-group">
               <label><i class="fa-solid fa-lock text-cyan"></i> 密碼 <span class="text-pink">*</span></label>
@@ -2048,16 +2222,129 @@
     </div>
   </div>
 
+  <!-- MODAL 2C: FORGOT PASSWORD MODAL (忘記密碼 • 收 Mail 驗證碼重設密碼) -->
+  <div id="forgotPasswordModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 460px;">
+      <button class="modal-close" onclick="closeForgotPasswordModal()">&times;</button>
+      <div class="modal-header text-center">
+        <div class="modal-logo-wrapper" style="margin: 0 auto 0.5rem auto; text-align: center;">
+          <div style="width:48px; height:48px; border-radius:50%; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.35); display:inline-flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-key text-purple" style="font-size:1.4rem;"></i>
+          </div>
+        </div>
+        <h3 style="margin-top:0.3rem;">忘記密碼 / 驗證碼重設</h3>
+        <p class="text-xs text-muted">輸入註冊時填寫的電子郵件，系統將發送 6 位數驗證碼至信箱</p>
+      </div>
+
+      <div class="modal-body margin-top-xs">
+        <!-- 步驟 1: 輸入 Email 發送驗證碼 -->
+        <div id="forgotStep1">
+          <form onsubmit="handleSendResetCode(event)">
+            <div class="form-group">
+              <label><i class="fa-solid fa-envelope text-cyan"></i> 會員電子郵件 (帳號) <span class="text-pink">*</span></label>
+              <input type="email" id="forgotEmail" class="form-control" placeholder="請輸入您的 Email (例如：student@gmail.com)" required autocomplete="username" oninput="handleForgotEmailInput()">
+              <div id="forgotEmailFeedback" class="margin-top-xs" style="font-size:0.8rem;"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block margin-top-md" id="btnSendResetCode" style="font-size:1rem; padding:0.65rem 1rem;">
+              <i class="fa-solid fa-paper-plane"></i> 發送 6 位數驗證碼至信箱
+            </button>
+          </form>
+        </div>
+
+        <!-- 步驟 2: 輸入驗證碼與設定新密碼 -->
+        <div id="forgotStep2" style="display: none;">
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 0.75rem; margin-bottom: 1rem;">
+            <div style="font-size: 0.82rem; color: #38bdf8; font-weight: 700;">
+              <i class="fa-solid fa-circle-check"></i> 驗證碼已寄出！
+            </div>
+            <div class="text-xs text-muted" style="margin-top: 0.25rem; line-height: 1.4;">
+              系統已將 6 位數安全驗證碼寄送至 <strong id="forgotSentEmailDisplay" style="color:#fff;">user@gmail.com</strong>，請至信箱查收並於 10 分鐘內輸入。
+            </div>
+            <div id="simulatedCodeBanner" style="margin-top: 0.4rem; padding: 0.35rem 0.5rem; background: rgba(245, 158, 11, 0.15); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 4px; font-size: 0.78rem; color: #fbbf24;">
+              💡 <strong>信件驗證碼</strong>：您的重設驗證碼為 <code style="background:#000; padding:2px 6px; border-radius:4px; font-size:0.95rem; font-weight:700; color:#38bdf8;" id="simulatedCodeText">123456</code>
+            </div>
+          </div>
+
+          <form onsubmit="handleVerifyAndResetPassword(event)">
+            <div class="form-group">
+              <label><i class="fa-solid fa-shield-halved text-cyan"></i> 6 位數驗證碼 <span class="text-pink">*</span></label>
+              <input type="text" id="resetVerifyCode" class="form-control" placeholder="請輸入 6 位數數字驗證碼" required maxlength="6" pattern="[0-9]{6}" style="letter-spacing: 4px; font-size: 1.15rem; text-align: center; font-weight: 700;">
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label><i class="fa-solid fa-lock text-cyan"></i> 設定全新密碼 <span class="text-pink">*</span></label>
+              <div style="position: relative;">
+                <input type="password" id="resetNewPassword" class="form-control" placeholder="請輸入 4 位數以上新密碼" required minlength="4" autocomplete="new-password">
+                <button type="button" onclick="togglePasswordVisibility('resetNewPassword', 'resetNewPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
+                  <i class="fa-solid fa-eye" id="resetNewPasswordToggleIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label><i class="fa-solid fa-lock-open text-cyan"></i> 再次確認新密碼 <span class="text-pink">*</span></label>
+              <div style="position: relative;">
+                <input type="password" id="resetConfirmPassword" class="form-control" placeholder="請再次輸入相同新密碼" required minlength="4" autocomplete="new-password">
+                <button type="button" onclick="togglePasswordVisibility('resetConfirmPassword', 'resetConfirmPasswordToggleIcon')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem;" title="顯示/隱藏密碼">
+                  <i class="fa-solid fa-eye" id="resetConfirmPasswordToggleIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1rem; padding:0.65rem 1rem;">
+              <i class="fa-solid fa-check-double"></i> 驗證驗證碼並完成密碼重設
+            </button>
+
+            <div class="margin-top-sm text-center">
+              <button type="button" class="btn btn-link text-xs text-muted" onclick="resendResetCode()" style="background:none; border:none; color:#94a3b8; cursor:pointer; text-decoration:underline;">
+                <i class="fa-solid fa-rotate-right"></i> 沒收到驗證信？點此重新發送
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="login-footer-action margin-top-md text-center" style="padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.08);">
+          <button type="button" class="btn btn-link text-sm text-cyan font-bold" onclick="switchToLoginModal()" style="background:none; border:none; color:var(--accent-cyan); font-weight:700; cursor:pointer; text-decoration:underline;">
+            <i class="fa-solid fa-arrow-left"></i> 返回會員登入頁面
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL 3: Add/Edit User Account Modal -->
   <div id="addUserModal" class="modal-backdrop">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 580px;">
       <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
       <div class="modal-header">
-        <h3><i class="fa-solid fa-user-gear text-purple"></i> 新增 / 編輯帳號、密碼與點數 (Wen總監專屬)</h3>
+        <h3><i class="fa-solid fa-user-gear text-purple"></i> 新增 / 編輯帳號、密碼與點數 (主管/顧問專屬)</h3>
+        <p class="text-xs text-muted margin-top-xs">管理平台主管、顧問、員工、講師與學員帳密、頭像照片與點數</p>
       </div>
       <div class="modal-body">
         <form onsubmit="handleSaveUser(event)">
           <input type="hidden" id="editUserId">
+
+          <!-- 成員頭像照片上傳與預覽 -->
+          <div class="form-group" style="background: rgba(139, 92, 246, 0.08); border: 1.5px dashed rgba(139, 92, 246, 0.35); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.85rem;">
+            <label style="font-weight:700; font-size:0.88rem; color:#c084fc; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+              <i class="fa-solid fa-camera text-purple"></i> 成員頭像照片上傳與預覽
+            </label>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <img id="userAvatarPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" style="width:68px; height:68px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); box-shadow: 0 0 12px var(--primary-glow); flex-shrink:0;">
+              <div style="flex:1;">
+                <input type="hidden" id="inputUserAvatar" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80">
+                <label class="btn btn-sm btn-outline" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; border-color:var(--primary-light); color:var(--primary-light);">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> 選擇本機照片上傳
+                  <input type="file" id="inputUserAvatarFile" accept="image/*" style="display:none;" onchange="handleUserAvatarUpload(event)">
+                </label>
+                <div class="text-xs text-muted margin-top-xs" style="font-size: 0.72rem;">
+                  預設尺寸 120×120。支援 JPG, PNG, WebP，上傳後即時同步更新頭像。
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label>使用者姓名</label>
             <input type="text" id="inputUserName" class="form-control" placeholder="例如：張營運專員" required>
@@ -2076,10 +2363,31 @@
               <option value="staff">🧑‍💼 營運員工 (可新增修改課程/講師/影片/作品)</option>
               <option value="instructor">👨‍🏫 金牌講師 (看個人預約、上傳講義、修改講師作品)</option>
               <option value="manager">👑 平台主管 (全權限 + 帳號密碼管理 + 薪資審核)</option>
+              <option value="consultant">💼 顧問 (同平台主管全權限 + 帳密管理 + 薪資審核)</option>
               <option value="student">🎓 消費者學員 (僅瀏覽官網與觀看購買課程)</option>
             </select>
           </div>
           
+          <!-- 🏦 薪資發放指定轉帳帳戶 (連動講師與員工月結薪資發放) -->
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.85rem; color: #38bdf8; margin-bottom: 0.4rem;">
+              <i class="fa-solid fa-building-columns"></i> 薪資轉帳帳戶設定 (連動講師/員工月結撥款發放)
+            </div>
+            <div class="grid grid-2 gap-sm">
+              <div class="form-group">
+                <label class="text-xs text-muted">轉帳銀行 (銀行名稱/代碼)</label>
+                <input type="text" id="inputUserBankName" class="form-control text-sm" placeholder="例如：國泰世華 (013) / 玉山銀行 (808)">
+              </div>
+              <div class="form-group">
+                <label class="text-xs text-muted">銀行收款帳號</label>
+                <input type="text" id="inputUserBankAccount" class="form-control text-sm" placeholder="例如：01358899123419482">
+              </div>
+            </div>
+            <div class="text-xs text-muted margin-top-xs" style="font-size: 0.72rem;">
+              💡 填寫後系統將自動連動至該員「月結薪資結算表」與「撥款確認通知信」，確保每月 10 日出帳精準！
+            </div>
+          </div>
+
           <!-- 🪙 精幣與 🏆 精通寶 點數管理 (Wen總監設定) -->
           <div class="grid grid-2 gap-sm margin-top-sm">
             <div class="form-group">
@@ -2093,7 +2401,84 @@
           </div>
 
           <button type="submit" class="btn btn-primary btn-block margin-top-md">
-            儲存帳號密碼與點數設定
+            儲存帳號密碼、頭像、薪資帳戶與點數設定
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3B: Add/Edit Instructor Modal (金牌講師師資管理與頭像照片上傳) -->
+  <div id="addInstructorModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 600px;">
+      <button class="modal-close" onclick="closeAddInstructorModal()">&times;</button>
+      <div class="modal-header">
+        <h3 id="addInstructorModalTitle"><i class="fa-solid fa-chalkboard-user text-cyan"></i> 新增 / 編輯金牌講師師資資料</h3>
+        <p class="text-xs text-muted margin-top-xs">設定講師姓名、職稱、專業年資、鐘點單價與頭像照片</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveInstructor(event)">
+          <input type="hidden" id="editInstId">
+          
+          <!-- 講師頭像照片上傳與預覽 -->
+          <div class="form-group" style="background: rgba(14, 165, 233, 0.08); border: 1.5px dashed rgba(14, 165, 233, 0.35); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.85rem;">
+            <label style="font-weight:700; font-size:0.88rem; color:#38bdf8; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+              <i class="fa-solid fa-camera text-cyan"></i> 講師頭像照片上傳與預覽
+            </label>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <img id="instAvatarPreview" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80" style="width:68px; height:68px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-cyan); box-shadow: 0 0 12px rgba(14, 165, 233, 0.4); flex-shrink:0;">
+              <div style="flex:1;">
+                <input type="hidden" id="inputInstAvatar" value="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80">
+                <label class="btn btn-sm btn-outline" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; border-color:var(--accent-cyan); color:var(--accent-cyan);">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> 選擇本機照片上傳
+                  <input type="file" id="inputInstAvatarFile" accept="image/*" style="display:none;" onchange="handleInstAvatarUpload(event)">
+                </label>
+                <div class="text-xs text-muted margin-top-xs" style="font-size:0.72rem;">
+                  預設尺寸 120×120。上傳後即時同步官網師資陣容、名師畫廊與預約教室。
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm">
+            <div class="form-group">
+              <label>講師姓名 (例如：張哲銘) <span class="text-pink">*</span></label>
+              <input type="text" id="inputInstName" class="form-control" placeholder="張哲銘 (Ethan)" required>
+            </div>
+            <div class="form-group">
+              <label>特色標籤 (Tag)</label>
+              <input type="text" id="inputInstTag" class="form-control" placeholder="型男架構師 / 設計女神">
+            </div>
+          </div>
+
+          <div class="grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>專屬職稱領域 <span class="text-pink">*</span></label>
+              <input type="text" id="inputInstRole" class="form-control" placeholder="例如：Full-Stack & AI 技術專家" required>
+            </div>
+            <div class="form-group">
+              <label>1-on-1 個教鐘點費 (NT$) <span class="text-pink">*</span></label>
+              <input type="text" id="inputInstRate" class="form-control" placeholder="NT$ 2,000 / hr" required>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>專業資歷說明</label>
+            <input type="text" id="inputInstExp" class="form-control" placeholder="例如：近10年教育體系金牌講師 • 1850+ 學員好評">
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>專長技能 (以逗號分隔)</label>
+            <input type="text" id="inputInstSkills" class="form-control" placeholder="React 19, Node.js, AI Agent, Next.js">
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>導師金句與教學理念</label>
+            <textarea id="inputInstQuote" class="form-control" rows="2" placeholder="不只寫出能動的代碼，更帶你理解底層架構..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存講師資料與照片
           </button>
         </form>
       </div>
@@ -2186,6 +2571,511 @@
       <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
       <div id="checkoutModalBody">
         <!-- Dynamically rendered by openConsultLineModal / openCheckoutModal -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit 1-on-1 Booking Schedule Modal (Wen總監 & 員工專屬 CMS) -->
+  <div id="adminBookingModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 600px;">
+      <button class="modal-close" onclick="closeAdminBookingModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-calendar-check"></i> 1-on-1 排班管理</span>
+        </div>
+        <h3 id="adminBookingModalTitle" style="margin-top:0.4rem;"><i class="fa-solid fa-calendar-days text-purple"></i> 新增 / 修改講師個教排班與預約</h3>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveAdminBooking(event)">
+          <input type="hidden" id="editAdminBookingId">
+          
+          <div class="form-row grid grid-2 gap-sm">
+            <div class="form-group">
+              <label>指定金牌講師 <span class="text-pink">*</span></label>
+              <select id="adminBookingInstructor" class="form-control" required>
+                <option value="張哲銘 (Ethan)">張哲銘 (Ethan) — Full-Stack & AI</option>
+                <option value="陳婷俐 (Tina)">陳婷俐 (Tina) — UI/UX 設計總監</option>
+                <option value="歐陽翔 (Shawn)">歐陽翔 (Shawn) — Python 數據 AI</option>
+                <option value="林雅涵 (Hannah)">林雅涵 (Hannah) — 影音創作行銷</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>預約狀態 <span class="text-pink">*</span></label>
+              <select id="adminBookingStatus" class="form-control" required>
+                <option value="已預約">已預約 (已鎖定時段)</option>
+                <option value="已改期">已改期 (時段已更新)</option>
+                <option value="已完成">已完成 (已授課完畢)</option>
+                <option value="已取消">已取消 (時段已釋出)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>學員姓名 <span class="text-pink">*</span></label>
+              <input type="text" id="adminBookingStudentName" class="form-control" placeholder="例如：林小明" required>
+            </div>
+            <div class="form-group">
+              <label>學員 Email <span class="text-pink">*</span></label>
+              <input type="email" id="adminBookingStudentEmail" class="form-control" placeholder="student@pentaskill.com" required>
+            </div>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>預約日期 <span class="text-pink">*</span></label>
+              <input type="date" id="adminBookingDate" class="form-control" value="2026-09-08" min="2026-09-08" required>
+            </div>
+            <div class="form-group">
+              <label>預約時段 (1小時) <span class="text-pink">*</span></label>
+              <select id="adminBookingSlotTime" class="form-control" required>
+                <option value="14:00 - 15:00">14:00 - 15:00</option>
+                <option value="15:30 - 16:30">15:30 - 16:30</option>
+                <option value="19:00 - 20:00">19:00 - 20:00</option>
+                <option value="20:30 - 21:30">20:30 - 21:30</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>輔導主題名稱</label>
+              <input type="text" id="adminBookingTopic" class="form-control" placeholder="例如：專案作品 1 對 1 精準批改與架構診斷 (1小時)" value="專案作品 1 對 1 精準批改與架構診斷 (1小時)">
+            </div>
+            <div class="form-group">
+              <label>個教鐘點費 (NT$)</label>
+              <input type="number" id="adminBookingFee" class="form-control" placeholder="1800" value="1800">
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>學員需求筆記 / 備註</label>
+            <textarea id="adminBookingNotes" class="form-control" rows="2" placeholder="備註學員想問的問題或 GitHub / Figma 連結..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1rem; padding:0.65rem 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存個教排班資料並即時同步
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 1-on-1 Reschedule Booking Modal (48小時前線上改期專用) -->
+  <div id="rescheduleBookingModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="closeRescheduleModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-calendar-pen"></i> 48 小時前線上預約改期</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-clock-rotate-left text-purple"></i> 變更 1-on-1 個教時段</h3>
+        <p class="text-xs text-muted margin-top-xs">依契約規範，距上課時間 48 小時前可免費線上異動時段，新時段將即時鎖定並同步講師！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveReschedule(event)">
+          <input type="hidden" id="rescheduleBookingId">
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;" class="text-xs">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
+              <span class="text-muted">預約講師：</span>
+              <strong class="text-cyan" id="rescheduleInstName">張哲銘 (Ethan)</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span class="text-muted">原定時間：</span>
+              <strong class="text-pink" id="rescheduleOldTime">2026-09-11 (14:00 - 15:00)</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-calendar-day text-cyan"></i> 選擇異動後的新日期 (防呆限制：須為 48 小時後)</label>
+            <input type="date" id="rescheduleNewDate" class="form-control" onchange="updateRescheduleSlots()" required>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-regular fa-clock text-purple"></i> 選擇新時段 (已被預約時段自動防呆鎖定)</label>
+            <div class="slots-grid margin-top-xs" id="rescheduleSlotsGrid">
+
+  <!-- MODAL: Add/Edit Mentor Salary Settlement Modal (Wen總監專屬 CMS) -->
+  <div id="editSalaryModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 620px;">
+      <button class="modal-close" onclick="closeEditSalaryModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-green" style="font-size:0.75rem;"><i class="fa-solid fa-file-invoice-dollar"></i> 薪資分潤管理</span>
+        </div>
+        <h3 id="editSalaryModalTitle" style="margin-top:0.4rem;"><i class="fa-solid fa-calculator text-green"></i> 編輯講師月結薪資單</h3>
+        <p class="text-xs text-muted margin-top-xs">月結規範：錄播課程依營收 20% 分潤 (2:8分) ＋ 1-on-1 個教鐘點 100% 全額發放！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveMentorSalary(event)">
+          <input type="hidden" id="editSalaryId">
+          
+          <div class="form-row grid grid-2 gap-sm">
+            <div class="form-group">
+              <label>講師姓名 <span class="text-pink">*</span></label>
+              <input type="text" id="salaryMentorName" class="form-control" placeholder="張哲銘 (Ethan)" required>
+            </div>
+            <div class="form-group">
+              <label>專業領域頭銜 <span class="text-pink">*</span></label>
+              <input type="text" id="salaryMentorRole" class="form-control" placeholder="Full-Stack & AI 技術專家" required>
+            </div>
+          </div>
+
+          <div style="background: rgba(139, 92, 246, 0.08); border: 1.5px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+              <div style="font-weight:700; font-size:0.88rem; color:#d8b4fe;">
+                <i class="fa-solid fa-video text-purple"></i> 1. 該講師名下錄播課程銷售明細 (各課定價 × 當月售出堂數)
+              </div>
+              <button type="button" class="btn btn-xs btn-outline" onclick="addCourseRowToSalaryModal()" style="font-size:0.75rem; padding:2px 8px; border-color:#c084fc; color:#c084fc;">
+                <i class="fa-solid fa-plus"></i> 加錄播課
+              </button>
+            </div>
+            
+            <div id="salaryModalCoursesList" style="display:flex; flex-direction:column; gap:0.5rem;">
+              <!-- JS populated course item rows -->
+            </div>
+
+            <div class="text-xs margin-top-sm" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.35); padding:0.6rem 0.85rem; border-radius:4px; border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:0.4rem;">
+              <span>當月售出總數：<strong id="salaryModalTotalSold" class="text-cyan">0 門</strong> | 個人錄播總營收：<strong id="salaryModalTotalRevenue" class="text-purple">NT$ 0</strong></span>
+              <span style="color:#fbbf24; font-size:0.88rem;">錄播 2 成分潤 (20%)：<strong>NT$ <span id="salaryCalcRecorded">0</span></strong></span>
+            </div>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;">
+            <div style="font-weight:700; font-size:0.85rem; color:#34d399; margin-bottom:0.5rem;">
+              <i class="fa-solid fa-user-tie text-green"></i> 2. 1-on-1 個教鐘點費 (100% 全額發放 • 是多少給多少)
+            </div>
+            <div class="form-row grid grid-2 gap-sm">
+              <div class="form-group">
+                <label class="text-xs text-muted">單場個教鐘點費 (NT$/hr)</label>
+                <input type="number" id="salaryCoachingRate" class="form-control" placeholder="1800" value="1800" oninput="calculateSalaryModalTotal()" required>
+              </div>
+              <div class="form-group">
+                <label class="text-xs text-muted">本月完成個教場次 (堂)</label>
+                <input type="number" id="salaryCoachingCompleted" class="form-control" placeholder="18" value="18" oninput="calculateSalaryModalTotal()" required>
+              </div>
+            </div>
+            <div class="text-xs text-muted margin-top-xs" style="display:flex; justify-content:space-between;">
+              <span>發放比例：<strong>100% 全額無抽成</strong></span>
+              <span style="color:#34d399;">個教鐘點小計：<strong>NT$ <span id="salaryCalcCoaching">32,400</span></strong></span>
+            </div>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>額外獎金 / 補貼金額 (NT$)</label>
+              <input type="number" id="salaryBonus" class="form-control" placeholder="0" value="0" oninput="calculateSalaryModalTotal()">
+            </div>
+            <div class="form-group">
+              <label>獎金補貼事由 / 備註</label>
+              <input type="text" id="salaryBonusNote" class="form-control" placeholder="例如：新教材上架獎勵">
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>撥款發放狀態 <span class="text-pink">*</span></label>
+            <select id="salaryStatus" class="form-control" required>
+              <option value="待審核撥款">⏳ 待審核撥款 (尚未匯出)</option>
+              <option value="已撥款完成">✅ 已撥款完成 (已轉帳發放)</option>
+            </select>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight:700; color:#fff; font-size:1rem;">💰 本月實發薪資總額：</span>
+            <strong class="text-green" style="font-size:1.35rem;">NT$ <span id="salaryCalcTotal">51,520</span></strong>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1rem; padding:0.65rem 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存講師月結薪資並即時更新
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Mentor Payout Confirmation & LINE/Email Notification Center (主管/顧問專屬) -->
+  <div id="payoutConfirmModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 650px;">
+      <button class="modal-close" onclick="closePayoutConfirmModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-green" style="font-size:0.75rem;"><i class="fa-solid fa-money-bill-transfer"></i> 薪資撥款中心</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-file-invoice-dollar text-green"></i> 講師月結薪資撥款確認與入帳通知</h3>
+        <p class="text-xs text-muted margin-top-xs">固定於 <strong>每月 10 日</strong> 由平台主管/顧問審核確認後撥款，並發送 LINE / Email 提醒老師核對入帳！</p>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="payoutModalSalaryId">
+        
+        <!-- 撥款基本資料卡片 -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 1rem;">
+          <div class="flex-between">
+            <div>
+              <strong id="payoutModalMentorName" class="text-purple" style="font-size:1.15rem;">張哲銘 (Ethan)</strong>
+              <div id="payoutModalMentorRole" class="text-xs text-muted" style="margin-top:2px;">Full-Stack & AI 技術專家</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="text-xs text-muted">本月實發撥款總額</span>
+              <div id="payoutModalTotalSalary" class="text-green" style="font-size:1.45rem; font-weight:800;">NT$ 51,632</div>
+            </div>
+          </div>
+          <hr class="dropdown-divider" style="margin: 0.65rem 0;">
+          <div class="grid grid-2 gap-xs text-xs" style="color:var(--text-muted);">
+            <div><i class="fa-solid fa-building-columns text-cyan"></i> 指定撥款銀行：<strong id="payoutModalBankName" style="color:#fff;">玉山銀行 (808)</strong></div>
+            <div><i class="fa-solid fa-credit-card text-cyan"></i> 收款帳號末5碼：<strong id="payoutModalBankAccount" style="color:#fff;">******58923</strong></div>
+          </div>
+        </div>
+
+        <!-- 撥款操作與註記 -->
+        <div class="margin-top-md" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 0.85rem;">
+          <div style="font-weight:700; font-size:0.88rem; color:#fff; margin-bottom:0.5rem;">
+            <i class="fa-solid fa-clipboard-check text-yellow"></i> 1. 撥款出帳註記 (確認銀行轉帳狀態)
+          </div>
+          <div class="form-row grid grid-2 gap-sm">
+            <div class="form-group">
+              <label class="text-xs text-muted">撥款方式</label>
+              <select id="payoutMethodSelect" class="form-control" style="font-size:0.85rem;">
+                <option value="企業網銀整批薪轉">企業網銀整批薪轉 (玉山/國泰/台新)</option>
+                <option value="手動跨行網銀轉帳">手動跨行網銀轉帳 (已轉出)</option>
+                <option value="LINE Pay 商業轉帳">LINE Pay 商業轉帳</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="text-xs text-muted">轉帳交易流水號 / 備註 (選填)</label>
+              <input type="text" id="payoutTxnRef" class="form-control" placeholder="例如：TXN-20260810-01" style="font-size:0.85rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- LINE / Email 入帳通知文案預覽與複製 -->
+        <div class="margin-top-md">
+          <div class="flex-between margin-bottom-xs">
+            <label style="font-weight:700; font-size:0.88rem; color:#d8b4fe;">
+              <i class="fa-brands fa-line text-green"></i> 2. 講師入帳通知信文案 (LINE / Email 專用)
+            </label>
+            <div class="flex-center gap-xs">
+              <button type="button" class="btn btn-xs btn-outline" onclick="copyMentorPayoutNotice('line')" style="border-color:#06C755; color:#06C755; font-size:0.75rem; padding:3px 8px;">
+                <i class="fa-brands fa-line"></i> 複製 LINE 文案
+              </button>
+              <button type="button" class="btn btn-xs btn-outline" onclick="copyMentorPayoutNotice('email')" style="border-color:#38bdf8; color:#38bdf8; font-size:0.75rem; padding:3px 8px;">
+                <i class="fa-solid fa-envelope"></i> 複製 Email 文案
+              </button>
+            </div>
+          </div>
+          <textarea id="payoutNoticePreviewText" class="form-control" rows="7" style="font-size:0.8rem; font-family:monospace; line-height:1.45; background:rgba(0,0,0,0.5); color:#e2e8f0;" readonly></textarea>
+        </div>
+
+        <div class="flex-between margin-top-md" style="gap:0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="closePayoutConfirmModal()" style="flex:1;">
+            關閉
+          </button>
+          <button type="button" class="btn btn-primary" onclick="confirmExecutePayout()" style="flex:2; font-size:0.95rem;">
+            <i class="fa-solid fa-check-double"></i> 確認撥款完成並標記已發放
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Staff Salary Management Modal (主管/顧問專屬) -->
+  <div id="editStaffModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="closeEditStaffModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan" style="font-size:0.75rem;"><i class="fa-solid fa-users-gear"></i> 團隊薪資管理</span>
+        </div>
+        <h3 style="margin-top:0.4rem;" id="editStaffModalTitle"><i class="fa-solid fa-user-pen text-cyan"></i> 編輯員工薪資單</h3>
+        <p class="text-xs text-muted margin-top-xs">發放員工薪資將同步自「平台最終淨利」扣除，即時維持財務精準！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveStaffSalary(event)">
+          <input type="hidden" id="editStaffId">
+          
+          <div class="form-row grid grid-2 gap-sm">
+            <div class="form-group">
+              <label>員工姓名 <span class="text-pink">*</span></label>
+              <input type="text" id="staffName" class="form-control" placeholder="例如：張雅涵" required>
+            </div>
+            <div class="form-group">
+              <label>職位角色 <span class="text-pink">*</span></label>
+              <input type="text" id="staffRole" class="form-control" placeholder="例如：營運企劃主管" required>
+            </div>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>基本月薪 / 底薪 (NT$) <span class="text-pink">*</span></label>
+              <input type="number" id="staffBaseSalary" class="form-control" value="38000" oninput="calculateStaffModalTotal()" required>
+            </div>
+            <div class="form-group">
+              <label>績效獎金 / 津貼 (NT$)</label>
+              <input type="number" id="staffBonus" class="form-control" value="0" oninput="calculateStaffModalTotal()">
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>獎金事由備註</label>
+            <input type="text" id="staffBonusNote" class="form-control" placeholder="例如：新課程上架與轉換達標獎勵">
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>發放狀態</label>
+            <select id="staffStatus" class="form-control">
+              <option value="待發放">⏳ 待發放</option>
+              <option value="已發放">✅ 已發放</option>
+            </select>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight:700; color:#fff; font-size:0.95rem;">🧑‍💼 本月實發薪資總額：</span>
+            <strong class="text-cyan" style="font-size:1.35rem;">NT$ <span id="staffCalcTotal">38,000</span></strong>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1rem; padding:0.65rem 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存員工薪資單
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Staff Payout Confirmation & LINE/Email Notification Center (主管/顧問專屬) -->
+  <div id="staffPayoutConfirmModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 650px;">
+      <button class="modal-close" onclick="closeStaffPayoutConfirmModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan" style="font-size:0.75rem;"><i class="fa-solid fa-money-bill-transfer"></i> 員工薪資發放中心</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-file-invoice-dollar text-cyan"></i> 團隊夥伴薪資發放確認與入帳通知</h3>
+        <p class="text-xs text-muted margin-top-xs">固定於 <strong>每月 10 日</strong> 由平台主管/顧問審核發放，並發送 LINE / Email 提醒夥伴核對入帳！</p>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="staffPayoutModalStaffId">
+        
+        <!-- 發放基本資料卡片 -->
+        <div style="background: rgba(56, 189, 248, 0.08); border: 1.5px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 1rem;">
+          <div class="flex-between">
+            <div>
+              <strong id="staffPayoutModalName" class="text-cyan" style="font-size:1.15rem;">張雅涵</strong>
+              <div id="staffPayoutModalRole" class="text-xs text-muted" style="margin-top:2px;">營運企劃與教務主管</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="text-xs text-muted">本月實發薪資總額</span>
+              <div id="staffPayoutModalTotalSalary" class="text-green" style="font-size:1.45rem; font-weight:800;">NT$ 41,000</div>
+            </div>
+          </div>
+          <hr class="dropdown-divider" style="margin: 0.65rem 0;">
+          <div class="grid grid-2 gap-xs text-xs" style="color:var(--text-muted);">
+            <div><i class="fa-solid fa-building-columns text-cyan"></i> 指定薪轉銀行：<strong id="staffPayoutModalBankName" style="color:#fff;">國泰世華 (013)</strong></div>
+            <div><i class="fa-solid fa-credit-card text-cyan"></i> 收款帳號末5碼：<strong id="staffPayoutModalBankAccount" style="color:#fff;">******19482</strong></div>
+          </div>
+        </div>
+
+        <!-- 發放操作與註記 -->
+        <div class="margin-top-md" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 0.85rem;">
+          <div style="font-weight:700; font-size:0.88rem; color:#fff; margin-bottom:0.5rem;">
+            <i class="fa-solid fa-clipboard-check text-yellow"></i> 1. 薪資出帳註記 (確認銀行薪轉狀態)
+          </div>
+          <div class="form-row grid grid-2 gap-sm">
+            <div class="form-group">
+              <label class="text-xs text-muted">發放方式</label>
+              <select id="staffPayoutMethodSelect" class="form-control" style="font-size:0.85rem;">
+                <option value="企業網銀整批薪轉">企業網銀整批薪轉 (玉山/國泰/台新)</option>
+                <option value="手動跨行網銀轉帳">手動跨行網銀轉帳 (已轉出)</option>
+                <option value="LINE Pay 商業轉帳">LINE Pay 商業轉帳</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="text-xs text-muted">轉帳交易流水號 / 備註 (選填)</label>
+              <input type="text" id="staffPayoutTxnRef" class="form-control" placeholder="例如：STAFF-20260810-01" style="font-size:0.85rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- LINE / Email 入帳通知文案預覽與複製 -->
+        <div class="margin-top-md">
+          <div class="flex-between margin-bottom-xs">
+            <label style="font-weight:700; font-size:0.88rem; color:#38bdf8;">
+              <i class="fa-brands fa-line text-green"></i> 2. 夥伴入帳通知信文案 (LINE / Email 專用)
+            </label>
+            <div class="flex-center gap-xs">
+              <button type="button" class="btn btn-xs btn-outline" onclick="copyStaffPayoutNotice('line')" style="border-color:#06C755; color:#06C755; font-size:0.75rem; padding:3px 8px;">
+                <i class="fa-brands fa-line"></i> 複製 LINE 文案
+              </button>
+              <button type="button" class="btn btn-xs btn-outline" onclick="copyStaffPayoutNotice('email')" style="border-color:#38bdf8; color:#38bdf8; font-size:0.75rem; padding:3px 8px;">
+                <i class="fa-solid fa-envelope"></i> 複製 Email 文案
+              </button>
+            </div>
+          </div>
+          <textarea id="staffPayoutNoticePreviewText" class="form-control" rows="7" style="font-size:0.8rem; font-family:monospace; line-height:1.45; background:rgba(0,0,0,0.5); color:#e2e8f0;" readonly></textarea>
+        </div>
+
+        <div class="flex-between margin-top-md" style="gap:0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeStaffPayoutConfirmModal()" style="flex:1;">
+            關閉
+          </button>
+          <button type="button" class="btn btn-primary" onclick="confirmExecuteStaffPayout()" style="flex:2; font-size:0.95rem;">
+            <i class="fa-solid fa-check-double"></i> 確認發放完成並標記已發放
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Platform Expense Management Modal (Wen總監專屬) -->
+  <div id="editExpenseModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 520px;">
+      <button class="modal-close" onclick="closeEditExpenseModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-server"></i> 運營花費管理</span>
+        </div>
+        <h3 style="margin-top:0.4rem;" id="editExpenseModalTitle"><i class="fa-solid fa-receipt text-purple"></i> 編輯平台花費項目</h3>
+        <p class="text-xs text-muted margin-top-xs">記錄伺服器、串流、金流與行銷支出，即時扣除產出真實平台淨利！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSavePlatformExpense(event)">
+          <input type="hidden" id="editExpenseId">
+          
+          <div class="form-group">
+            <label>支出項目名稱 <span class="text-pink">*</span></label>
+            <input type="text" id="expenseName" class="form-control" placeholder="例如：Cloudflare Stream 影音串流" required>
+          </div>
+
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>費用類別</label>
+              <select id="expenseCategory" class="form-control">
+                <option value="伺服器與主機">伺服器與主機</option>
+                <option value="金流與稅務">金流與稅務</option>
+                <option value="行銷廣告">行銷廣告</option>
+                <option value="工具軟體">工具軟體與 API</option>
+                <option value="其他雜支">其他雜支</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>每月金額 (NT$) <span class="text-pink">*</span></label>
+              <input type="number" id="expenseAmount" class="form-control" value="3500" required>
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>計費週期</label>
+            <input type="text" id="expenseCycle" class="form-control" value="月繳" placeholder="例如：月繳 / 月結 / 季繳">
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>用途與備註說明</label>
+            <input type="text" id="expenseNotes" class="form-control" placeholder="例如：錄播課程高畫質串流播放">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1rem; padding:0.65rem 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存花費項目
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -2404,43 +3294,6 @@
           </div>
         </div>
 
-        <!-- 肆、其他條款 -->
-        <div class="terms-section">
-          <h4 style="color: #fb7185; font-size: 1.05rem; border-bottom: 1px solid rgba(251, 113, 133, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-scale-balanced"></i> 肆、其他條款
-          </h4>
-
-          <div style="margin-bottom: 0.85rem;">
-            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十條、退款手續與作業時間</strong>
-            <p style="margin: 0 0 0.4rem 0;">1. 符合退費條件之申請，學員應以正式電子郵件（platform@pentaskill.com）或官方客服管道提出申請。</p>
-            <p style="margin: 0;">2. 本公司審核核可後，將於 15 至 30 個工作天內，扣除跨行轉帳手續費後，匯款至學員指定之本人帳戶。</p>
-          </div>
-
-          <div>
-            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十一條、條款修訂與管轄法院</strong>
-            <p style="margin: 0 0 0.4rem 0;">1. 本公司保留隨時修改、增刪本條款之權利，修改後之條款公佈於本平台網站即行生效。學員於條款修訂後繼續使用本服務者，視同同意修改後之內容。</p>
-            <p style="margin: 0;">2. 本條款之解釋與適用均依中華民國法律為準據法。因本服務所生之任何爭議，雙方合意以<strong>臺灣臺北地方法院</strong>為第一審管轄法院。</p>
-          </div>
-
-          <div style="text-align: right; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
-            <strong>精五門 保留本條款之最終解釋與修訂權利</strong>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.85rem; margin-top: 0.75rem;">
-        <button type="button" class="btn btn-primary btn-block" onclick="acceptTermsAndClose()" style="font-size: 1rem; padding: 0.75rem 1rem;">
-          <i class="fa-solid fa-circle-check"></i> 我已閱讀並同意本條款（勾選並返回結帳）
-        </button>
-        <button type="button" class="btn btn-outline btn-block btn-sm margin-top-xs" onclick="closeTermsModal()" style="border-color: rgba(255,255,255,0.2); color: var(--text-muted);">
-          關閉條款視窗
-        </button>
-      </div>
-
-    </div>
-  </div>
-
   <!-- MODAL 11: Comprehensive Lead Form Modal (無 LINE / 偏好網頁留訊專用) -->
   <div id="leadFormModal" class="modal-backdrop">
     <div class="modal-box" style="max-width: 680px;">
@@ -2539,6 +3392,21 @@
             <textarea id="leadNotes" class="form-control" rows="2" placeholder="例如：希望了解課程內容細節？或是方便聯絡的時間..."></textarea>
           </div>
 
+          <!-- 🎁 推薦介紹人專屬好禮 (介紹人與被介紹人各獲 200 精幣折抵金) -->
+          <div class="referral-input-box margin-top-sm" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(236, 72, 153, 0.12) 100%); border: 1.5px dashed rgba(245, 158, 11, 0.45); border-radius: var(--radius-sm); padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <label style="font-weight: 700; color: #fbbf24; font-size: 0.88rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-gift text-pink"></i> 推薦介紹人 (選填 • 雙方各享 200 精幣折抵金！)
+              </label>
+              <span class="badge-tag bg-pink" style="font-size:0.7rem; padding: 2px 6px;">各贈 200 精幣</span>
+            </div>
+            <input type="text" id="leadReferrer" class="form-control text-sm" placeholder="請填寫介紹您的親朋好友之「姓名、電話或 Email」">
+            <div id="leadReferrerAutoNotice" class="text-xs margin-top-xs" style="display:none; color: #34d399; font-weight: 600; padding: 4px 8px; background: rgba(52, 211, 153, 0.12); border-radius: 4px; border: 1px solid rgba(52, 211, 153, 0.3);"></div>
+            <div class="text-xs text-muted margin-top-xs" style="font-size:0.75rem; color: #e2e8f0; line-height: 1.4;">
+              💡 只要填寫介紹人，<strong>您與介紹人均可立即各獲贈 200 元精幣折抵金</strong>（1幣=NT$1，購課與預約個教直接現抵）！
+            </div>
+          </div>
+
           <div class="line-consult-box margin-top-sm" style="padding:0.6rem 0.8rem;">
             <div class="text-xs text-muted">
               <i class="fa-solid fa-circle-check text-green"></i> 我們收到了！專屬小編將盡快與您聯絡！
@@ -2553,6 +3421,73 @@
     </div>
   </div>
 
+  <!-- MODAL: Referral Share Modal (推薦親朋好友 • 雙方各贈 200 精幣) -->
+  <div id="referralShareModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 620px;">
+      <button class="modal-close" onclick="closeReferralShareModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-pink" style="font-size:0.75rem;"><i class="fa-solid fa-gift"></i> 好友推薦雙重送</span>
+          <span class="badge-tag bg-yellow" style="font-size:0.75rem;"><i class="fa-solid fa-coins"></i> 雙方各得 200 精幣</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-plus text-pink"></i> 推薦親朋好友 • 共享 400 元精幣獎勵</h3>
+        <p class="text-xs text-muted margin-top-xs">邀請好友填寫諮詢問卷或加入學習，只要好友在問卷填寫您的姓名/電話/Email，<strong>您與好友立即各獲 200 元精幣折抵金</strong>！</p>
+      </div>
+      <div class="modal-body">
+        <!-- 好禮說明卡片 -->
+        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem;">
+          <div style="display:flex; align-items:center; justify-content:space-around; text-align:center;">
+            <div>
+              <div style="font-size:1.8rem;">🎁</div>
+              <div style="font-weight:700; color:#fbbf24; font-size:0.95rem; margin-top:2px;">推薦人 (你)</div>
+              <div class="text-green" style="font-weight:800; font-size:1.15rem;">+200 精幣</div>
+            </div>
+            <div style="font-size:1.5rem; color:var(--text-muted); font-weight:300;">+</div>
+            <div>
+              <div style="font-size:1.8rem;">🎓</div>
+              <div style="font-weight:700; color:#f472b6; font-size:0.95rem; margin-top:2px;">被推薦好友</div>
+              <div class="text-green" style="font-weight:800; font-size:1.15rem;">+200 精幣</div>
+            </div>
+          </div>
+          <div class="text-xs text-center margin-top-sm" style="color:#e2e8f0; border-top:1px dashed rgba(255,255,255,0.15); padding-top:0.5rem;">
+            🪙 精幣 1 幣 = NT$ 1 元，購買全站實戰課程與 1 對 1 業師指導時可直接無門檻折抵！
+          </div>
+        </div>
+
+        <!-- 推薦人身分標記 -->
+        <div class="form-group">
+          <label class="text-xs text-muted"><i class="fa-solid fa-id-badge text-cyan"></i> 您的推薦身分標記 (好友填問卷時填入此資訊)</label>
+          <input type="text" id="referralSenderIdInput" class="form-control text-sm" value="林小明 (student@pentaskill.com)" placeholder="請輸入您的姓名、電話或 Email" oninput="updateReferralSharePreview()">
+        </div>
+
+        <!-- 專屬推薦文案預覽 -->
+        <div class="form-group margin-top-sm">
+          <div class="flex-between margin-bottom-xs">
+            <label class="text-xs text-muted"><i class="fa-brands fa-line text-green"></i> 專屬邀請文案預覽 (已帶入您的專屬推薦標記)</label>
+            <span class="text-xs text-yellow">可直接複製發送至 LINE / FB / 微信</span>
+          </div>
+          <textarea id="referralShareMsgText" class="form-control" rows="6" style="font-size:0.8rem; font-family:monospace; line-height:1.45; background:rgba(0,0,0,0.5); color:#e2e8f0;" readonly></textarea>
+        </div>
+
+        <!-- 操作按鈕群 -->
+        <div class="grid grid-2 gap-sm margin-top-md">
+          <button type="button" class="btn btn-primary" onclick="copyReferralInviteText()" style="background:linear-gradient(135deg, #f59e0b, #ec4899); font-size:0.92rem;">
+            <i class="fa-solid fa-copy"></i> 一鍵複製邀請文案與連結
+          </button>
+          <button type="button" class="btn btn-line" onclick="shareReferralViaLine()" style="font-size:0.92rem;">
+            <i class="fa-brands fa-line"></i> LINE 一鍵分享給好友
+          </button>
+        </div>
+
+        <div style="text-align:center; margin-top:0.75rem;">
+          <button type="button" class="btn btn-link text-cyan" onclick="closeReferralShareModal(); openLeadFormModal();" style="font-size:0.82rem; text-decoration:underline;">
+            <i class="fa-solid fa-file-pen"></i> 想幫好友直接代填諮詢表單？點此開啟問卷
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL 12: Add / Edit Custom Student Quote Modal (CMS) -->
   <div id="customQuoteModal" class="modal-backdrop">
     <div class="modal-box">
@@ -2562,7 +3497,7 @@
           <span class="badge-tag bg-cyan" style="font-size:0.75rem;"><i class="fa-solid fa-cloud-arrow-up"></i> Google Sheet 雲端同步</span>
         </div>
         <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-file-invoice text-cyan"></i> 設定學員專屬報價單與結帳金額</h3>
-        <p class="text-xs text-muted margin-top-xs">Wen總監與員工設定後，學員在「報名結帳」畫面看到的課程名稱與金額將自動更新，並即時備份至 Google Sheet【學員客製化報價單】分頁。</p>
+        <p class="text-xs text-muted margin-top-xs">主管、顧問與員工設定後，學員在「報名結帳」畫面看到的課程名稱與金額將自動更新，並即時備份至 Google Sheet【學員客製化報價單】分頁。</p>
       </div>
       <div class="modal-body">
         <form onsubmit="handleSaveCustomQuote(event)">
@@ -2671,7 +3606,7 @@
       <button class="modal-close" onclick="closeCloudflareStreamModal()">&times;</button>
       <div class="modal-header">
         <h3><i class="fa-solid fa-cloud-arrow-up text-cyan"></i> Cloudflare Stream 影片串接與防下載 DRM 設定</h3>
-        <p class="text-xs text-muted margin-top-xs">👑 專屬 Wen總監與營運團隊設定：管理影片 Secure Token 驗證與單元 Cloudflare Stream ID</p>
+        <p class="text-xs text-muted margin-top-xs">👑 專屬主管、顧問與營運團隊設定：管理影片 Secure Token 驗證與單元 Cloudflare Stream ID</p>
       </div>
       <div class="modal-body">
         <form onsubmit="handleSaveCloudflareConfig(event)">
@@ -2736,7 +3671,7 @@
         <div style="background: rgba(8, 145, 178, 0.08); border-left: 4px solid var(--accent-cyan); padding: 0.85rem; border-radius: 4px; margin-bottom: 1.15rem;" class="text-xs">
           <strong class="text-cyan">💡 免登入 • 專屬快速通道：</strong><br>
           <span style="color: var(--text-muted); line-height: 1.5; display: inline-block; margin-top: 0.2rem;">
-            系統將即時比對 Wen總監 為您設定的專屬特惠方案與金額，查出後直接進入結帳畫面，付款完成 3 分鐘內自動開通學習中心權限！
+            系統將即時比對為您設定的專屬特惠方案與金額，查出後直接進入結帳畫面，付款完成 3 分鐘內自動開通學習中心權限！
           </span>
         </div>
 
@@ -2762,67 +3697,6 @@
             <i class="fa-solid fa-comments"></i> 立即免費預約諮詢
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: 1-on-1 Reschedule Booking Modal (48小時前線上改期專用) -->
-  <div id="rescheduleBookingModal" class="modal-backdrop">
-    <div class="modal-box" style="max-width: 540px;">
-      <button class="modal-close" onclick="closeRescheduleModal()">&times;</button>
-      <div class="modal-header">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <span class="badge-tag bg-purple" style="font-size:0.75rem;"><i class="fa-solid fa-calendar-pen"></i> 48 小時前線上預約改期</span>
-        </div>
-        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-clock-rotate-left text-purple"></i> 變更 1-on-1 個教時段</h3>
-        <p class="text-xs text-muted margin-top-xs">依契約規範，距上課時間 48 小時前可免費線上異動時段，新時段將即時鎖定並同步講師！</p>
-      </div>
-      <div class="modal-body">
-        <form onsubmit="handleSaveReschedule(event)">
-          <input type="hidden" id="rescheduleBookingId">
-
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;" class="text-xs">
-            <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
-              <span class="text-muted">預約講師：</span>
-              <strong class="text-cyan" id="rescheduleInstName">張哲銘 (Ethan)</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between;">
-              <span class="text-muted">原定時間：</span>
-              <strong class="text-pink" id="rescheduleOldTime">2026-07-25 (14:00 - 15:00)</strong>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label><i class="fa-solid fa-calendar-day text-cyan"></i> 選擇異動後的新日期 (防呆限制：須為 48 小時後)</label>
-            <input type="date" id="rescheduleNewDate" class="form-control" onchange="updateRescheduleSlots()" required>
-          </div>
-
-          <div class="form-group margin-top-sm">
-            <label><i class="fa-regular fa-clock text-purple"></i> 選擇新時段 (已被預約時段自動防呆鎖定)</label>
-            <div class="slots-grid margin-top-xs" id="rescheduleSlotsGrid">
-              <!-- Dynamically populated by updateRescheduleSlots() -->
-            </div>
-          </div>
-
-          <div class="form-group margin-top-sm">
-            <label><i class="fa-solid fa-pen-to-square text-muted"></i> 改期原因說明 (將同步通知講師)</label>
-            <input type="text" id="rescheduleReason" class="form-control text-sm" placeholder="例如：臨時有會議衝突，申請改期至新時段" required value="臨時時段衝突，申請調整">
-          </div>
-
-          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-top: 1rem;" class="text-xs">
-            <i class="fa-solid fa-triangle-exclamation text-danger"></i> <strong>退費與請假契約提示：</strong><br>
-            <span class="text-muted" style="line-height:1.4; display:block; margin-top:0.25rem;">
-              最遲需於原預約上課時間 <strong>48 小時前</strong> 完成異動。距上課不足 48 小時系統將鎖定禁止自行改期，若遇緊急不可抗力事故請洽官方客服小編。
-            </span>
-          </div>
-
-          <div style="display:flex; gap:0.5rem; margin-top:1.25rem;">
-            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeRescheduleModal()">取消</button>
-            <button type="submit" class="btn btn-primary" style="flex:2;">
-              <i class="fa-solid fa-check"></i> 確認改期並即時同步鎖定
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -2922,17 +3796,22 @@
         <img src="logos/logonew.png" alt="精五門 PentaSkill" class="footer-logo-img">
       </div>
       <p>© 2026 精五門 PentaSkill | 結合近10年深厚經驗之教學多年業師資源創新型學習平台</p>
-      <div class="flex-center gap-sm margin-top-xs text-xs text-muted" style="flex-wrap: wrap; justify-content: center; gap: 1rem;">
+      <div class="flex-center gap-sm margin-top-xs text-xs text-muted">
         <a href="javascript:void(0)" onclick="openPrivacyPolicyModal()" style="color:var(--accent-cyan); text-decoration:underline;">
           <i class="fa-solid fa-shield-halved"></i> 🔒 隱私權保護政策與個資金流資安聲明 (符合個資法 & PCI-DSS)
         </a>
         <span style="color: rgba(255,255,255,0.2);">|</span>
-        <a href="javascript:void(0)" onclick="openTermsModal()" style="color:var(--accent-purple); text-decoration:underline;">
+        <a href="javascript:void(0)" onclick="openTermsModal()" style="color:var(--accent-purple); text-decoration: underline; font-weight: 600;">
           <i class="fa-solid fa-file-contract"></i> 📜 精五門學員購課服務條款與退費政策
         </a>
       </div>
     </div>
   </footer>
+
+  <!-- Back to Top Button -->
+  <button id="backToTopBtn" class="btn-back-to-top" onclick="scrollToPageTop()" title="回到頁面頂部" aria-label="回到頁面頂部">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
 
   <script src="data.js?v=20260823_v5"></script>
   <script src="app.js?v=20260823_v5"></script>

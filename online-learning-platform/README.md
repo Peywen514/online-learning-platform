@@ -39,8 +39,10 @@ npm run dev
 
 | 角色 | 登入帳號 (Email) | 密碼 | 存取權限 |
 |---|---|---|---|
-| 👑 **平台主管** | `pey514514@gmail.com` | `admin514` | 全權限 + 帳號密碼設定 + 創業規劃書 |
+| 👑 **平台主管** | `pey514514@gmail.com` | `admin514` | 全權限 + 帳號密碼設定 + 薪資審核 + 創業規劃書 |
+| 💼 **專業顧問** | `consultant@pentaskill.com` | `consultant123` | 同平台主管全權限 (帳密管理 + 薪資審核 + 創業規劃) |
 | 🧑‍💼 **營運員工** | `staff@pentaskill.com` | `staff123` | 課程 / 導師 / 影片 編輯與上架 |
+| 👨‍🏫 **金牌講師** | `ethan@pentaskill.com` | `ethan123` | 講師個教排班清單 + 帶課教室檢視 (登入顯示「xx講師您好」) |
 | 🎓 **消費者學員** | `student@pentaskill.com` | `user123` | 前台課程商城瀏覽、購買與視訊觀看 |
 
 ---

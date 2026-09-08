@@ -8,16 +8,51 @@ const mockUsers = [
     password: "admin514",
     role: "manager",
     roleLabel: "👑 平台主管 (Manager)",
+    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80812345678999999", accountLast5: "99999" },
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
   },
   {
+    id: "u-1b",
+    name: "林顧問",
+    email: "consultant@pentaskill.com",
+    password: "consultant123",
+    role: "consultant",
+    roleLabel: "💼 顧問 (Consultant)",
+    bankInfo: { bankName: "中國信託 (822)", bankAccount: "82299887766554433", accountLast5: "54433" },
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
+  },
+  {
     id: "u-2",
-    name: "李專案經理",
-    email: "staff@pentaskill.com",
+    name: "張雅涵",
+    email: "yahan@pentaskill.com",
+    phone: "0912-334-556",
     password: "staff123",
     role: "staff",
     roleLabel: "🧑‍💼 營運員工 (Staff)",
+    bankInfo: { bankName: "國泰世華 (013)", bankAccount: "01358899123419482", accountLast5: "19482" },
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
+  },
+  {
+    id: "u-2b",
+    name: "陳冠宇",
+    email: "guanyu@pentaskill.com",
+    phone: "0922-111-222",
+    password: "staff123",
+    role: "staff",
+    roleLabel: "🧑‍💼 營運員工 (Staff)",
+    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80866554433238104", accountLast5: "38104" },
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+  },
+  {
+    id: "u-2c",
+    name: "林怡均",
+    email: "yijun@pentaskill.com",
+    phone: "0933-444-555",
+    password: "staff123",
+    role: "staff",
+    roleLabel: "🧑‍💼 營運員工 (Staff)",
+    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81288776655462951", accountLast5: "62951" },
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80"
   },
   {
     id: "u-3",
@@ -26,6 +61,7 @@ const mockUsers = [
     password: "user123",
     role: "student",
     roleLabel: "🎓 消費者學員 (Student)",
+    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81200112233445566", accountLast5: "45566" },
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
     coins: 100,
     masterTokens: 2,
@@ -34,12 +70,43 @@ const mockUsers = [
   },
   {
     id: "u-4",
-    name: "張哲銘 (Ethan講師)",
+    name: "張哲銘 (Ethan)",
     email: "ethan@pentaskill.com",
     password: "ethan123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
+    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80898765432158923", accountLast5: "58923" },
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
+  },
+  {
+    id: "u-5",
+    name: "陳婷俐 (Tina)",
+    email: "tina@pentaskill.com",
+    password: "tina123",
+    role: "instructor",
+    roleLabel: "👨‍🏫 金牌講師 (Instructor)",
+    bankInfo: { bankName: "國泰世華 (013)", bankAccount: "01377889900147281", accountLast5: "47281" },
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80"
+  },
+  {
+    id: "u-6",
+    name: "歐陽翔 (Shawn)",
+    email: "shawn@pentaskill.com",
+    password: "shawn123",
+    role: "instructor",
+    roleLabel: "👨‍🏫 金牌講師 (Instructor)",
+    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81255667788992345", accountLast5: "92345" },
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
+  },
+  {
+    id: "u-7",
+    name: "林雅涵 (Hannah)",
+    email: "hannah@pentaskill.com",
+    password: "hannah123",
+    role: "instructor",
+    roleLabel: "👨‍🏫 金牌講師 (Instructor)",
+    bankInfo: { bankName: "中國信託 (822)", bankAccount: "82233445566731980", accountLast5: "31980" },
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80"
   }
 ];
 
@@ -55,20 +122,20 @@ let mockBookings = [
     notes: "想檢討 React 19 與 AI API 串接效能優化...",
     status: "已預約",
     fee: 1800,
-    payout: 1080
+    payout: 1800 // 100% 全額撥付給講師 (是多少就給多少)
   },
   {
     id: "bk-102",
     instructor: "陳婷俐 (Tina)",
-    studentName: "林小明",
-    studentEmail: "student@pentaskill.com",
+    studentName: "黃雅婷",
+    studentEmail: "yating@example.com",
     date: "2026-09-08",
     slotTime: "15:30 - 16:30",
     topic: "UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)",
     notes: "請講師幫忙檢視 Figma 3D 擬態作品集排版...",
     status: "已預約",
     fee: 2000,
-    payout: 1200
+    payout: 2000
   },
   {
     id: "bk-103",
@@ -81,7 +148,7 @@ let mockBookings = [
     notes: "即時 1-on-1 示範時段...",
     status: "已預約",
     fee: 1600,
-    payout: 960
+    payout: 1600
   },
   {
     id: "bk-104",
@@ -94,7 +161,160 @@ let mockBookings = [
     notes: "短影音腳本對接品牌客戶過單報價問題...",
     status: "已完成",
     fee: 1800,
-    payout: 1080
+    payout: 1800
+  }
+];
+
+// 講師月結薪資資料庫 (綁定個人名下錄播課程營收 × 20% 分潤 ＋ 1-on-1 個教鐘點 100% 全額)
+let mockMentorSalaries = [
+  {
+    id: "sal-101",
+    name: "張哲銘 (Ethan)",
+    role: "Full-Stack & AI 技術專家",
+    bankInfo: { bankName: "玉山銀行 (808)", accountLast5: "58923" },
+    coursesDetail: [
+      { courseTitle: "AI 驅動 Full-Stack Web 開發實戰營", price: 3600, soldCount: 15 },
+      { courseTitle: "React 19 & Next.js 15 全端自學包", price: 2680, soldCount: 12 }
+    ],
+    recordedTotalSold: 27, // 15 + 12 = 27 門課
+    recordedRevenue: 86160, // (3600*15) + (2680*12) = 54000 + 32160 = 86160
+    recordedSplitRate: 0.20, // 2 成 (20%)
+    recordedPayout: 17232, // 86160 * 20% = 17,232
+    coachingRate: 1800,
+    coachingCompleted: 18,
+    coachingPayout: 32400, // 1800 * 18 (100% 全額)
+    bonus: 2000,
+    bonusNote: "新錄播單元上架獎勵",
+    totalSalary: 51632, // 17232 + 32400 + 2000
+    status: "待審核撥款"
+  },
+  {
+    id: "sal-102",
+    name: "陳婷俐 (Tina)",
+    role: "UI/UX 與 Figma 系統總監",
+    bankInfo: { bankName: "國泰世華 (013)", accountLast5: "14820" },
+    coursesDetail: [
+      { courseTitle: "UI/UX 產品設計與 Figma 設計系統實力班", price: 4200, soldCount: 16 },
+      { courseTitle: "Figma 3D 擬態與高階原型實戰", price: 2980, soldCount: 10 }
+    ],
+    recordedTotalSold: 26,
+    recordedRevenue: 97000, // (4200*16) + (2980*10) = 67200 + 29800 = 97000
+    recordedSplitRate: 0.20,
+    recordedPayout: 19400, // 97000 * 20% = 19,400
+    coachingRate: 2000,
+    coachingCompleted: 15,
+    coachingPayout: 30000,
+    bonus: 0,
+    bonusNote: "",
+    totalSalary: 49400, // 19400 + 30000
+    status: "待審核撥款"
+  },
+  {
+    id: "sal-103",
+    name: "歐陽翔 (Shawn)",
+    role: "Python 數據分析與 AI 顧問",
+    bankInfo: { bankName: "台新銀行 (812)", accountLast5: "77312" },
+    coursesDetail: [
+      { courseTitle: "Python 數據分析與自動化爬蟲實務", price: 3200, soldCount: 16 },
+      { courseTitle: "AI 機器學習與商業預測模型入門", price: 2680, soldCount: 4 }
+    ],
+    recordedTotalSold: 20,
+    recordedRevenue: 61920, // (3200*16) + (2680*4) = 51200 + 10720 = 61920
+    recordedSplitRate: 0.20,
+    recordedPayout: 12384, // 61920 * 20% = 12,384
+    coachingRate: 1600,
+    coachingCompleted: 12,
+    coachingPayout: 19200,
+    bonus: 1000,
+    bonusNote: "客製化講義編撰補貼",
+    totalSalary: 32584, // 12384 + 19200 + 1000
+    status: "已撥款完成"
+  },
+  {
+    id: "sal-104",
+    name: "林雅涵 (Hannah)",
+    role: "短影音與數位整合行銷總監",
+    bankInfo: { bankName: "台北富邦 (012)", accountLast5: "90416" },
+    coursesDetail: [
+      { courseTitle: "高轉化率數位整合行銷與短影音電商實操", price: 2980, soldCount: 14 },
+      { courseTitle: "自媒體個人品牌接案定價課", price: 1880, soldCount: 6 }
+    ],
+    recordedTotalSold: 20,
+    recordedRevenue: 53000, // (2980*14) + (1880*6) = 41720 + 11280 = 53000
+    recordedSplitRate: 0.20,
+    recordedPayout: 10600, // 53000 * 20% = 10,600
+    coachingRate: 1800,
+    coachingCompleted: 10,
+    coachingPayout: 18000,
+    bonus: 0,
+    bonusNote: "",
+    totalSalary: 28600, // 10600 + 18000
+    status: "已撥款完成"
+  }
+];
+
+// 平台員工薪資發放資料庫 (Wen總監專屬管理)
+let mockStaffSalaries = [
+  {
+    id: "staff-101",
+    name: "張雅涵",
+    role: "營運企劃與教務主管",
+    bankInfo: { bankName: "國泰世華 (013)", accountLast5: "19482" },
+    baseSalary: 38000,
+    bonus: 3000,
+    bonusNote: "新課程上架達標獎勵",
+    totalSalary: 41000,
+    status: "已發放"
+  },
+  {
+    id: "staff-102",
+    name: "陳冠宇",
+    role: "LINE@ 客服小編與社群經營",
+    bankInfo: { bankName: "玉山銀行 (808)", accountLast5: "38104" },
+    baseSalary: 18000,
+    bonus: 2000,
+    bonusNote: "諮詢轉換達標獎勵",
+    totalSalary: 20000,
+    status: "待發放"
+  },
+  {
+    id: "staff-103",
+    name: "林怡均",
+    role: "短影音剪輯與教材視覺設計 (兼職)",
+    bankInfo: { bankName: "台新銀行 (812)", accountLast5: "62951" },
+    baseSalary: 12000,
+    bonus: 0,
+    bonusNote: "",
+    totalSalary: 12000,
+    status: "已發放"
+  }
+];
+
+// 平台運營與伺服器固定花費資料庫
+let mockPlatformExpenses = [
+  {
+    id: "exp-101",
+    name: "Cloudflare Stream 影音串流與 CDN 頻寬",
+    category: "伺服器與主機",
+    amount: 3500,
+    cycle: "月繳",
+    notes: "錄播高畫質防盜串流與極速載入"
+  },
+  {
+    id: "exp-102",
+    name: "第三方金流手續費與電子發票系統",
+    category: "金流與稅務",
+    amount: 6000,
+    cycle: "月結",
+    notes: "信用卡/ATM/超商金流約 2.8% 手續費"
+  },
+  {
+    id: "exp-103",
+    name: "Meta / Google 官方課程廣告投放預算",
+    category: "行銷廣告",
+    amount: 15000,
+    cycle: "月度預算",
+    notes: "官方獲客導流廣告支出 (團隊全額吸收)"
   }
 ];
 
@@ -246,6 +466,16 @@ let mockInstructors = [
   }
 ];
 
+try {
+  const savedInstructors = localStorage.getItem('pentaskill_instructors');
+  if (savedInstructors) {
+    const parsed = JSON.parse(savedInstructors);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      mockInstructors = parsed;
+    }
+  }
+} catch (e) {}
+
 let cloudflareStreamConfig = {
   accountId: "c6a2e87901fb4a88bc345123456789ab",
   customerSubdomain: "customer-88nzk2.cloudflarestream.com",
@@ -395,7 +625,7 @@ let mockMaterials = [
 let mockLeads = [
   {
     id: "lead-101",
-    createdAt: "2026-07-26 14:15",
+    createdAt: "2026-09-08 14:15",
     name: "陳姿涵",
     phone: "0912-345-678",
     email: "zihan@example.com",
@@ -410,7 +640,7 @@ let mockLeads = [
   },
   {
     id: "lead-102",
-    createdAt: "2026-07-26 11:30",
+    createdAt: "2026-09-08 11:30",
     name: "王建宏",
     phone: "0987-654-321",
     email: "kenwang@example.com",
@@ -430,11 +660,11 @@ let mockCustomQuotes = [
     id: "quote-101",
     studentEmail: "student@pentaskill.com",
     studentName: "林小明 (學員)",
-    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (陳顧問專屬對接特惠包)",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 專屬對接 85 折優惠包)",
     customPrice: 10880,
-    createdBy: "陳顧問",
+    createdBy: "👑 平台主管",
     details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
-    updatedAt: "2026-07-26 16:30"
+    updatedAt: "2026-09-08 16:30"
   }
 ];
 
