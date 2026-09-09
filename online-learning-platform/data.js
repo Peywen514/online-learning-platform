@@ -129,7 +129,7 @@ let mockBookings = [
     instructor: "陳婷俐 (Tina)",
     studentName: "黃雅婷",
     studentEmail: "yating@example.com",
-    date: "2026-09-08",
+    date: "2026-09-09",
     slotTime: "15:30 - 16:30",
     topic: "UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)",
     notes: "請講師幫忙檢視 Figma 3D 擬態作品集排版...",
@@ -625,7 +625,7 @@ let mockMaterials = [
 let mockLeads = [
   {
     id: "lead-101",
-    createdAt: "2026-09-08 14:15",
+    createdAt: "2026-09-09 14:15",
     name: "陳姿涵",
     phone: "0912-345-678",
     email: "zihan@example.com",
@@ -640,7 +640,7 @@ let mockLeads = [
   },
   {
     id: "lead-102",
-    createdAt: "2026-09-08 11:30",
+    createdAt: "2026-09-09 11:30",
     name: "王建宏",
     phone: "0987-654-321",
     email: "kenwang@example.com",
@@ -664,7 +664,7 @@ let mockCustomQuotes = [
     customPrice: 10880,
     createdBy: "👑 平台主管",
     details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
-    updatedAt: "2026-09-08 16:30"
+    updatedAt: "2026-09-09 16:30"
   }
 ];
 
