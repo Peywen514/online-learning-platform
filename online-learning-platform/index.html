@@ -1021,9 +1021,26 @@
           <p>獨家亮點：告別傳統錄播無人解惑與大班淹沒感！教學多年金牌業師 1 對 1 專屬手把手帶練、即時 Code Review 與作品精細修稿</p>
         </div>
 
-        <div class="grid grid-12 gap-lg">
-          <div class="col-span-7">
-            <div class="live-room-card">
+        <!-- 手機端快捷切換分頁 (僅在手機/平板顯示) -->
+        <div class="mobile-classroom-tabs" id="mobileClassroomTabs">
+          <button class="m-class-tab active" data-tab="all" onclick="switchMobileClassTab('all')">
+            <i class="fa-solid fa-layer-group"></i> 完整檢視
+          </button>
+          <button class="m-class-tab" data-tab="upcoming" onclick="switchMobileClassTab('upcoming')">
+            <i class="fa-solid fa-clock-rotate-left"></i> 我的預約 <span class="badge badge-sm badge-cyan" id="mobileUpcomingBadge" style="display:none; margin-left:3px;">0</span>
+          </button>
+          <button class="m-class-tab" data-tab="classroom" onclick="switchMobileClassTab('classroom')">
+            <i class="fa-solid fa-video text-pink"></i> 1對1線上教室
+          </button>
+          <button class="m-class-tab" data-tab="booking" onclick="switchMobileClassTab('booking')">
+            <i class="fa-solid fa-calendar-plus text-purple"></i> 預約新時段
+          </button>
+        </div>
+
+        <div class="classroom-main-grid" id="classroomMainGrid">
+          <!-- 1. 專屬 1-on-1 線上教室現場 -->
+          <div class="classroom-col-room" id="colLiveRoom">
+            <div class="live-room-card" id="liveRoomCard">
               <div class="room-header">
                 <div class="room-badge"><span class="pulse-dot"></span> 1-on-1 專屬連線中</div>
                 <h3 id="liveRoomTitle">【1-on-1 個教陪跑】Full-Stack & AI 專案架構 1 對 1 現場診斷與 Code Review</h3>
@@ -1087,70 +1104,73 @@
             </div>
           </div>
 
-          <div class="col-span-5">
-            <div class="booking-card">
-              <div class="card-header">
-                <h3><i class="fa-solid fa-calendar-plus text-purple"></i> 預約專屬 1-on-1 個教時段</h3>
-                <p class="text-sm text-muted">根據您的學習進度，預約已開通講師進行 1 對 1 作品診斷與職涯輔導</p>
-              </div>
-
-              <!-- 權限不足/未付費提示區塊 (由 JS 自動驗證控制) -->
-              <div id="bookingLockedAlert" style="display: none;"></div>
-
-              <form id="bookingForm" onsubmit="handleBooking(event)">
-                <div class="form-group">
-                  <label><i class="fa-solid fa-user-ninja"></i> 選擇教學多年業師 (來自近10年專業教育儲備)</label>
-                  <select id="bookingInstructor" class="form-control" onchange="updateLiveRoomUI(this.value); updateAvailableSlots();">
-                    <option value="張哲銘 (Ethan)">張哲銘 講師 (Full-Stack & AI 技術專家)</option>
-                    <option value="陳婷俐 (Tina)">陳婷俐 講師 (UI/UX 與 Figma 系統總監)</option>
-                    <option value="歐陽翔 (Shawn)">歐陽翔 講師 (Python 數據分析與 AI 顧問)</option>
-                    <option value="林雅涵 (Hannah)">林雅涵 講師 (數位整合行銷與短影音教練)</option>
-                  </select>
-                </div>
-
-                <div class="form-group margin-top-sm">
-                  <label><i class="fa-solid fa-bullseye"></i> 個教輔導主題</label>
-                  <select id="bookingTopic" class="form-control">
-                    <option value="code-review">專案作品 1 對 1 精準批改與架構診斷 (1小時)</option>
-                    <option value="portfolio">UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)</option>
-                    <option value="career">職涯履歷面試健檢 & 轉職諮詢 (1小時)</option>
-                    <option value="freelance">副業接案定價與商業合約教練 (1小時)</option>
-                  </select>
-                </div>
-
-                <div class="form-group margin-top-sm">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                    <label style="margin: 0;"><i class="fa-solid fa-calendar-days text-purple"></i> 選擇預約日期 (當月起往後預約)</label>
-                    <span class="text-xs text-cyan"><i class="fa-solid fa-bolt"></i> 快捷選日</span>
-                  </div>
-                  <!-- 快捷選日標籤列 (當月向後滾動) -->
-                  <div class="quick-date-chips" id="bookingQuickDateChips"></div>
-                  <input type="date" id="bookingDate" class="form-control margin-top-xs" value="2026-09-08" min="2026-09-08" onchange="updateAvailableSlots()">
-                  <div class="slots-grid margin-top-sm" id="slotsGrid">
-                    <div class="slot-chip active">14:00 - 15:00</div>
-                    <div class="slot-chip">15:30 - 16:30</div>
-                    <div class="slot-chip">19:00 - 20:00</div>
-                    <div class="slot-chip">20:30 - 21:30</div>
-                  </div>
-                </div>
-
-                <div class="form-group margin-top-sm">
-                  <label><i class="fa-solid fa-message"></i> 留言給講師 (附上專案連結或問題)</label>
-                  <textarea id="bookingNotes" class="form-control" rows="3" placeholder="例如：我想針對第二章作業的 React State 傳遞問題進行檢討..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block margin-top-md">
-                  <i class="fa-solid fa-circle-check"></i> 確認預約 1-on-1 個教時段
-                </button>
-              </form>
-
-              <div class="upcoming-bookings margin-top-lg">
-                <h4><i class="fa-solid fa-clock-rotate-left"></i> 您已預約的個教行程 (支援即時改期與講師同步)</h4>
-                <div id="studentUpcomingList">
-                  <!-- JS populated by renderStudentBookings() -->
-                </div>
-              </div>
+          <!-- 2. 您已預約的個教行程 (獨立卡片：手機版最優先展示 order: 1，電腦版置於右欄頂部) -->
+          <div class="upcoming-bookings-card" id="upcomingBookingsCard">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h3 style="font-size: 1.15rem; margin: 0;"><i class="fa-solid fa-clock-rotate-left text-cyan"></i> 您已預約的個教行程</h3>
+              <span class="text-xs text-muted">支援即時改期與進入教室</span>
             </div>
+            <div id="studentUpcomingList">
+              <!-- JS populated by renderStudentBookings() -->
+            </div>
+          </div>
+
+          <!-- 3. 預約專屬 1-on-1 個教時段表單 (手機版 order: 3，電腦版置於右欄下方) -->
+          <div class="booking-card" id="newBookingCard">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-calendar-plus text-purple"></i> 預約專屬 1-on-1 個教時段</h3>
+              <p class="text-sm text-muted">根據您的學習進度，預約已開通講師進行 1 對 1 作品診斷與職涯輔導</p>
+            </div>
+
+            <!-- 權限不足/未付費提示區塊 (由 JS 自動驗證控制) -->
+            <div id="bookingLockedAlert" style="display: none;"></div>
+
+            <form id="bookingForm" onsubmit="handleBooking(event)">
+              <div class="form-group">
+                <label><i class="fa-solid fa-user-ninja"></i> 選擇教學多年業師 (來自近10年專業教育儲備)</label>
+                <select id="bookingInstructor" class="form-control" onchange="updateLiveRoomUI(this.value); updateAvailableSlots();">
+                  <option value="張哲銘 (Ethan)">張哲銘 講師 (Full-Stack & AI 技術專家)</option>
+                  <option value="陳婷俐 (Tina)">陳婷俐 講師 (UI/UX 與 Figma 系統總監)</option>
+                  <option value="歐陽翔 (Shawn)">歐陽翔 講師 (Python 數據分析與 AI 顧問)</option>
+                  <option value="林雅涵 (Hannah)">林雅涵 講師 (數位整合行銷與短影音教練)</option>
+                </select>
+              </div>
+
+              <div class="form-group margin-top-sm">
+                <label><i class="fa-solid fa-bullseye"></i> 個教輔導主題</label>
+                <select id="bookingTopic" class="form-control">
+                  <option value="code-review">專案作品 1 對 1 精準批改與架構診斷 (1小時)</option>
+                  <option value="portfolio">UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)</option>
+                  <option value="career">職涯履歷面試健檢 & 轉職諮詢 (1小時)</option>
+                  <option value="freelance">副業接案定價與商業合約教練 (1小時)</option>
+                </select>
+              </div>
+
+              <div class="form-group margin-top-sm">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label style="margin: 0;"><i class="fa-solid fa-calendar-days text-purple"></i> 選擇預約日期 (當月起往後預約)</label>
+                  <span class="text-xs text-cyan"><i class="fa-solid fa-bolt"></i> 快捷選日</span>
+                </div>
+                <!-- 快捷選日標籤列 (當月向後滾動) -->
+                <div class="quick-date-chips" id="bookingQuickDateChips"></div>
+                <input type="date" id="bookingDate" class="form-control margin-top-xs" value="2026-09-08" min="2026-09-08" onchange="updateAvailableSlots()">
+                <div class="slots-grid margin-top-sm" id="slotsGrid">
+                  <div class="slot-chip active">14:00 - 15:00</div>
+                  <div class="slot-chip">15:30 - 16:30</div>
+                  <div class="slot-chip">19:00 - 20:00</div>
+                  <div class="slot-chip">20:30 - 21:30</div>
+                </div>
+              </div>
+
+              <div class="form-group margin-top-sm">
+                <label><i class="fa-solid fa-message"></i> 留言給講師 (附上專案連結或問題)</label>
+                <textarea id="bookingNotes" class="form-control" rows="3" placeholder="例如：我想針對第二章作業的 React State 傳遞問題進行檢討..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block margin-top-md">
+                <i class="fa-solid fa-circle-check"></i> 確認預約 1-on-1 個教時段
+              </button>
+            </form>
           </div>
         </div>
       </div>

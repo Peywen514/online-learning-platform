@@ -586,19 +586,19 @@ function renderAuthArea() {
           <hr class="dropdown-divider">
           
           <button class="dropdown-item" onclick="switchView('member-center'); closeAllDropdowns();" style="color: #fbbf24; font-weight:600;">
-            <i class="fa-solid fa-gem text-yellow"></i> 🎓 會員專區 (點數與課程)
+            <i class="fa-solid fa-gem text-yellow"></i> 會員專區 (點數與課程)
           </button>
           <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
             <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
           </button>
           <button class="dropdown-item" onclick="openReferralShareModal(); closeAllDropdowns();" style="color: #fbbf24;">
-            <i class="fa-solid fa-gift text-pink"></i> 🎁 推薦好友賺 200 精幣
+            <i class="fa-solid fa-gift text-pink"></i> 推薦好友賺 200 精幣
           </button>
           <button class="dropdown-item" onclick="openQuoteLookupModal(); closeAllDropdowns();" style="color: var(--accent-cyan);">
-            <i class="fa-solid fa-receipt"></i> 🧾 專屬報價單查單結帳
+            <i class="fa-solid fa-receipt text-cyan"></i> 專屬報價單查單結帳
           </button>
           <button class="dropdown-item" onclick="openLeadFormModal(); closeAllDropdowns();" style="color: #34d399;">
-            <i class="fa-solid fa-comments"></i> 💬 洽小編 / 學習需求諮詢
+            <i class="fa-solid fa-comments text-green"></i> 洽小編 / 學習需求諮詢
           </button>
 
           ${(currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff' || currentUser.role === 'instructor') ? `
@@ -4399,10 +4399,6 @@ function handleBooking(e) {
   renderMentorSalaryTable();
 }
 
-function joinUpcomingRoom() {
-  switchView('live-classroom');
-  showToast('進入 1-on-1 直播教室中...已連線講師音訊與共享畫布！');
-}
 
 // 驗證是否符合「課前最晚 2 天 (48 小時前)」改期與取消規則
 // 🕒 1-on-1 課前入場 (10分鐘) 與改期限制 (48小時) 智慧校驗引擎
@@ -4498,10 +4494,28 @@ function renderStudentBookings() {
 
   const studentBookings = mockBookings.filter(b => b.status !== '已取消');
 
+  // 更新手機端分頁上的預約堂數徽章
+  const mobileBadge = document.getElementById('mobileUpcomingBadge');
+  if (mobileBadge) {
+    if (studentBookings.length > 0) {
+      mobileBadge.innerText = studentBookings.length;
+      mobileBadge.style.display = 'inline-block';
+    } else {
+      mobileBadge.style.display = 'none';
+    }
+  }
+
   if (studentBookings.length === 0) {
     container.innerHTML = `
-      <div class="text-sm text-muted" style="padding:0.75rem 0;">您目前尚無預約的個教行程</div>
-      <div class="booking-notice-box margin-top-xs" style="background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);">
+      <div class="empty-booking-card" style="text-align:center; padding: 1.25rem 0.75rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: var(--radius-md);">
+        <div style="font-size: 1.6rem; color: var(--accent-cyan); margin-bottom: 0.35rem;"><i class="fa-regular fa-calendar-check"></i></div>
+        <div style="font-size: 0.92rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">您目前尚無預約的個教行程</div>
+        <p class="text-xs text-muted" style="margin-bottom: 0.75rem;">已開通 1 對 1 個教之學員，可由下方挑選講師與合適時段預約專屬線上輔導</p>
+        <button class="btn btn-sm btn-outline" onclick="scrollToBookingForm()" style="font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;">
+          <i class="fa-solid fa-calendar-plus text-purple"></i> 立即挑選時段預約
+        </button>
+      </div>
+      <div class="booking-notice-box margin-top-sm" style="background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);">
         <strong class="text-yellow"><i class="fa-solid fa-bell"></i> 1-on-1 個教上課與改期須知：</strong><br>
         1. <strong>提前 10 分鐘開放入場</strong>：上課開始前 10 分鐘即可提前點擊「進入教室」測試麥克風與視訊。<br>
         2. <strong>最晚改期時限</strong>：若臨時有事須改期，<strong>請最晚於上課前 2 天 (48小時前) 於系統線上改期或通知小編</strong>。<br>
@@ -4513,30 +4527,72 @@ function renderStudentBookings() {
   }
 
   container.innerHTML = `
-    ${studentBookings.map(b => {
-      const timeInfo = getBookingTimeInfo(b);
-      let timeBadge = '<span class="badge badge-green" style="font-size:0.65rem; padding:1px 5px; margin-left:4px;">課前10分可進</span>';
-      if (timeInfo.isOngoing) {
-        timeBadge = '<span class="badge badge-warning" style="font-size:0.65rem; padding:1px 5px; margin-left:4px;">上課進行中 (不延下課)</span>';
-      } else if (timeInfo.isEnded) {
-        timeBadge = '<span class="badge badge-gray" style="font-size:0.65rem; padding:1px 5px; margin-left:4px;">課程已結束</span>';
-      }
-      return `
-      <div class="booking-item">
-        <div class="b-info">
-          <div class="b-title">${b.instructor} 講師 • ${b.topic.substring(0, 14)}... ${b.status==='已改期'?'<span class="badge badge-cyan" style="font-size:0.68rem; padding:2px 6px;">已改期</span>':''}</div>
-          <div class="b-time"><i class="fa-regular fa-clock"></i> ${b.date} (${b.slotTime}) ${timeBadge}</div>
+    <div class="booking-items-wrapper">
+      ${studentBookings.map(b => {
+        const timeInfo = getBookingTimeInfo(b);
+        let timeBadge = '<span class="badge badge-green" style="font-size:0.68rem; padding:2px 7px;"><i class="fa-solid fa-circle-check"></i> 課前10分可進</span>';
+        if (timeInfo.isOngoing) {
+          timeBadge = '<span class="badge badge-warning" style="font-size:0.68rem; padding:2px 7px;"><i class="fa-solid fa-tower-broadcast"></i> 上課進行中 (不延下課)</span>';
+        } else if (timeInfo.isEnded) {
+          timeBadge = '<span class="badge badge-gray" style="font-size:0.68rem; padding:2px 7px;"><i class="fa-solid fa-clock"></i> 課程已結束</span>';
+        } else if (timeInfo.tooEarly) {
+          timeBadge = `<span class="badge badge-purple" style="font-size:0.68rem; padding:2px 7px;"><i class="fa-regular fa-clock"></i> 距開課 ${timeInfo.diffHours > 0 ? timeInfo.diffHours + '小時' : timeInfo.diffMins + '分鐘'}</span>`;
+        }
+
+        // 匹配金牌講師頭像
+        let instAvatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80';
+        if (typeof mockInstructors !== 'undefined') {
+          const foundInst = mockInstructors.find(i => b.instructor.includes(i.name.split(' ')[0]));
+          if (foundInst && foundInst.avatar) instAvatar = foundInst.avatar;
+        }
+
+        return `
+        <div class="booking-item-card ${timeInfo.isOngoing ? 'booking-item-ongoing' : ''}">
+          <div class="b-item-top">
+            <div class="b-instructor-info">
+              <img src="${instAvatar}" alt="${b.instructor}" class="b-inst-avatar">
+              <div class="b-inst-text">
+                <div class="b-inst-header">
+                  <span class="b-inst-name">${b.instructor} 講師</span>
+                  ${b.status === '已改期' ? '<span class="badge badge-cyan" style="font-size:0.68rem; padding:2px 6px;">已改期</span>' : ''}
+                </div>
+                <div class="b-topic-title" title="${b.topic}">${b.topic}</div>
+              </div>
+            </div>
+            <div class="b-badge-container">
+              ${timeBadge}
+            </div>
+          </div>
+
+          <div class="b-item-schedule">
+            <div class="b-schedule-pill">
+              <i class="fa-regular fa-calendar-days text-purple"></i>
+              <span>${b.date}</span>
+              <span class="b-schedule-divider">|</span>
+              <i class="fa-regular fa-clock text-cyan"></i>
+              <span>${b.slotTime}</span>
+            </div>
+            <span class="text-xs text-muted"><i class="fa-solid fa-hourglass-half"></i> 60分鐘一對一</span>
+          </div>
+
+          <div class="b-item-actions">
+            <button class="btn btn-enter-classroom ${timeInfo.canEnter ? 'btn-primary' : 'btn-outline'}" onclick="joinUpcomingRoom('${b.id}')" title="${timeInfo.canEnter ? '點擊進入教室上課' : '開課前 10 分鐘開放入場'}">
+              <i class="fa-solid ${timeInfo.canEnter ? 'fa-video' : 'fa-door-open'}"></i>
+              <span>${timeInfo.isOngoing ? '進入教室 (上課進行中)' : (timeInfo.canEnter ? '立即進入 1-on-1 教室' : '進入教室 (課前10分開放入場)')}</span>
+            </button>
+            <div class="b-sub-actions">
+              <button class="btn btn-sm btn-outline btn-reschedule" onclick="openRescheduleModal('${b.id}')" title="最晚課前2天 (48小時前) 可線上改期">
+                <i class="fa-solid fa-calendar-pen text-purple"></i> 改期時段
+              </button>
+              <button class="btn btn-sm btn-outline-danger btn-cancel" onclick="cancelBooking('${b.id}')" title="取消預約">
+                <i class="fa-solid fa-xmark"></i> 取消預約
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex-center gap-xs">
-          <button class="btn btn-sm ${timeInfo.canEnter ? 'btn-primary' : 'btn-outline'}" onclick="joinUpcomingRoom('${b.id}')" title="${timeInfo.canEnter ? '點擊進入教室上課' : '開課前 10 分鐘開放入場'}">
-            <i class="fa-solid ${timeInfo.canEnter ? 'fa-video' : 'fa-clock'}"></i> ${timeInfo.isOngoing ? '進入教室 (進行中)' : '進入教室'}
-          </button>
-          <button class="btn btn-sm btn-outline" onclick="openRescheduleModal('${b.id}')" title="最晚課前2天可改期"><i class="fa-solid fa-calendar-pen text-purple"></i> 改期</button>
-          <button class="btn btn-sm btn-danger" onclick="cancelBooking('${b.id}')" title="取消預約"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-      </div>
-      `;
-    }).join('')}
+        `;
+      }).join('')}
+    </div>
 
     <div class="booking-notice-box margin-top-sm" style="background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);">
       <strong class="text-yellow"><i class="fa-solid fa-triangle-exclamation"></i> 1-on-1 個教重要規範：</strong><br>
@@ -4724,6 +4780,23 @@ function joinUpcomingRoom(bookingId) {
 
   switchView('live-classroom');
 
+  // 若在手機/平板端，自動切換至教室分頁或滾動至教室區域
+  if (typeof switchMobileClassTab === 'function') {
+    switchMobileClassTab('classroom');
+  }
+
+  const liveRoomTarget = document.getElementById('colLiveRoom') || document.getElementById('liveRoomCard');
+  if (liveRoomTarget) {
+    setTimeout(() => {
+      liveRoomTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const roomCard = document.getElementById('liveRoomCard');
+      if (roomCard) {
+        roomCard.classList.add('live-room-highlight');
+        setTimeout(() => roomCard.classList.remove('live-room-highlight'), 2600);
+      }
+    }, 120);
+  }
+
   if (booking) {
     updateLiveRoomUI(booking.instructor);
     const timeInfo = getBookingTimeInfo(booking);
@@ -4742,6 +4815,69 @@ function joinUpcomingRoom(bookingId) {
     showToast('🎙️ 進入 1-on-1 直播教室中...已連線講師音訊與共享畫布！');
   }
 }
+
+// 手機端 1-on-1 分頁快捷切換器
+function switchMobileClassTab(tabName) {
+  const tabs = document.querySelectorAll('.m-class-tab');
+  tabs.forEach(t => {
+    if (t.getAttribute('data-tab') === tabName) {
+      t.classList.add('active');
+    } else {
+      t.classList.remove('active');
+    }
+  });
+
+  const upcomingCard = document.getElementById('upcomingBookingsCard');
+  const liveRoomCol = document.getElementById('colLiveRoom');
+  const bookingCard = document.getElementById('newBookingCard');
+
+  if (window.innerWidth <= 1024) {
+    if (tabName === 'all') {
+      if (upcomingCard) upcomingCard.style.display = 'block';
+      if (liveRoomCol) liveRoomCol.style.display = 'block';
+      if (bookingCard) bookingCard.style.display = 'block';
+    } else if (tabName === 'upcoming') {
+      if (upcomingCard) upcomingCard.style.display = 'block';
+      if (liveRoomCol) liveRoomCol.style.display = 'none';
+      if (bookingCard) bookingCard.style.display = 'none';
+    } else if (tabName === 'classroom') {
+      if (upcomingCard) upcomingCard.style.display = 'none';
+      if (liveRoomCol) liveRoomCol.style.display = 'block';
+      if (bookingCard) bookingCard.style.display = 'none';
+    } else if (tabName === 'booking') {
+      if (upcomingCard) upcomingCard.style.display = 'none';
+      if (liveRoomCol) liveRoomCol.style.display = 'none';
+      if (bookingCard) bookingCard.style.display = 'block';
+    }
+  } else {
+    if (upcomingCard) upcomingCard.style.display = '';
+    if (liveRoomCol) liveRoomCol.style.display = '';
+    if (bookingCard) bookingCard.style.display = '';
+  }
+}
+
+// 快速滾動至預約新時段表單
+function scrollToBookingForm() {
+  if (window.innerWidth <= 1024) {
+    switchMobileClassTab('booking');
+  }
+  const formCard = document.getElementById('newBookingCard');
+  if (formCard) {
+    formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// 視窗大小改變時重置展示
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 1024) {
+    const upcomingCard = document.getElementById('upcomingBookingsCard');
+    const liveRoomCol = document.getElementById('colLiveRoom');
+    const bookingCard = document.getElementById('newBookingCard');
+    if (upcomingCard) upcomingCard.style.display = '';
+    if (liveRoomCol) liveRoomCol.style.display = '';
+    if (bookingCard) bookingCard.style.display = '';
+  }
+});
 
 // Line@ Consultation & Exclusive Service Modal Engine
 function openConsultLineModal(courseIdOrTitle, type = 'combo') {
