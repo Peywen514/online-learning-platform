@@ -3717,7 +3717,7 @@ function switchPlayerMode(mode) {
     if (codeBtn) codeBtn.classList.remove('active');
     if (cfWrapper) cfWrapper.style.display = 'block';
     if (codeWrapper) codeWrapper.style.display = 'none';
-    showToast('📺 已切換為 4K 高畫質視訊播放器');
+    showToast('📺 已切換為高畫質影音播放器');
   } else {
     if (codeBtn) codeBtn.classList.add('active');
     if (cfBtn) cfBtn.classList.remove('active');
@@ -4077,7 +4077,7 @@ const instructorRoomData = {
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     title: "【1-on-1個教陪跑】短影音爆款腳本與電影級調色一對一審查",
     cursor: "林雅涵 講師正在為你的影音腳本鉤子 (Hook) 與廣告文案進行一對一優化...",
-    designContent: "Premiere / AE 4K 短影音剪輯與文案批修區 (Hannah 講師即時連線中)"
+    designContent: "Premiere / AE 短影音剪輯與文案批修區 (Hannah 講師即時連線中)"
   }
 };
 

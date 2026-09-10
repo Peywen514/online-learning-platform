@@ -632,14 +632,14 @@ let mockPortfolios = [
   },
   {
     id: "port-4",
-    title: "CyberPulse — 4K 電影級賽博朋克短影音與視覺調色",
+    title: "CyberPulse — 電影級賽博朋克短影音與視覺調色",
     categoryTag: "🎥 影音剪輯 & 短影音",
     badgeClass: "bg-green",
     instructorName: "林雅涵 (Hannah)",
     instructorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
     studentName: "張宇彤 (自媒體創作者)",
     imgUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
-    desc: "Premiere 4K 剪輯與 AE 特效包，前 3 秒強效 Hook 腳本設計，創造 500 萬次觀看爆款流量。",
+    desc: "Premiere 專業剪輯與 AE 特效包，前 3 秒強效 Hook 腳本設計，創造 500 萬次觀看爆款流量。",
     feedback: "短影音前 3 秒開頭鉤子文案與電影級 LUTs 調色。經過林雅涵講師 3 次 1-on-1 對齊商業客戶過單標準，觀看次數與接案轉化率翻倍提升。"
   }
 ];
