@@ -104,14 +104,15 @@ function saveBookingsToStorage(syncCloud = true) {
 // 雲端開機自動同步載入
 async function initCloudSync() {
   try {
-    const [cloudUsers, cloudQuotes, cloudLeads, cloudBookings, cloudSalaries, cloudStaff, cloudExpenses] = await Promise.all([
+    const [cloudUsers, cloudQuotes, cloudLeads, cloudBookings, cloudSalaries, cloudStaff, cloudExpenses, cloudCourses] = await Promise.all([
       fetchCloudData('users'),
       fetchCloudData('custom_quotes'),
       fetchCloudData('leads'),
       fetchCloudData('bookings'),
       fetchCloudData('mentor_salaries'),
       fetchCloudData('staff_salaries'),
-      fetchCloudData('platform_expenses')
+      fetchCloudData('platform_expenses'),
+      fetchCloudData('courses')
     ]);
 
     let updated = false;
@@ -190,6 +191,17 @@ async function initCloudSync() {
       updated = true;
     }
 
+    // 8. 同步線上課程資料庫 (包含自訂價格與內容)
+    if (Array.isArray(cloudCourses) && cloudCourses.length > 0) {
+      mockCourses = cloudCourses;
+      try {
+        localStorage.setItem('pentaskill_courses', JSON.stringify(mockCourses));
+      } catch(err) {}
+      renderCourseGrid('all');
+      renderCourseAdminTable();
+      updated = true;
+    }
+
     if (updated) {
       renderFinanceDashboardKPIs();
     }
@@ -243,6 +255,15 @@ function saveUsersToStorage(syncToCloud = true) {
   } catch (err) {}
   if (syncToCloud) {
     saveCloudData('users', mockUsers);
+  }
+}
+
+function saveCoursesToStorage(syncToCloud = true) {
+  try {
+    localStorage.setItem('pentaskill_courses', JSON.stringify(mockCourses));
+  } catch (err) {}
+  if (syncToCloud && typeof saveCloudData === 'function') {
+    saveCloudData('courses', mockCourses);
   }
 }
 
@@ -305,6 +326,16 @@ try {
     const parsedQuotes = JSON.parse(savedQuotes);
     if (Array.isArray(parsedQuotes) && parsedQuotes.length > 0) {
       mockCustomQuotes = parsedQuotes;
+    }
+  }
+} catch (err) {}
+
+try {
+  const savedCourses = localStorage.getItem('pentaskill_courses');
+  if (savedCourses) {
+    const parsedCourses = JSON.parse(savedCourses);
+    if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
+      mockCourses = parsedCourses;
     }
   }
 } catch (err) {}
@@ -1522,12 +1553,23 @@ function renderCourseGrid(category = 'all') {
 
         <div class="course-pricing-box">
           <div class="price-option">
-            <span><i class="fa-solid fa-graduation-cap text-purple"></i> 學習方案：</span>
-            <span class="price-val" style="font-size:0.88rem;">純錄播 / 1-on-1 教學多年業師陪跑</span>
+            <span style="color: var(--text-muted); font-size:0.86rem; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-circle-play text-cyan"></i> 錄播自學
+            </span>
+            <strong class="price-val" style="color: #f1f5f9; font-size:1.02rem;">
+              NT$ ${(course.priceRecordOnly || 3600).toLocaleString()}
+            </strong>
           </div>
-          <div class="price-option" style="margin-top:0.35rem;">
-            <span><i class="fa-brands fa-line text-green"></i> <strong>個案專屬服務：</strong></span>
-            <span class="price-val highlight" style="font-size:0.92rem; color:#34d399;">洽小編專人規劃 • 領 Line@ 優惠</span>
+          <div class="price-option" style="margin-top:0.45rem; padding-top:0.45rem; border-top: 1px dashed rgba(255,255,255,0.08);">
+            <span style="color: #f472b6; font-weight:600; font-size:0.86rem; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-crown text-yellow"></i> 含個教 1 對 1
+            </span>
+            <div style="text-align: right;">
+              <span class="price-val highlight" style="color: #fbbf24; font-size:1.08rem; letter-spacing:1px;">NT$ ????</span>
+              <div class="text-xs" style="color: #34d399; font-weight: 600; margin-top: 2px;">
+                <i class="fa-brands fa-line"></i> 詳細請洽小編
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1666,11 +1708,11 @@ function renderCourseAdminTable() {
       <td data-label="課程名稱"><strong>${c.title}</strong></td>
       <td data-label="分類標籤"><span class="badge-tag">${c.categoryLabel}</span></td>
       <td data-label="主講業師">${c.instructor}</td>
-      <td data-label="純錄播特惠">NT$ ${c.priceRecordOnly.toLocaleString()}</td>
-      <td data-label="含1對1個教" class="text-pink">NT$ ${c.priceWith1on1.toLocaleString()}</td>
+      <td data-label="純錄播價格"><strong class="text-cyan">NT$ ${(c.priceRecordOnly || 0).toLocaleString()}</strong></td>
+      <td data-label="含1對1個教"><span class="text-pink">NT$ ${(c.priceWith1on1 || 0).toLocaleString()}</span> <small class="text-muted" style="display:block; font-size:0.72rem;">(前台顯示 ????)</small></td>
       <td data-label="上架狀態"><span class="badge badge-success">已上架</span></td>
       <td data-label="操作管理">
-        <button class="btn btn-sm btn-outline" onclick="openEditCourseModal('${c.id}')"><i class="fa-solid fa-pen"></i> 編輯</button>
+        <button class="btn btn-sm btn-outline" onclick="openEditCourseModal('${c.id}')"><i class="fa-solid fa-pen"></i> 編輯價格/內容</button>
         ${isManagerOrConsultant ? `<button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
     </tr>
@@ -3320,12 +3362,12 @@ function handleSaveCourse(e) {
     const newCourse = {
       id: `course-${Date.now()}`,
       title, category, categoryLabel, instructor,
-      instructorTitle: '近10年教學多年資深業師講師',
+      instructorTitle: '近10年培訓體系資深業師',
       instructorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
       priceRecordOnly, priceWith1on1,
       rating: 5.0, reviewCount: 1,
-      videoDuration: '20 小時錄播視訊',
+      videoDuration: '20 小時錄播影音單元',
       liveSlotsCount: '4 次 1-on-1 個教',
       description,
       badge: '✨ 最新上架'
@@ -3334,6 +3376,7 @@ function handleSaveCourse(e) {
     showToast(`🎉 成功上架新課程：${title}`);
   }
 
+  saveCoursesToStorage(true);
   closeAddCourseModal();
   renderCourseGrid('all');
   renderCourseAdminTable();
@@ -3344,6 +3387,7 @@ function deleteCourse(courseId) {
     const idx = mockCourses.findIndex(c => c.id === courseId);
     if (idx !== -1) {
       mockCourses.splice(idx, 1);
+      saveCoursesToStorage(true);
       renderCourseGrid('all');
       renderCourseAdminTable();
       showToast('課程已下架');
@@ -4943,18 +4987,18 @@ function openConsultLineModal(courseIdOrTitle, type = 'combo') {
       </span>
       <h3 style="margin-top:0.75rem; font-size:1.25rem; color:#fff;">${title}</h3>
       <div style="font-size:0.88rem; color:var(--accent-cyan); margin-top:0.3rem;">
-        ${isCombo ? '🔥 1-on-1 教學多年業師陪跑 + 錄播全套視訊個案服務' : '📹 純錄播自學講義諮詢方案'}
+        ${isCombo ? '🔥 1-on-1 專屬業師陪跑 + 錄播全套影音課程服務' : '📹 純錄播自學講義諮詢方案'}
       </div>
     </div>
 
     <div class="line-consult-box">
       <div class="line-consult-title">
-        <i class="fa-solid fa-crown text-yellow"></i> 為什麼不直接明碼標價？我們的競爭優勢是：
+        <i class="fa-solid fa-crown text-yellow"></i> 為什麼 1 對 1 個教不直接公開定價？我們的競爭優勢是：
       </div>
       <ul class="consult-perks-list">
         <li>
           <i class="fa-solid fa-circle-check"></i>
-          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與教學多年業師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
+          <span><strong>1 對 1 個別專屬學習診斷：</strong>拒絕罐頭套裝！小編與專業金牌業師會先根據您的基礎與求職/接案目標，量身規劃專屬學習地圖與作品集主題。</span>
         </li>
         <li>
           <i class="fa-solid fa-circle-check"></i>

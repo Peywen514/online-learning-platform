@@ -359,7 +359,7 @@ let mockCourses = [
     priceWith1on1: 12800,
     rating: 4.9,
     reviewCount: 142,
-    videoDuration: "32 小時錄播視訊",
+    videoDuration: "32 小時錄播影音單元",
     liveSlotsCount: "4 次 1-on-1 專屬個教批改",
     description: "結合 React, Node.js 與 OpenAI/Claude API。從基礎語法到獨立完成可上線的 AI SaaS 應用，並提供講師 1 對 1 Code Review。",
     badge: "🔥 熱銷首選"
@@ -377,7 +377,7 @@ let mockCourses = [
     priceWith1on1: 14800,
     rating: 5.0,
     reviewCount: 98,
-    videoDuration: "28 小時錄播視訊",
+    videoDuration: "28 小時錄播影音單元",
     liveSlotsCount: "4 次 1對1 Figma 作品集重構",
     description: "掌握 Auto-Layout、Design System 與 Prototype。透過 1 對 1 個教微調作品細節，打造能直接面試求職的星級作品集。",
     badge: "👑 教學多年業師陪跑"
@@ -395,7 +395,7 @@ let mockCourses = [
     priceWith1on1: 9800,
     rating: 4.8,
     reviewCount: 76,
-    videoDuration: "24 小時錄播視訊",
+    videoDuration: "24 小時錄播影音單元",
     liveSlotsCount: "3 次 數據模型與腳本一對一診斷",
     description: "學會 Pandas, BeautifulSoup, Selenium 與數據視覺化。協助學員打造公司自動化工具或個人接案專案。",
     badge: "⚡ 實務高效"
@@ -413,7 +413,7 @@ let mockCourses = [
     priceWith1on1: 8800,
     rating: 4.9,
     reviewCount: 115,
-    videoDuration: "20 小時錄播視訊",
+    videoDuration: "20 小時錄播影音單元",
     liveSlotsCount: "3 次 廣告文案與投放數據個教診斷",
     description: "全方位解析 Meta 廣告、Google SEO、TikTok 短影音文案。配合 1 對 1 實作，即刻優化你的電商或接案轉換率。",
     badge: "📈 業績翻倍"
@@ -431,7 +431,7 @@ let mockCourses = [
     priceWith1on1: 28800,
     rating: 5.0,
     reviewCount: 45,
-    videoDuration: "無限次觀看全站錄播視訊",
+    videoDuration: "無限次觀看全站錄播影音單元",
     liveSlotsCount: "12 次 雙週 1-on-1 深入個教輔導",
     description: "適合想在 3-6 個月內轉職工程師、設計師或接案自由工作者。包含履歷改造、模擬面試與外包案源優先派案。",
     badge: "🏆 轉職首選"
@@ -690,7 +690,7 @@ let mockCustomQuotes = [
     courseTitle: "AI 驅動 Full-Stack Web 開發實戰營 (👑 專屬對接 85 折優惠包)",
     customPrice: 10880,
     createdBy: "👑 平台主管",
-    details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
+    details: "包含全套錄播影音課程 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
     updatedAt: calcDynamicDateTimeOffset(0, '16:30')
   }
 ];
