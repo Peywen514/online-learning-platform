@@ -677,12 +677,9 @@ function renderAuthArea() {
     `;
   } else {
     container.innerHTML = `
-      <div class="auth-btn-group" style="display:flex; align-items:center; gap:0.45rem;">
-        <button class="btn btn-outline btn-sm" onclick="openLoginModal()" style="display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.75rem;">
+      <div class="auth-btn-group" style="display:flex; align-items:center;">
+        <button class="btn btn-outline btn-sm" onclick="openLoginModal()" style="display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.85rem;">
           <i class="fa-solid fa-right-to-bracket"></i> 登入
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="openRegisterModal()" style="display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.75rem;">
-          <i class="fa-solid fa-user-plus"></i> 註冊
         </button>
       </div>
     `;
@@ -1564,12 +1561,7 @@ function renderCourseGrid(category = 'all') {
             <span style="color: #f472b6; font-weight:600; font-size:0.86rem; display:flex; align-items:center; gap:0.4rem;">
               <i class="fa-solid fa-crown text-yellow"></i> 含個教 1 對 1
             </span>
-            <div style="text-align: right;">
-              <span class="price-val highlight" style="color: #fbbf24; font-size:1.08rem; letter-spacing:1px;">NT$ ????</span>
-              <div class="text-xs" style="color: #34d399; font-weight: 600; margin-top: 2px;">
-                <i class="fa-brands fa-line"></i> 詳細請洽小編
-              </div>
-            </div>
+            <strong class="price-val highlight" style="color: #fbbf24; font-size:1.08rem; letter-spacing:1px;">NT$ ????</strong>
           </div>
         </div>
 
