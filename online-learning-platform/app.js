@@ -645,6 +645,9 @@ function renderAuthArea() {
           <button class="dropdown-item" onclick="switchView('member-center'); closeAllDropdowns();" style="color: #fbbf24; font-weight:600;">
             <i class="fa-solid fa-gem text-yellow"></i> 學員專區 (點數與課程)
           </button>
+          <button class="dropdown-item" onclick="openEditProfileModal(); closeAllDropdowns();" style="color: #c084fc;">
+            <i class="fa-solid fa-user-pen text-purple"></i> 修改個人資料
+          </button>
           <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
             <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
           </button>
@@ -1032,9 +1035,14 @@ function handleVerifyAndResetPassword(e) {
   }
 }
 
-function togglePasswordVisibility(inputId, iconId) {
+function togglePasswordVisibility(inputId, iconIdOrEl) {
   const input = document.getElementById(inputId);
-  const icon = document.getElementById(iconId);
+  let icon = null;
+  if (typeof iconIdOrEl === 'string') {
+    icon = document.getElementById(iconIdOrEl);
+  } else if (iconIdOrEl && iconIdOrEl.nodeType) {
+    icon = iconIdOrEl.tagName.toLowerCase() === 'i' ? iconIdOrEl : iconIdOrEl.querySelector('i');
+  }
   if (!input) return;
   if (input.type === 'password') {
     input.type = 'text';
@@ -1446,6 +1454,7 @@ function renderMemberCenterView() {
   const coins = currentUser.coins !== undefined ? currentUser.coins : 0;
   const masterTokens = currentUser.masterTokens !== undefined ? currentUser.masterTokens : 0;
   const birthday = currentUser.birthday || '未填寫';
+  const phone = currentUser.phone || '未填寫';
 
   if (avatarEl) avatarEl.src = currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
   if (nameEl) {
@@ -1457,12 +1466,34 @@ function renderMemberCenterView() {
     } else if (currentUser.role === 'manager') {
       nameEl.innerText = `${currentUser.name} 主管您好`;
     } else {
-      nameEl.innerText = `${currentUser.name} 您好`;
+      const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*學員|\s*會員/g, '').trim();
+      nameEl.innerText = `${cleanName || currentUser.name} 您好`;
     }
   }
   if (roleEl) roleEl.innerHTML = `<i class="fa-solid fa-graduation-cap"></i> ${currentUser.roleLabel || '精五門認證學員'}`;
   if (emailEl) {
-    emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${currentUser.email} &nbsp;|&nbsp; <i class="fa-solid fa-cake-candles text-pink"></i> 生日：<span id="memberCenterBirthday">${birthday}</span>`;
+    emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${currentUser.email} &nbsp;|&nbsp; <i class="fa-solid fa-phone text-cyan"></i> 手機：<span id="memberCenterPhone">${phone}</span> &nbsp;|&nbsp; <i class="fa-solid fa-cake-candles text-pink"></i> 生日：<span id="memberCenterBirthday">${birthday}</span>`;
+  }
+  const birthdayTagEl = document.getElementById('memberBirthdayTag');
+  if (birthdayTagEl) {
+    if (currentUser.birthday && currentUser.birthday !== '未填寫') {
+      try {
+        const parts = currentUser.birthday.split('-');
+        if (parts.length >= 2) {
+          const birthMonth = parseInt(parts[1], 10);
+          const currentMonth = new Date().getMonth() + 1;
+          if (birthMonth === currentMonth) {
+            birthdayTagEl.style.display = 'inline-flex';
+            birthdayTagEl.innerHTML = '<i class="fa-solid fa-cake-candles"></i> 🎂 本月壽星享100精幣';
+          } else {
+            birthdayTagEl.style.display = 'inline-flex';
+            birthdayTagEl.innerHTML = '<i class="fa-solid fa-cake-candles"></i> 生日當月享100精幣';
+          }
+        }
+      } catch(e) {
+        birthdayTagEl.style.display = 'inline-flex';
+      }
+    }
   }
   if (coinsEl) coinsEl.innerText = coins.toLocaleString();
   if (coinValEl) coinValEl.innerText = coins.toLocaleString();
@@ -1509,6 +1540,240 @@ function renderMemberCenterView() {
         </div>
       </div>
     `).join('');
+  }
+}
+
+// ==========================================
+// 👤 學員專區個人資料修改與雲端雙向同步模組
+// (Dual Sync: Cloudflare KV + Google Sheet)
+// ==========================================
+
+function openEditProfileModal() {
+  if (!currentUser) {
+    showToast('⚠️ 請先登入學員帳號！');
+    openLoginModal();
+    return;
+  }
+  const modal = document.getElementById('editProfileModal');
+  if (!modal) return;
+
+  const avatarPreview = document.getElementById('editProfileAvatarPreview');
+  const avatarInput = document.getElementById('editProfileAvatar');
+  const nameInput = document.getElementById('editProfileName');
+  const titleSelect = document.getElementById('editProfileTitle');
+  const phoneInput = document.getElementById('editProfilePhone');
+  const birthdayInput = document.getElementById('editProfileBirthday');
+  const emailInput = document.getElementById('editProfileEmail');
+  const passwordInput = document.getElementById('editProfilePassword');
+
+  const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
+  const avatarSrc = currentUser.avatar || defaultAvatar;
+
+  if (avatarPreview) avatarPreview.src = avatarSrc;
+  if (avatarInput) avatarInput.value = currentUser.avatar || '';
+
+  if (nameInput) {
+    const rawName = (currentUser.name || '').replace(/（.*）|\(.*\)|\s*學員|\s*會員|\s*講師|\s*顧問|\s*主管/g, '').trim();
+    nameInput.value = rawName || currentUser.name || '';
+  }
+  if (titleSelect) {
+    titleSelect.value = currentUser.title || '先生';
+  }
+  if (phoneInput) {
+    phoneInput.value = currentUser.phone || '';
+  }
+  if (birthdayInput) {
+    birthdayInput.value = (currentUser.birthday && currentUser.birthday !== '未填寫') ? currentUser.birthday : '';
+  }
+  if (emailInput) {
+    emailInput.value = currentUser.email || '';
+  }
+  if (passwordInput) {
+    passwordInput.value = '';
+  }
+
+  modal.classList.add('active');
+}
+
+function closeEditProfileModal() {
+  const modal = document.getElementById('editProfileModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function updateAvatarPreview(url) {
+  const preview = document.getElementById('editProfileAvatarPreview');
+  if (preview && url && url.trim()) {
+    preview.src = url.trim();
+  }
+}
+
+function selectPresetAvatar(url) {
+  const avatarInput = document.getElementById('editProfileAvatar');
+  const preview = document.getElementById('editProfileAvatarPreview');
+  if (avatarInput) avatarInput.value = url;
+  if (preview) preview.src = url;
+}
+
+async function handleSaveProfile(e) {
+  e.preventDefault();
+  if (!currentUser) {
+    showToast('⚠️ 請先登入帳號！');
+    return;
+  }
+
+  const avatarInput = document.getElementById('editProfileAvatar');
+  const nameInput = document.getElementById('editProfileName');
+  const titleSelect = document.getElementById('editProfileTitle');
+  const phoneInput = document.getElementById('editProfilePhone');
+  const birthdayInput = document.getElementById('editProfileBirthday');
+  const emailInput = document.getElementById('editProfileEmail');
+  const passwordInput = document.getElementById('editProfilePassword');
+
+  const newName = nameInput ? nameInput.value.trim() : '';
+  const newTitle = titleSelect ? titleSelect.value : '先生';
+  const newPhone = phoneInput ? phoneInput.value.trim() : '';
+  const newBirthday = birthdayInput ? birthdayInput.value.trim() : '';
+  const newEmail = emailInput ? emailInput.value.trim() : '';
+  const newPassword = passwordInput ? passwordInput.value.trim() : '';
+  const newAvatar = (avatarInput && avatarInput.value.trim()) 
+    ? avatarInput.value.trim() 
+    : (currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80');
+
+  if (!newName) {
+    showToast('⚠️ 請填寫真實姓名！');
+    return;
+  }
+  if (!newPhone) {
+    showToast('⚠️ 請填寫聯絡電話 / 手機！');
+    return;
+  }
+  if (!newBirthday) {
+    showToast('⚠️ 請選擇生日！');
+    return;
+  }
+  if (!newEmail) {
+    showToast('⚠️ 請填寫電子郵件！');
+    return;
+  }
+
+  // 檢查 Email 是否與其他使用者衝突
+  const oldEmail = currentUser.email;
+  const isEmailTaken = mockUsers.some(u => 
+    u.id !== currentUser.id && 
+    u.email && 
+    u.email.toLowerCase() === newEmail.toLowerCase()
+  );
+  if (isEmailTaken) {
+    showToast('⚠️ 此電子郵件已被其他帳號使用，請更換 Email！');
+    return;
+  }
+
+  // 更新當前登入者資訊
+  currentUser.name = newName;
+  currentUser.title = newTitle;
+  currentUser.phone = newPhone;
+  currentUser.birthday = newBirthday;
+  currentUser.email = newEmail;
+  currentUser.avatar = newAvatar;
+  if (newPassword) {
+    currentUser.password = newPassword;
+  }
+
+  // 同步更新 mockUsers
+  const uIdx = mockUsers.findIndex(u => 
+    u.id === currentUser.id || 
+    (oldEmail && u.email && u.email.toLowerCase() === oldEmail.toLowerCase())
+  );
+  if (uIdx !== -1) {
+    mockUsers[uIdx] = { ...mockUsers[uIdx], ...currentUser };
+  } else {
+    mockUsers.push(currentUser);
+  }
+
+  // 1. 本地儲存更新
+  try {
+    localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+  } catch(err) {}
+  try {
+    localStorage.setItem('pentaskill_users', JSON.stringify(mockUsers));
+  } catch(err) {}
+
+  // 2. 即時同步推送到 Cloudflare KV 雲端資料庫
+  saveUsersToStorage(true);
+
+  // 3. 即時同步推送到 Google Sheet 試算表 Webhook
+  const profileSyncData = {
+    name: newName,
+    title: newTitle,
+    phone: newPhone,
+    email: newEmail,
+    oldEmail: (oldEmail && oldEmail.toLowerCase() !== newEmail.toLowerCase()) ? oldEmail : '',
+    birthday: newBirthday,
+    coins: currentUser.coins !== undefined ? currentUser.coins : 0,
+    masterTokens: currentUser.masterTokens !== undefined ? currentUser.masterTokens : 0,
+    role: currentUser.role || 'student',
+    avatar: newAvatar,
+    passwordUpdated: newPassword ? '是 (密碼已重設)' : '否 (維持原密碼)'
+  };
+  syncProfileToGoogleSheet(profileSyncData);
+
+  // 關閉視窗並重新渲染畫面
+  closeEditProfileModal();
+  renderMemberCenterView();
+  renderAuthArea();
+  if (typeof renderUserTable === 'function') {
+    renderUserTable();
+  }
+
+  showToast(`🎉 個人資料已更新成功！已同步上傳至 Cloudflare KV 與 Google Sheet！`);
+}
+
+function syncProfileToGoogleSheet(profileData) {
+  const webhookUrl = googleSheetConfig.webhookUrl || localStorage.getItem('pentaskill_sheet_webhook') || 'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
+  if (!webhookUrl) {
+    console.log('ℹ️ 尚未設定 Google Apps Script Webhook URL，資料已安全儲存於本地與 Cloudflare KV');
+    return;
+  }
+
+  const nowTaipei = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
+  const payload = {
+    type: "profile_update",
+    dataType: "profile_update",
+    createdAt: nowTaipei,
+    name: profileData.name || '學員',
+    phone: profileData.phone || '未填寫',
+    email: profileData.email || '未提供',
+    identity: `平台學員 (${profileData.title || '先生/小姐'})`,
+    course: "【學員專區】個人基本資料更新",
+    goal: `生日：${profileData.birthday || '未填寫'}`,
+    experience: `精幣：${profileData.coins || 0} 枚`,
+    timePerWeek: `精通寶：${profileData.masterTokens || 0} 枚`,
+    priorityHelp: "學員個人資料雲端雙向同步",
+    notes: `【學員專區修改個人資料】更新時間：${nowTaipei} | 生日：${profileData.birthday || '未填寫'} | 稱呼：${profileData.title || ''} | 密碼變更：${profileData.passwordUpdated || '否'} | 大頭貼：${profileData.avatar ? '已自訂' : '預設'}`,
+    status: "🔄 個人資料已更新",
+    title: profileData.title || '',
+    birthday: profileData.birthday || '',
+    coins: profileData.coins || 0,
+    masterTokens: profileData.masterTokens || 0,
+    avatar: profileData.avatar || '',
+    oldEmail: profileData.oldEmail || ''
+  };
+
+  try {
+    fetch(webhookUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      console.log('✅ 學員個人資料已即時寫入 Google Sheet 試算表！');
+    }).catch(err => {
+      console.warn('⚠️ Google Sheet 個人資料同步提醒:', err);
+    });
+  } catch (err) {
+    console.warn('⚠️ Google Sheet 個人資料同步異常:', err);
   }
 }
 
@@ -5601,7 +5866,8 @@ function testRun() {
   var ss = getSpreadsheet();
   initLeadSheet(ss);
   initQuoteSheet(ss);
-  Logger.log("雙工作表已成功初始化完成！");
+  initMemberSheet(ss);
+  Logger.log("三大工作表（諮詢紀錄、客製化報價單、學員資料更新）已成功初始化完成！");
 }
 
 function initLeadSheet(ss) {
@@ -5642,6 +5908,28 @@ function initQuoteSheet(ss) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     var range = sheet.getRange(1, 1, 1, headers.length);
     range.setBackground("#0891b2");
+    range.setFontColor("#ffffff");
+    range.setFontWeight("bold");
+    range.setHorizontalAlignment("center");
+    range.setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function initMemberSheet(ss) {
+  var sheet = ss.getSheetByName("學員資料與更新紀錄");
+  if (!sheet) {
+    sheet = ss.insertSheet("學員資料與更新紀錄");
+  }
+  var headers = [
+    "更新時間", "學員姓名", "稱呼", "聯絡電話", "電子郵件 (登入帳號)", "生日", "精幣餘額", "精通寶", "修改備註說明"
+  ];
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    var range = sheet.getRange(1, 1, 1, headers.length);
+    range.setBackground("#8b5cf6");
     range.setFontColor("#ffffff");
     range.setFontWeight("bold");
     range.setHorizontalAlignment("center");
@@ -5789,6 +6077,28 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "success",
         message: "客製化報價單寫入成功！",
+        row: lastRow
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else if (data.type === "profile_update" || data.dataType === "profile_update") {
+      var memberSheet = initMemberSheet(ss);
+      var row = [
+        data.createdAt || getNowString(),
+        data.name || "學員",
+        data.title || "先生/小姐",
+        data.phone || "未填寫",
+        data.email || "未提供",
+        data.birthday || "未填寫",
+        data.coins !== undefined ? data.coins : 0,
+        data.masterTokens !== undefined ? data.masterTokens : 0,
+        data.notes || "學員專區資料更新"
+      ];
+      memberSheet.appendRow(row);
+      var lastRow = memberSheet.getLastRow();
+      memberSheet.getRange(lastRow, 1, 1, 9).setVerticalAlignment("middle");
+      memberSheet.setRowHeight(lastRow, 30);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "學員個人資料更新已成功寫入【學員資料與更新紀錄】試算表！",
         row: lastRow
       })).setMimeType(ContentService.MimeType.JSON);
     } else {

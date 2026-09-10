@@ -85,6 +85,8 @@ const mockUsers = [
     id: "u-3",
     name: "林小明 (學員)",
     email: "student@pentaskill.com",
+    phone: "0912-345-678",
+    title: "先生",
     password: "user123",
     role: "student",
     roleLabel: "🎓 消費者學員 (Student)",
