@@ -339,7 +339,7 @@ try {
       mockCourses = parsedCourses;
       mockCourses.forEach((c, idx) => {
         if (c.isFeatured === undefined) {
-          c.isFeatured = (idx < 5);
+          c.isFeatured = (idx < 4);
         }
       });
     }
@@ -1592,7 +1592,7 @@ function renderCourseGrid(category = 'all') {
   `).join('');
 }
 
-// Homepage Featured Courses Grid Rendering (5 items on desktop, 3 on mobile)
+// Homepage Featured Courses Grid Rendering (4 items on desktop, 3 on mobile)
 function renderHomeFeaturedCourses() {
   const container = document.getElementById('homeFeaturedCoursesGrid');
   if (!container) return;
@@ -1600,9 +1600,9 @@ function renderHomeFeaturedCourses() {
   // Filter courses marked as isFeatured
   let featured = (typeof mockCourses !== 'undefined' ? mockCourses : []).filter(c => c.isFeatured);
   if (featured.length === 0 && typeof mockCourses !== 'undefined' && mockCourses.length > 0) {
-    featured = mockCourses.slice(0, 5);
+    featured = mockCourses.slice(0, 4);
   } else {
-    featured = featured.slice(0, 5);
+    featured = featured.slice(0, 4);
   }
 
   container.innerHTML = featured.map(course => `

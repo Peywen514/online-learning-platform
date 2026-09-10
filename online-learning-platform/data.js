@@ -439,7 +439,7 @@ let mockCourses = [
     liveSlotsCount: "12 次 雙週 1-on-1 深入個教輔導",
     description: "適合想在 3-6 個月內轉職工程師、設計師或接案自由工作者。包含履歷改造、模擬面試與外包案源優先派案。",
     badge: "🏆 轉職首選",
-    isFeatured: true
+    isFeatured: false
   }
 ];
 
