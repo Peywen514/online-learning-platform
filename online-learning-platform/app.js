@@ -1389,6 +1389,10 @@ function switchView(viewId, pushHistory = true) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  if (viewId === 'marketplace') {
+    updateCarouselTransform();
+    renderPortfolios();
+  }
   if (viewId === 'admin-dashboard') {
     renderAdminTables();
   }

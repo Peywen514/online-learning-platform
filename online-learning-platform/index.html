@@ -378,146 +378,6 @@
             </div>
           </div>
         </div>
-
-        <!-- STAR PORTFOLIOS SHOWCASE (示範作品集展演區塊) -->
-        <div class="container margin-top-xl">
-          <div class="portfolio-showcase-box">
-            <div class="section-header text-center">
-              <span class="badge-tag"><i class="fa-solid fa-gem text-purple"></i> DEMONSTRATION PORTFOLIOS</span>
-              <h2>教學多年業師 1-on-1 親導 • 跨領域星級作品集展演</h2>
-              <p>100% 遵守著作權與開放合規商業授權 (CC0/創用無疑慮)。學習者在講師個教修稿陪跑下產出的驚艷實務專案：</p>
-              <div class="margin-top-sm">
-                <button class="btn btn-sm btn-outline staff-manager-btn" onclick="openAddPortfolioModal()" style="display:inline-flex; align-items:center; gap:0.4rem;">
-                  <i class="fa-solid fa-plus text-pink"></i> 🎨 上架 / 編輯星級作品 (CMS)
-                </button>
-              </div>
-            </div>
-
-            <!-- Portfolio Cards Grid (JS rendered from mockPortfolios) -->
-            <div class="grid grid-4 gap-md margin-top-lg" id="portfolioGrid">
-              <!-- Populated by JS renderPortfolios() -->
-            </div>
-          </div>
-        </div>
-
-        <!-- POPULAR COURSES CAROUSEL -->
-        <div class="container margin-top-xl">
-          <div class="carousel-section-box">
-            <div class="carousel-header">
-              <div>
-                <span class="badge-tag">FEATURED COURSES</span>
-                <h3>🔥 本月熱門精選課程 • 動態輪播圖展演</h3>
-              </div>
-              <div class="carousel-controls">
-                <button class="c-arrow-btn" onclick="prevCarousel()"><i class="fa-solid fa-chevron-left"></i></button>
-                <button class="c-arrow-btn" onclick="nextCarousel()"><i class="fa-solid fa-chevron-right"></i></button>
-              </div>
-            </div>
-
-            <!-- Carousel Slides Wrapper -->
-            <div class="carousel-viewport">
-              <div class="carousel-track" id="heroCarouselTrack">
-                <!-- Slide 1 -->
-                <div class="carousel-slide">
-                  <div class="c-slide-content">
-                    <div class="c-slide-img">
-                      <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80" alt="AI 驅動 Full-Stack">
-                      <span class="c-badge">🔥 熱銷首選</span>
-                    </div>
-                    <div class="c-slide-body">
-                      <span class="pill">網頁開發 / AI</span>
-                      <h2>AI 驅動 Full-Stack Web 開發實戰營</h2>
-                      <p>結合 React 19, Node.js 與 OpenAI API，從 0 獨立打造可商業上線的 AI SaaS 工具！搭配 4 次帥哥講師張哲銘 1-on-1 Code Review。</p>
-                      
-                      <div class="c-slide-meta">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
-                        <div>
-                          <strong>張哲銘 (Ethan) 講師親授</strong>
-                          <div class="text-sm text-muted">32 小時錄播 + 4次線上個教實戰</div>
-                        </div>
-                      </div>
-
-                      <div class="c-slide-actions margin-top-md">
-                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
-                        <button class="btn btn-line" onclick="openConsultLineModal('course-1', 'combo')">
-                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Slide 2 -->
-                <div class="carousel-slide">
-                  <div class="c-slide-content">
-                    <div class="c-slide-img">
-                      <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80" alt="UI/UX 設計">
-                      <span class="c-badge bg-pink">👑 教學多年業師陪跑</span>
-                    </div>
-                    <div class="c-slide-body">
-                      <span class="pill">UI/UX 與 設計</span>
-                      <h2>UI/UX 產品設計與 Figma 設計系統實力班</h2>
-                      <p>掌握 Figma Auto-Layout、Design System 與高保真 Prototype。由美女總監陳婷俐進行 1 對 1 作品集精細重構，直通求職面試！</p>
-                      
-                      <div class="c-slide-meta">
-                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
-                        <div>
-                          <strong>陳婷俐 (Tina) 講師親授</strong>
-                          <div class="text-sm text-muted">28 小時錄播 + 4次 Figma 個教微調</div>
-                        </div>
-                      </div>
-
-                      <div class="c-slide-actions margin-top-md">
-                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
-                        <button class="btn btn-line" onclick="openConsultLineModal('course-2', 'combo')">
-                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Slide 3 -->
-                <div class="carousel-slide">
-                  <div class="c-slide-content">
-                    <div class="c-slide-img">
-                      <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Python 數據">
-                      <span class="c-badge bg-blue">⚡ 實務高效</span>
-                    </div>
-                    <div class="c-slide-body">
-                      <span class="pill">網頁開發 / AI</span>
-                      <h2>Python 數據分析與自動化爬蟲實務</h2>
-                      <p>學會 Pandas, BeautifulSoup, Selenium 與數據視覺化。幫助您打造自動化工作腳本，更有講師歐陽翔 1 對 1 模型診斷！</p>
-                      
-                      <div class="c-slide-meta">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
-                        <div>
-                          <strong>歐陽翔 (Shawn) 講師親授</strong>
-                          <div class="text-sm text-muted">24 小時錄播 + 3次自動化腳本診斷</div>
-                        </div>
-                      </div>
-
-                      <div class="c-slide-actions margin-top-md">
-                        <span class="c-price" style="font-size:1.1rem; color:#34d399;"><i class="fa-brands fa-line"></i> 洽小編領專屬優惠 <small>(提供個別專屬服務)</small></span>
-                        <button class="btn btn-line" onclick="openConsultLineModal('course-3', 'combo')">
-                          <i class="fa-brands fa-line"></i> 加 Line@ 洽小編
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- Dots Indicator -->
-            <div class="carousel-dots" id="carouselDots">
-              <span class="dot active" onclick="goToSlide(0)"></span>
-              <span class="dot" onclick="goToSlide(1)"></span>
-              <span class="dot" onclick="goToSlide(2)"></span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Consumer Benefit & High-Efficiency Features Grid -->
@@ -636,7 +496,132 @@
     <!-- VIEW 2: COURSE MARKETPLACE & E-COMMERCE -->
     <section id="view-marketplace" class="view-section">
       <div class="container section-padding">
-        <div class="section-header">
+
+        <!-- POPULAR RECORDED COURSES CAROUSEL (熱門推薦實戰課程輪播) -->
+        <div class="carousel-section-box margin-bottom-xl" style="margin-bottom: 3rem;">
+          <div class="carousel-header">
+            <div>
+              <span class="badge-tag"><i class="fa-solid fa-fire text-pink"></i> 精選推薦 • FEATURED COURSES</span>
+              <h3 style="margin-top: 0.35rem; font-size: 1.5rem;">熱門推薦實戰課程</h3>
+              <p class="text-sm text-muted">精選熱門實務單元，支援錄播隨選自學與業師 1 對 1 專屬答疑輔導</p>
+            </div>
+            <div class="carousel-controls">
+              <button class="c-arrow-btn" onclick="prevCarousel()" title="上一門"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="c-arrow-btn" onclick="nextCarousel()" title="下一門"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Carousel Slides Wrapper -->
+          <div class="carousel-viewport">
+            <div class="carousel-track" id="heroCarouselTrack">
+              <!-- Slide 1 -->
+              <div class="carousel-slide">
+                <div class="c-slide-content">
+                  <div class="c-slide-img">
+                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80" alt="AI 驅動 Full-Stack">
+                    <span class="c-badge">🔥 熱銷推薦</span>
+                  </div>
+                  <div class="c-slide-body">
+                    <span class="pill">網頁開發 / AI</span>
+                    <h2>AI 驅動 Full-Stack Web 開發實戰營</h2>
+                    <p>結合 React 19、Node.js 與 OpenAI API，從 0 獨立打造可商業上線的 AI SaaS 工具！並由資深全端工程師張哲銘提供 1 對 1 程式碼審查與架構諮詢。</p>
+                    
+                    <div class="c-slide-meta">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                      <div>
+                        <strong>張哲銘 (Ethan) 講師親授</strong>
+                        <div class="text-sm text-muted">32 小時錄播 + 4 次 1 對 1 專案指導</div>
+                      </div>
+                    </div>
+
+                    <div class="c-slide-actions margin-top-md" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                      <button class="btn btn-primary" onclick="addToCart('course-1', 'self')">
+                        <i class="fa-solid fa-cart-plus"></i> 加入購物車
+                      </button>
+                      <button class="btn btn-line" onclick="openConsultLineModal('course-1', 'combo')">
+                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slide 2 -->
+              <div class="carousel-slide">
+                <div class="c-slide-content">
+                  <div class="c-slide-img">
+                    <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80" alt="UI/UX 設計">
+                    <span class="c-badge bg-pink">👑 實務專案輔導</span>
+                  </div>
+                  <div class="c-slide-body">
+                    <span class="pill">UI/UX 與 設計</span>
+                    <h2>UI/UX 產品設計與 Figma 設計系統實力班</h2>
+                    <p>掌握 Figma Auto-Layout、Design System 與高保真 Prototype。由資深設計師陳婷俐進行 1 對 1 作品集精修與求職實戰指導，直通求職面試！</p>
+                    
+                    <div class="c-slide-meta">
+                      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                      <div>
+                        <strong>陳婷俐 (Tina) 講師親授</strong>
+                        <div class="text-sm text-muted">28 小時錄播 + 4 次 1 對 1 設計精修</div>
+                      </div>
+                    </div>
+
+                    <div class="c-slide-actions margin-top-md" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                      <button class="btn btn-primary" onclick="addToCart('course-2', 'self')">
+                        <i class="fa-solid fa-cart-plus"></i> 加入購物車
+                      </button>
+                      <button class="btn btn-line" onclick="openConsultLineModal('course-2', 'combo')">
+                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slide 3 -->
+              <div class="carousel-slide">
+                <div class="c-slide-content">
+                  <div class="c-slide-img">
+                    <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Python 數據">
+                    <span class="c-badge bg-blue">⚡ 實務高效</span>
+                  </div>
+                  <div class="c-slide-body">
+                    <span class="pill">資料分析 / Python</span>
+                    <h2>Python 數據分析與自動化爬蟲實務</h2>
+                    <p>學會 Pandas、Selenium 與資料視覺化工具，打造高效率自動化流程，並由資料工程師歐陽翔提供 1 對 1 專案診斷與除錯建議！</p>
+                    
+                    <div class="c-slide-meta">
+                      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" class="c-inst-img">
+                      <div>
+                        <strong>歐陽翔 (Shawn) 講師親授</strong>
+                        <div class="text-sm text-muted">24 小時錄播 + 3 次 1 對 1 專案診斷</div>
+                      </div>
+                    </div>
+
+                    <div class="c-slide-actions margin-top-md" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                      <button class="btn btn-primary" onclick="addToCart('course-3', 'self')">
+                        <i class="fa-solid fa-cart-plus"></i> 加入購物車
+                      </button>
+                      <button class="btn btn-line" onclick="openConsultLineModal('course-3', 'combo')">
+                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Dots Indicator -->
+          <div class="carousel-dots" id="carouselDots">
+            <span class="dot active" onclick="goToSlide(0)"></span>
+            <span class="dot" onclick="goToSlide(1)"></span>
+            <span class="dot" onclick="goToSlide(2)"></span>
+          </div>
+        </div>
+
+        <div class="section-header margin-top-xl">
           <div class="header-with-actions">
             <div>
               <div class="sub-title">COURSE STORE</div>
@@ -657,6 +642,26 @@
         <div class="grid grid-3 gap-lg" id="courseGrid">
           <!-- Rendered dynamically by JS -->
         </div>
+
+        <!-- STUDENT PROJECT SHOWCASE (學員實戰代表作成果) -->
+        <div class="portfolio-showcase-box margin-top-xxl" style="margin-top: 4rem;">
+          <div class="section-header text-center">
+            <span class="badge-tag"><i class="fa-solid fa-graduation-cap text-purple"></i> STUDENT SHOWCASE</span>
+            <h2>學員實戰代表作成果</h2>
+            <p>由業師 1 對 1 陪跑指導產出之實務專案，具備業界接案與就業實戰水準：</p>
+            <div class="margin-top-sm">
+              <button class="btn btn-sm btn-outline staff-manager-btn" onclick="openAddPortfolioModal()" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-plus text-pink"></i> 🎨 上架 / 編輯代表作 (CMS)
+              </button>
+            </div>
+          </div>
+
+          <!-- Portfolio Cards Grid (JS rendered from mockPortfolios) -->
+          <div class="grid grid-4 gap-md margin-top-lg" id="portfolioGrid">
+            <!-- Populated by JS renderPortfolios() -->
+          </div>
+        </div>
+
       </div>
     </section>
 
