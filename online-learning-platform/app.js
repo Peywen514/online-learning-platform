@@ -317,6 +317,14 @@ try {
       mockBookings = parsedBookings;
     }
   }
+  // 確保示範預約資料 (bk-101 ~ bk-104) 始終與即時日期動態連動，絕不顯示過期舊日期
+  const todayStr = getLocalDateString();
+  mockBookings.forEach(b => {
+    if (b.id === 'bk-101' && (!b.date || b.date < todayStr)) b.date = calcDynamicDateOffset(3);
+    if (b.id === 'bk-102' && (!b.date || b.date < todayStr)) b.date = calcDynamicDateOffset(1);
+    if (b.id === 'bk-103' && (!b.date || b.date < todayStr)) b.date = calcDynamicDateOffset(0);
+    if (b.id === 'bk-104' && (!b.date || b.date >= todayStr)) b.date = calcDynamicDateOffset(-2);
+  });
 } catch (err) {}
 
 try {
@@ -375,13 +383,24 @@ document.addEventListener('DOMContentLoaded', () => {
   renderChapters();
   
   // 預約日期初始化 (今日起，不能選過去日期)
+  const todayStr = getLocalDateString();
   const dateInput = document.getElementById('bookingDate');
   if (dateInput) {
-    const todayStr = new Date().toISOString().split('T')[0];
     dateInput.min = todayStr;
     if (!dateInput.value || dateInput.value < todayStr) {
       dateInput.value = todayStr;
     }
+  }
+  const adminDateInput = document.getElementById('adminBookingDate');
+  if (adminDateInput) {
+    adminDateInput.min = todayStr;
+    if (!adminDateInput.value || adminDateInput.value < todayStr) {
+      adminDateInput.value = todayStr;
+    }
+  }
+  const assignmentInfo = document.getElementById('assignmentSubmitInfo');
+  if (assignmentInfo) {
+    assignmentInfo.innerHTML = `您已於 ${calcDynamicDateTimeOffset(-1, '11:30')} 繳交 GitHub 倉庫連結。講師張哲銘預計於今日 14:00 個教時段進行即時 Code Review。`;
   }
   if (typeof updateAvailableSlots === 'function') {
     updateAvailableSlots();
@@ -1135,7 +1154,7 @@ function handleRegisterSubmit(e) {
     avatar: title === '小姐' 
       ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80' 
       : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    registeredAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    registeredAt: getLocalDateTimeString(),
     purchasedCourses: ['course-1']
   };
 
@@ -1145,7 +1164,7 @@ function handleRegisterSubmit(e) {
   // 2. Create Potential Student Lead Record for CRM & Sheet
   const newLead = {
     id: `lead-${Date.now()}`,
-    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    createdAt: getLocalDateTimeString(),
     name: `${name} (${title})`,
     phone: phone,
     email: email,
@@ -2345,12 +2364,20 @@ function openPayoutConfirmModal(salaryId) {
     ? courses.map(c => `   • ${c.courseTitle}：NT$ ${(c.price || 0).toLocaleString()} × ${c.soldCount || 0} 門 ＝ NT$ ${((c.price || 0) * (c.soldCount || 0)).toLocaleString()}`).join('\n')
     : '   • 當月無錄播課程售出紀錄';
 
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDate = now.getDate();
+  const txnDateStr = `${currentYear}${String(currentMonth).padStart(2, '0')}${String(currentDate).padStart(2, '0')}`;
+  const txnInput = document.getElementById('payoutTxnRef');
+  if (txnInput) txnInput.value = `TXN-${txnDateStr}-01`;
+
   // 格式化完整的 LINE / Email 通知信
   const noticeMsg = 
 `🔔【精五門 PentaSkill 講師月結分潤與鐘點費入帳通知】
 親愛的 ${s.name} 老師您好：
 
-本月（2026年9月份）您的錄播課程銷售分潤與 1-on-1 專屬個教鐘點費已於今日（10日）全數審核並撥款至您的指定銀行帳戶！
+本月（${currentYear}年${currentMonth}月份）您的錄播課程銷售分潤與 1-on-1 專屬個教鐘點費已於今日（${currentDate}日）全數審核並撥款至您的指定銀行帳戶！
 
 📊 本月入帳結算明細如下：
 ────────────────────────────
@@ -2676,12 +2703,20 @@ function openStaffPayoutConfirmModal(staffId) {
   document.getElementById('staffPayoutModalBankName').innerText = bank.bankName;
   document.getElementById('staffPayoutModalBankAccount').innerText = `******${bank.accountLast5}`;
 
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDate = now.getDate();
+  const txnDateStr = `${currentYear}${String(currentMonth).padStart(2, '0')}${String(currentDate).padStart(2, '0')}`;
+  const txnInput = document.getElementById('staffPayoutTxnRef');
+  if (txnInput) txnInput.value = `STAFF-${txnDateStr}-01`;
+
   // 格式化完整的員工 LINE / Email 通知信
   const noticeMsg = 
 `🔔【精五門 PentaSkill 團隊夥伴月薪與獎金入帳通知】
 親愛的 ${st.name} (${st.role}) 您好：
 
-本月（2026年9月份）您的工作薪資與績效獎金已於今日（10日）全數審核並發放至您的指定銀行帳戶！
+本月（${currentYear}年${currentMonth}月份）您的工作薪資與績效獎金已於今日（${currentDate}日）全數審核並發放至您的指定銀行帳戶！
 
 📊 本月入帳薪資明細如下：
 ────────────────────────────
@@ -4625,9 +4660,7 @@ function openRescheduleModal(bookingId) {
   if (oldTimeEl) oldTimeEl.innerText = `${booking.date} (${booking.slotTime})`;
   
   // 新日期限制：最少在 48 小時之後 (例如後天)
-  const minDate = new Date();
-  minDate.setDate(minDate.getDate() + 2);
-  const minDateStr = minDate.toISOString().split('T')[0];
+  const minDateStr = calcDynamicDateOffset(2);
   const newDateInput = document.getElementById('rescheduleNewDate');
   if (newDateInput) {
     newDateInput.min = minDateStr;
@@ -5143,7 +5176,7 @@ function handleLeadFormSubmit(e) {
 
   const newLead = {
     id: `lead-${Date.now()}`,
-    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    createdAt: getLocalDateTimeString(),
     name,
     phone,
     email,
@@ -5338,7 +5371,7 @@ function fallbackCopy(text) {
 function testGoogleSheetSync() {
   const testLead = {
     id: `test-${Date.now()}`,
-    createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19).replace('T', ' '),
+    createdAt: getLocalDateTimeString(),
     name: "測試學員 (Google Sheet 連線測試)",
     phone: "0900-123-456",
     email: "test@pentaskill.com",
@@ -5368,7 +5401,7 @@ function testGoogleSheetSync() {
 function testGoogleSheetQuoteSync() {
   const testQuote = {
     id: `test-quote-${Date.now()}`,
-    updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    updatedAt: getLocalDateTimeString(),
     studentEmail: "test.student@pentaskill.com",
     studentName: "測試學員 (報價單同步測試)",
     courseTitle: "AI 驅動 Full-Stack 實戰營 (👑 主管/顧問專屬優惠包)",
@@ -6012,7 +6045,7 @@ function handleSaveCustomQuote(e) {
   const details = document.getElementById('inputQuoteDetails').value.trim();
   const createdByEl = document.getElementById('inputQuoteCreatedBy');
   const creatorName = (createdByEl && createdByEl.value.trim()) ? createdByEl.value.trim() : (currentUser ? currentUser.name : '陳顧問');
-  const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+  const nowStr = getLocalDateTimeString();
 
   let quoteToSync = null;
 

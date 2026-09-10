@@ -1,5 +1,32 @@
 // Data model & RBAC Accounts for PentaSkill Platform
 
+// 📅 全站即時本地日期與時間格式化輔助引擎 (避免 UTC 時差誤差，確保所有日期皆為即時動態計算)
+function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getLocalDateTimeString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+function calcDynamicDateOffset(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return getLocalDateString(d);
+}
+
+function calcDynamicDateTimeOffset(offsetDays = 0, timeStr = '12:00') {
+  return `${calcDynamicDateOffset(offsetDays)} ${timeStr}`;
+}
+
 const mockUsers = [
   {
     id: "u-1",
@@ -116,7 +143,7 @@ let mockBookings = [
     instructor: "張哲銘 (Ethan)",
     studentName: "林小明",
     studentEmail: "student@pentaskill.com",
-    date: "2026-09-11",
+    date: calcDynamicDateOffset(3),
     slotTime: "14:00 - 15:00",
     topic: "專案作品 1 對 1 精準批改與架構診斷 (1小時)",
     notes: "想檢討 React 19 與 AI API 串接效能優化...",
@@ -129,7 +156,7 @@ let mockBookings = [
     instructor: "陳婷俐 (Tina)",
     studentName: "黃雅婷",
     studentEmail: "yating@example.com",
-    date: "2026-09-09",
+    date: calcDynamicDateOffset(1),
     slotTime: "15:30 - 16:30",
     topic: "UI/UX 與 跨領域作品集 1 對 1 精細修稿 (1小時)",
     notes: "請講師幫忙檢視 Figma 3D 擬態作品集排版...",
@@ -142,7 +169,7 @@ let mockBookings = [
     instructor: "歐陽翔 (Shawn)",
     studentName: "林小明",
     studentEmail: "student@pentaskill.com",
-    date: "2026-09-07",
+    date: calcDynamicDateOffset(0),
     slotTime: "23:30 - 00:30",
     topic: "Python 數據模型與 AI 輔助個教 (1小時)",
     notes: "即時 1-on-1 示範時段...",
@@ -155,7 +182,7 @@ let mockBookings = [
     instructor: "林雅涵 (Hannah)",
     studentName: "張宇彤",
     studentEmail: "yutong@example.com",
-    date: "2026-09-05",
+    date: calcDynamicDateOffset(-2),
     slotTime: "20:30 - 21:30",
     topic: "副業接案定價與商業合約教練 (1小時)",
     notes: "短影音腳本對接品牌客戶過單報價問題...",
@@ -625,7 +652,7 @@ let mockMaterials = [
 let mockLeads = [
   {
     id: "lead-101",
-    createdAt: "2026-09-09 14:15",
+    createdAt: calcDynamicDateTimeOffset(0, '14:15'),
     name: "陳姿涵",
     phone: "0912-345-678",
     email: "zihan@example.com",
@@ -640,7 +667,7 @@ let mockLeads = [
   },
   {
     id: "lead-102",
-    createdAt: "2026-09-09 11:30",
+    createdAt: calcDynamicDateTimeOffset(0, '11:30'),
     name: "王建宏",
     phone: "0987-654-321",
     email: "kenwang@example.com",
@@ -664,7 +691,7 @@ let mockCustomQuotes = [
     customPrice: 10880,
     createdBy: "👑 平台主管",
     details: "包含全套錄播視訊 + 4次張哲銘講師 1-on-1 個教 + 贈送 Figma 專案元件庫",
-    updatedAt: "2026-09-09 16:30"
+    updatedAt: calcDynamicDateTimeOffset(0, '16:30')
   }
 ];
 

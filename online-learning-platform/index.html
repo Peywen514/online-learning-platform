@@ -197,9 +197,6 @@
               <button class="btn btn-primary btn-lg" onclick="switchView('marketplace')">
                 <i class="fa-solid fa-rocket"></i> 瀏覽熱門課程組合
               </button>
-              <button class="btn btn-outline btn-lg" onclick="openQuoteLookupModal()" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
-                <i class="fa-solid fa-receipt"></i> 查詢專屬報價單
-              </button>
               <button class="btn btn-glass btn-lg manager-only-btn" onclick="switchView('business-plan')" style="display: none;">
                 <i class="fa-solid fa-chess"></i> 查看創業差異化規劃
               </button>
@@ -955,7 +952,7 @@
                     <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> 待個教講師批改</span>
                     <h4>作業題目：完成 AI 聊天對話框與 Error Boundary 機制</h4>
                   </div>
-                  <p class="text-sm">您已於 2026-09-09 11:30 繳交 GitHub 倉庫連結。講師張哲銘預計於明日 14:00 個教時段進行即時 Code Review。</p>
+                  <p class="text-sm" id="assignmentSubmitInfo">您已繳交 GitHub 倉庫連結。講師張哲銘預計於今日 14:00 個教時段進行即時 Code Review。</p>
                   <button class="btn btn-primary btn-sm margin-top-sm" onclick="openAssignmentModal()">重新上傳 / 更新專案檔</button>
                 </div>
               </div>
@@ -1153,7 +1150,7 @@
                 </div>
                 <!-- 快捷選日標籤列 (當月向後滾動) -->
                 <div class="quick-date-chips" id="bookingQuickDateChips"></div>
-                <input type="date" id="bookingDate" class="form-control margin-top-xs" value="2026-09-09" min="2026-09-09" onchange="updateAvailableSlots()">
+                <input type="date" id="bookingDate" class="form-control margin-top-xs" onchange="updateAvailableSlots()">
                 <div class="slots-grid margin-top-sm" id="slotsGrid">
                   <div class="slot-chip active">14:00 - 15:00</div>
                   <div class="slot-chip">15:30 - 16:30</div>
@@ -2644,7 +2641,7 @@
           <div class="form-row grid grid-2 gap-sm margin-top-sm">
             <div class="form-group">
               <label>預約日期 <span class="text-pink">*</span></label>
-              <input type="date" id="adminBookingDate" class="form-control" value="2026-09-09" min="2026-09-09" required>
+              <input type="date" id="adminBookingDate" class="form-control" required>
             </div>
             <div class="form-group">
               <label>預約時段 (1小時) <span class="text-pink">*</span></label>
@@ -2703,7 +2700,7 @@
             </div>
             <div style="display:flex; justify-content:space-between;">
               <span class="text-muted">原定時間：</span>
-              <strong class="text-pink" id="rescheduleOldTime">2026-09-11 (14:00 - 15:00)</strong>
+              <strong class="text-pink" id="rescheduleOldTime">載入中...</strong>
             </div>
           </div>
 
