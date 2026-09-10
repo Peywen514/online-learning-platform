@@ -1566,8 +1566,8 @@ function renderCourseGrid(category = 'all') {
         </div>
 
         <div class="course-actions" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.85rem;">
-          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.88rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
-            <i class="fa-solid fa-cart-plus"></i> 加入購物車 (自學 NT$ ${(course.priceRecordOnly || 3600).toLocaleString()})
+          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.9rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
+            <i class="fa-solid fa-cart-plus"></i> 加入購物車
           </button>
           <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')" style="font-weight:600; font-size:0.88rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
             <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案 (含 1對1個教)
