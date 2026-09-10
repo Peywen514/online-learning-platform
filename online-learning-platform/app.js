@@ -198,6 +198,7 @@ async function initCloudSync() {
         localStorage.setItem('pentaskill_courses', JSON.stringify(mockCourses));
       } catch(err) {}
       renderCourseGrid('all');
+      renderHomeFeaturedCourses();
       renderCourseAdminTable();
       updated = true;
     }
@@ -336,6 +337,11 @@ try {
     const parsedCourses = JSON.parse(savedCourses);
     if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
       mockCourses = parsedCourses;
+      mockCourses.forEach((c, idx) => {
+        if (c.isFeatured === undefined) {
+          c.isFeatured = (idx < 5);
+        }
+      });
     }
   }
 } catch (err) {}
@@ -408,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAuthArea();
   updateUIPermissions();
   renderCourseGrid('all');
+  renderHomeFeaturedCourses();
   renderInstructors();
   renderPortfolios();
   renderStudentBookings();
@@ -1389,6 +1396,9 @@ function switchView(viewId, pushHistory = true) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  if (viewId === 'home') {
+    renderHomeFeaturedCourses();
+  }
   if (viewId === 'marketplace') {
     updateCarouselTransform();
     renderPortfolios();
@@ -1582,6 +1592,72 @@ function renderCourseGrid(category = 'all') {
   `).join('');
 }
 
+// Homepage Featured Courses Grid Rendering (5 items on desktop, 3 on mobile)
+function renderHomeFeaturedCourses() {
+  const container = document.getElementById('homeFeaturedCoursesGrid');
+  if (!container) return;
+
+  // Filter courses marked as isFeatured
+  let featured = (typeof mockCourses !== 'undefined' ? mockCourses : []).filter(c => c.isFeatured);
+  if (featured.length === 0 && typeof mockCourses !== 'undefined' && mockCourses.length > 0) {
+    featured = mockCourses.slice(0, 5);
+  } else {
+    featured = featured.slice(0, 5);
+  }
+
+  container.innerHTML = featured.map(course => `
+    <div class="course-card">
+      <div class="course-thumb">
+        <img src="${course.coverImage}" alt="${course.title}">
+        <span class="course-tag">${course.categoryLabel}</span>
+        <span class="course-badge">${course.badge || '🔥 熱銷首選'}</span>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title" title="${course.title}">${course.title}</h3>
+        
+        <div class="instructor-row">
+          <img class="instructor-avatar" src="${course.instructorAvatar}" alt="${course.instructor}">
+          <div>
+            <div class="instructor-name">${course.instructor}</div>
+            <div class="instructor-exp">${course.instructorTitle}</div>
+          </div>
+        </div>
+
+        <div class="course-meta">
+          <span><i class="fa-solid fa-star text-yellow"></i> ${course.rating || 5.0} (${course.reviewCount || 100})</span>
+          <span><i class="fa-solid fa-video text-purple"></i> ${course.videoDuration || '錄播影音'}</span>
+        </div>
+
+        <div class="course-pricing-box">
+          <div class="price-option">
+            <span style="color: var(--text-muted); font-size:0.82rem; display:flex; align-items:center; gap:0.35rem;">
+              <i class="fa-solid fa-circle-play text-cyan"></i> 錄播自學
+            </span>
+            <strong class="price-val" style="color: #f1f5f9; font-size:0.95rem;">
+              NT$ ${(course.priceRecordOnly || 3600).toLocaleString()}
+            </strong>
+          </div>
+          <div class="price-option" style="margin-top:0.4rem; padding-top:0.4rem; border-top: 1px dashed rgba(255,255,255,0.08);">
+            <span style="color: #f472b6; font-weight:600; font-size:0.82rem; display:flex; align-items:center; gap:0.35rem;">
+              <i class="fa-solid fa-crown text-yellow"></i> 含個教 1對1
+            </span>
+            <strong class="price-val highlight" style="color: #fbbf24; font-size:1rem; letter-spacing:1px;">NT$ ????</strong>
+          </div>
+        </div>
+
+        <div class="course-actions">
+          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.85rem; padding:0.5rem 0.4rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            <i class="fa-solid fa-cart-plus"></i> 加入購物車
+          </button>
+          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')" style="font-weight:600; font-size:0.82rem; padding:0.5rem 0.4rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            <i class="fa-brands fa-line"></i> 洽小編諮詢方案
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
 function setupFilterEvents() {
   const filterPills = document.querySelectorAll('#courseCategoryFilters .pill');
   filterPills.forEach(pill => {
@@ -1704,7 +1780,10 @@ function renderCourseAdminTable() {
 
   tbody.innerHTML = mockCourses.map(c => `
     <tr>
-      <td data-label="課程名稱"><strong>${c.title}</strong></td>
+      <td data-label="課程名稱">
+        <strong>${c.title}</strong>
+        ${c.isFeatured ? '<span class="badge" style="background:rgba(245,158,11,0.2);border:1px solid #f59e0b;color:#fbbf24;font-size:0.75rem;padding:2px 6px;border-radius:4px;margin-left:6px;"><i class="fa-solid fa-star"></i> 首頁精選</span>' : ''}
+      </td>
       <td data-label="分類標籤"><span class="badge-tag">${c.categoryLabel}</span></td>
       <td data-label="主講業師">${c.instructor}</td>
       <td data-label="純錄播價格"><strong class="text-cyan">NT$ ${(c.priceRecordOnly || 0).toLocaleString()}</strong></td>
@@ -3309,6 +3388,8 @@ function openAddCourseModal() {
   document.getElementById('inputPriceRecord').value = '3600';
   document.getElementById('inputPriceCombo').value = '12800';
   document.getElementById('inputCourseDesc').value = '';
+  const feat = document.getElementById('inputCourseIsFeatured');
+  if (feat) feat.checked = false;
   document.getElementById('addCourseModal').classList.add('active');
 }
 
@@ -3323,6 +3404,8 @@ function openEditCourseModal(courseId) {
   document.getElementById('inputPriceRecord').value = c.priceRecordOnly;
   document.getElementById('inputPriceCombo').value = c.priceWith1on1;
   document.getElementById('inputCourseDesc').value = c.description;
+  const feat = document.getElementById('inputCourseIsFeatured');
+  if (feat) feat.checked = !!c.isFeatured;
   document.getElementById('addCourseModal').classList.add('active');
 }
 
@@ -3339,6 +3422,7 @@ function handleSaveCourse(e) {
   const priceRecordOnly = parseInt(document.getElementById('inputPriceRecord').value) || 3600;
   const priceWith1on1 = parseInt(document.getElementById('inputPriceCombo').value) || 12800;
   const description = document.getElementById('inputCourseDesc').value;
+  const isFeatured = document.getElementById('inputCourseIsFeatured') ? document.getElementById('inputCourseIsFeatured').checked : false;
 
   let categoryLabel = '網頁開發 / AI';
   if (category === 'design') categoryLabel = 'UI/UX 與 設計';
@@ -3355,6 +3439,7 @@ function handleSaveCourse(e) {
       existing.priceRecordOnly = priceRecordOnly;
       existing.priceWith1on1 = priceWith1on1;
       existing.description = description;
+      existing.isFeatured = isFeatured;
     }
     showToast(`✅ 已更新課程資訊：${title}`);
   } else {
@@ -3369,7 +3454,8 @@ function handleSaveCourse(e) {
       videoDuration: '20 小時錄播影音單元',
       liveSlotsCount: '4 次 1-on-1 個教',
       description,
-      badge: '✨ 最新上架'
+      badge: '✨ 最新上架',
+      isFeatured: isFeatured
     };
     mockCourses.push(newCourse);
     showToast(`🎉 成功上架新課程：${title}`);
@@ -3378,6 +3464,7 @@ function handleSaveCourse(e) {
   saveCoursesToStorage(true);
   closeAddCourseModal();
   renderCourseGrid('all');
+  renderHomeFeaturedCourses();
   renderCourseAdminTable();
 }
 
@@ -3388,8 +3475,9 @@ function deleteCourse(courseId) {
       mockCourses.splice(idx, 1);
       saveCoursesToStorage(true);
       renderCourseGrid('all');
+      renderHomeFeaturedCourses();
       renderCourseAdminTable();
-      showToast('課程已下架');
+      showToast('🗑️ 課程已下架');
     }
   }
 }

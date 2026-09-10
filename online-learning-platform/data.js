@@ -362,7 +362,8 @@ let mockCourses = [
     videoDuration: "32 小時錄播影音單元",
     liveSlotsCount: "4 次 1-on-1 專屬個教批改",
     description: "結合 React, Node.js 與 OpenAI/Claude API。從基礎語法到獨立完成可上線的 AI SaaS 應用，並提供講師 1 對 1 Code Review。",
-    badge: "🔥 熱銷首選"
+    badge: "🔥 熱銷首選",
+    isFeatured: true
   },
   {
     id: "course-2",
@@ -380,7 +381,8 @@ let mockCourses = [
     videoDuration: "28 小時錄播影音單元",
     liveSlotsCount: "4 次 1對1 Figma 作品集重構",
     description: "掌握 Auto-Layout、Design System 與 Prototype。透過 1 對 1 個教微調作品細節，打造能直接面試求職的星級作品集。",
-    badge: "👑 教學多年業師陪跑"
+    badge: "👑 教學多年業師陪跑",
+    isFeatured: true
   },
   {
     id: "course-3",
@@ -398,7 +400,8 @@ let mockCourses = [
     videoDuration: "24 小時錄播影音單元",
     liveSlotsCount: "3 次 數據模型與腳本一對一診斷",
     description: "學會 Pandas, BeautifulSoup, Selenium 與數據視覺化。協助學員打造公司自動化工具或個人接案專案。",
-    badge: "⚡ 實務高效"
+    badge: "⚡ 實務高效",
+    isFeatured: true
   },
   {
     id: "course-4",
@@ -416,7 +419,8 @@ let mockCourses = [
     videoDuration: "20 小時錄播影音單元",
     liveSlotsCount: "3 次 廣告文案與投放數據個教診斷",
     description: "全方位解析 Meta 廣告、Google SEO、TikTok 短影音文案。配合 1 對 1 實作，即刻優化你的電商或接案轉換率。",
-    badge: "📈 業績翻倍"
+    badge: "📈 業績翻倍",
+    isFeatured: true
   },
   {
     id: "course-5",
@@ -434,7 +438,8 @@ let mockCourses = [
     videoDuration: "無限次觀看全站錄播影音單元",
     liveSlotsCount: "12 次 雙週 1-on-1 深入個教輔導",
     description: "適合想在 3-6 個月內轉職工程師、設計師或接案自由工作者。包含履歷改造、模擬面試與外包案源優先派案。",
-    badge: "🏆 轉職首選"
+    badge: "🏆 轉職首選",
+    isFeatured: true
   }
 ];
 
