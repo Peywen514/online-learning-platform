@@ -636,7 +636,7 @@ function renderAuthArea() {
           <hr class="dropdown-divider">
           
           <button class="dropdown-item" onclick="switchView('member-center'); closeAllDropdowns();" style="color: #fbbf24; font-weight:600;">
-            <i class="fa-solid fa-gem text-yellow"></i> 會員專區 (點數與課程)
+            <i class="fa-solid fa-gem text-yellow"></i> 學員專區 (點數與課程)
           </button>
           <button class="dropdown-item" onclick="switchView('video-player'); closeAllDropdowns();">
             <i class="fa-solid fa-book-bookmark text-cyan"></i> 我的錄播課程
@@ -1345,7 +1345,7 @@ function switchView(viewId, pushHistory = true) {
     return;
   }
   if (viewId === 'member-center' && !currentUser) {
-    showToast('💡 請先登入學員帳號以查看會員專區與精幣餘額！');
+    showToast('💡 請先登入學員帳號以查看學員專區與精幣餘額！');
     openLoginModal();
     return;
   }

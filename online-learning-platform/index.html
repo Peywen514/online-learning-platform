@@ -32,9 +32,9 @@
           <i class="fa-solid fa-compass"></i> 平台首頁
         </button>
 
-        <!-- 2. 會員專區 (點數與學習中心) -->
+        <!-- 2. 學員專區 (點數與學習中心) -->
         <button class="nav-link" id="navMemberCenterLink" data-target="member-center" onclick="switchView('member-center')">
-          <i class="fa-solid fa-gem text-yellow"></i> 會員專區
+          <i class="fa-solid fa-gem text-yellow"></i> 學員專區
         </button>
 
         <!-- 3. 課程專區 (下拉選單) -->
@@ -579,66 +579,55 @@
         </div>
       </div>
 
-      <!-- REWARD & LEARNING INCENTIVE ECONOMY SECTION (精幣 × 精通寶 雙軌獎勵) -->
+      <!-- REWARD & LEARNING INCENTIVE ECONOMY SECTION (精幣 × 精通寶 雙軌獎勵 - 首頁精簡版) -->
       <div class="container section-padding" style="padding-top: 0;">
-        <div class="reward-economy-box">
+        <div class="reward-economy-box" style="padding: 1.75rem 1.5rem; text-align: center;">
           <div class="reward-header text-center">
             <span class="badge-tag bg-yellow-gradient"><i class="fa-solid fa-coins"></i> 雙軌激勵體系 • 學得越多省越多</span>
-            <h2>🪙 精幣 × 🏆 精通寶 • 專屬學習回饋機制</h2>
-            <p>主打「一門課一成果」！透過消費折抵金與成就勳章，打造高效率的實戰技能進階循環與 VIP 專屬特權</p>
+            <h2 style="margin-top: 0.5rem; font-size: 1.45rem;">🪙 精幣 × 🏆 精通寶 • 專屬學習回饋</h2>
+            <p style="font-size: 0.92rem; color: #cbd5e1; margin-bottom: 1.25rem;">
+              修課累積現金折抵金與成就勳章，打造高效率技能進階與 VIP 專屬禮遇！
+            </p>
           </div>
 
-          <div class="grid grid-2 gap-lg margin-top-md">
-            <!-- Token 1: 精幣 (Jing Coins) -->
-            <div class="reward-card token-card-coins">
-              <div class="reward-card-header">
-                <div class="reward-icon-box bg-yellow-glow">
+          <div class="grid grid-2 gap-md" style="max-width: 820px; margin: 0 auto;">
+            <!-- Compact Token 1 -->
+            <div class="reward-card token-card-coins" style="padding: 1.25rem 1.5rem; text-align: left;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <div class="reward-icon-box bg-yellow-glow" style="width: 44px; height: 44px; font-size: 1.25rem;">
                   <i class="fa-solid fa-coins text-yellow"></i>
                 </div>
                 <div>
-                  <div class="reward-badge-chip chip-yellow">消費折抵金</div>
-                  <h3 class="reward-title">🪙 精幣 <small>(Jing Coins)</small></h3>
-                </div>
-                <div class="reward-rate-tag">1 精幣 = NT$ 1</div>
-              </div>
-              <div class="reward-card-body">
-                <ul class="reward-perks-list">
-                  <li><i class="fa-solid fa-gift text-yellow"></i> <strong>消費滿額回饋</strong>：單筆結帳滿 NT$ 3,000 即贈 <strong>30 精幣</strong></li>
-                  <li><i class="fa-solid fa-cake-candles text-pink"></i> <strong>當月壽星專屬禮</strong>：會員生日當月即贈 <strong>100 精幣</strong> 專屬折抵金</li>
-                  <li><i class="fa-solid fa-comment-dots text-yellow"></i> <strong>課後好評與社群分享</strong>：填寫問卷心得贈 <strong>30 精幣</strong>，社群發文心得或作品加贈 <strong>30 精幣</strong></li>
-                  <li><i class="fa-solid fa-user-plus text-yellow"></i> <strong>好友推薦入學</strong>：分享推薦碼好友首購折 $100，帳戶自動入帳 <strong>50 精幣</strong></li>
-                </ul>
-                <div class="reward-card-footer">
-                  <span class="reward-note"><i class="fa-solid fa-circle-info"></i> 每堂課最高可折抵學費 15%~20% (效期 180 天~1 年)</span>
+                  <h3 class="reward-title" style="margin: 0; font-size: 1.1rem; color: #fff;">🪙 精幣 <small>(Jing Coins)</small></h3>
+                  <span class="text-xs text-yellow" style="font-weight: 600;">1 精幣 = NT$ 1 現金折抵</span>
                 </div>
               </div>
+              <p style="font-size: 0.86rem; color: #94a3b8; margin: 0; line-height: 1.55;">
+                消費滿額回饋、當月壽星禮遇與好友推薦，購課結帳立即折抵學費。
+              </p>
             </div>
 
-            <!-- Token 2: 精通寶 (Master Tokens) -->
-            <div class="reward-card token-card-master">
-              <div class="reward-card-header">
-                <div class="reward-icon-box bg-purple-glow">
+            <!-- Compact Token 2 -->
+            <div class="reward-card token-card-master" style="padding: 1.25rem 1.5rem; text-align: left;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <div class="reward-icon-box bg-purple-glow" style="width: 44px; height: 44px; font-size: 1.25rem;">
                   <i class="fa-solid fa-award text-purple"></i>
                 </div>
                 <div>
-                  <div class="reward-badge-chip chip-purple">課程成就勳章</div>
-                  <h3 class="reward-title">🏆 精通寶 <small>(Master Tokens)</small></h3>
-                </div>
-                <div class="reward-rate-tag">1 門課 = 1 枚勳章</div>
-              </div>
-              <div class="reward-card-body">
-                <ul class="reward-perks-list">
-                  <li><i class="fa-solid fa-crown text-purple"></i> <strong>集滿 10 枚解鎖 VIP 大獎 (二選一)</strong>：
-                    <div class="reward-sub-perk">① 全站新上線錄播課「任選 1 門免費兌換」 (最高省 NT$ 3,680)</div>
-                    <div class="reward-sub-perk">② 專屬教學多年業師「1 小時 1對1 線上專案輔導」免費加贈一次</div>
-                  </li>
-                  <li><i class="fa-solid fa-fire-flame-curved text-pink"></i> <strong>精五門通關彩蛋</strong>：修完 5 大領域各 1 門，直接加贈 <strong>100 精幣</strong></li>
-                </ul>
-                <div class="reward-card-footer">
-                  <span class="reward-note"><i class="fa-solid fa-trophy"></i> 堂數持續累積不歸零，穩健提升個人實戰競爭力</span>
+                  <h3 class="reward-title" style="margin: 0; font-size: 1.1rem; color: #fff;">🏆 精通寶 <small>(Master Tokens)</small></h3>
+                  <span class="text-xs text-purple" style="font-weight: 600;">1 門完課 = 1 枚成就勳章</span>
                 </div>
               </div>
+              <p style="font-size: 0.86rem; color: #94a3b8; margin: 0; line-height: 1.55;">
+                累積勳章解鎖全站新課免費兌換，或業師 1 對 1 專案輔導加贈！
+              </p>
             </div>
+          </div>
+
+          <div style="margin-top: 1.25rem;">
+            <button class="btn btn-outline" onclick="switchView('member-center')" style="border-color: rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.92rem; font-weight: 600; padding: 0.55rem 1.35rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-gem text-yellow"></i> 詳細回饋規則與我的點數進度，請參閱「學員專區」 <i class="fa-solid fa-arrow-right"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -671,7 +660,7 @@
       </div>
     </section>
 
-    <!-- VIEW 2B: MEMBER CENTER & STUDENT DASHBOARD (會員專區 / 精幣與精通寶雙軌看板) -->
+    <!-- VIEW 2B: MEMBER CENTER & STUDENT DASHBOARD (學員專區 / 精幣與精通寶雙軌看板) -->
     <section id="view-member-center" class="view-section">
       <div class="container section-padding">
         
