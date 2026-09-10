@@ -101,11 +101,11 @@
                 <span class="dropdown-subtitle">客製化 1-on-1 業師帶練諮詢</span>
               </div>
             </button>
-            <button class="dropdown-item nav-item-btn" onclick="openCheckoutModal('course-1', 'combo'); closeAllDropdowns();">
+            <button class="dropdown-item nav-item-btn" onclick="openCartOrCheckoutModal(); closeAllDropdowns();">
               <i class="fa-solid fa-cart-shopping text-purple"></i>
               <div class="dropdown-text">
-                <span class="dropdown-title">快速開通 / 報名結帳</span>
-                <span class="dropdown-subtitle">錄播課程與個教組合立即報名</span>
+                <span class="dropdown-title">查看購物車 / 報名結帳</span>
+                <span class="dropdown-subtitle">錄播自學與專屬方案結帳</span>
               </div>
             </button>
           </div>
@@ -148,9 +148,9 @@
           <i class="fa-solid fa-comments"></i> 洽小編諮詢
         </button>
 
-        <!-- 購物/結帳快捷 (精簡購物車膠囊) -->
-        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCheckoutModal('course-1', 'combo')" title="報名結帳與折抵通道" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc;">
-          <i class="fa-solid fa-bag-shopping text-purple"></i> 結帳 <span class="badge" id="cartCount">0</span>
+        <!-- 購物/結帳快捷 (查看購物車膠囊) -->
+        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc; display: inline-flex; align-items: center; gap: 0.35rem;">
+          <i class="fa-solid fa-cart-shopping text-purple"></i> 查看購物車 <span class="badge" id="cartCount">0</span>
         </button>
         
         <!-- Login / User Auth Area -->
@@ -528,32 +528,64 @@
           <p>兼具線上隨選的彈性自由與教學多年業師 1 對 1 的即時精準回饋，告別看完不會做的困境，讓每一次學習都能做出真正成果！</p>
         </div>
 
-        <div class="grid grid-2 gap-lg">
+        <div class="grid grid-4 gap-md">
+          <!-- Card 1: 錄播隨選自學 -->
           <div class="feature-card">
-            <div class="feature-icon bg-purple">
-              <i class="fa-solid fa-layer-group"></i>
+            <div class="feature-icon bg-purple-glow" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #c084fc;">
+              <i class="fa-solid fa-circle-play"></i>
             </div>
-            <h3>1. 雙軌高效學習法 (Dual-Learning)</h3>
-            <p>
-              【精選錄播】按個人節奏隨時彈性觀看、無限次複習核心基礎 ➔ 【1 對 1 教學多年業師上課】針對個人進度與專案作品手把手批改、即時除錯與破除盲點。兼具自學的靈活性與教學多年業師的精準帶練，是目前業界公認最適合技能變現的黃金學習模式！
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">1. 錄播隨選自學</h3>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.55;">
+              彈性隨選自由看，不受時空限制。零碎時間隨時上課，核心基礎無限次重複複習打底。
             </p>
-            <ul class="feature-list">
-              <li><i class="fa-solid fa-check"></i> 自由彈性時間，高畫質錄播無限次觀看打底</li>
-              <li><i class="fa-solid fa-check"></i> 預約專屬教學多年業師 1-on-1 診斷，手把手打磨星級代表作</li>
+            <ul class="feature-list" style="margin-top: 0.5rem; font-size: 0.84rem;">
+              <li><i class="fa-solid fa-check text-cyan"></i> 4K 高畫質微單元影音</li>
+              <li><i class="fa-solid fa-check text-cyan"></i> 全套雲端講義下載研讀</li>
             </ul>
           </div>
 
-          <div class="feature-card border-glow">
-            <div class="feature-icon bg-pink">
+          <!-- Card 2: 業師 1 對 1 陪跑 -->
+          <div class="feature-card border-glow" style="border-color: rgba(236, 72, 153, 0.45);">
+            <div class="feature-icon bg-pink-glow" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: #f472b6;">
+              <i class="fa-solid fa-user-ninja"></i>
+            </div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">2. 業師 1 對 1 陪跑</h3>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.55;">
+              專屬金牌業師現場連線，針對個人學習盲點手把手除錯、專案診斷與精細修稿。
+            </p>
+            <ul class="feature-list" style="margin-top: 0.5rem; font-size: 0.84rem;">
+              <li><i class="fa-solid fa-check text-pink"></i> 1 小時專屬 1-on-1 實戰批改</li>
+              <li><i class="fa-solid fa-check text-pink"></i> 告別看完影片不會做的卡關痛點</li>
+            </ul>
+          </div>
+
+          <!-- Card 3: 一門課一成果 -->
+          <div class="feature-card">
+            <div class="feature-icon bg-cyan-glow" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8;">
               <i class="fa-solid fa-trophy"></i>
             </div>
-            <h3>2. 一門課一成果 • 即學即所得 (Outcome-Driven)</h3>
-            <p>
-              拒絕學完沒成果的空虛感！每門短時數精準課程皆以「實戰產出」為導向，不講空泛理論，完課立即做出個人專屬代表作，收穫滿滿成就感並直接提升職場即戰力！
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">3. 一門課一成果</h3>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.55;">
+              拒絕空泛理論！每門精準短課皆以實戰產出為導向，完課親手打造專屬星級代表作。
             </p>
-            <ul class="feature-list">
-              <li><i class="fa-solid fa-check"></i> 每堂課產出高質量實戰作品，收穫滿滿成就感</li>
-              <li><i class="fa-solid fa-check"></i> 打造個人星級作品代表作，直接提升職場競爭力</li>
+            <ul class="feature-list" style="margin-top: 0.5rem; font-size: 0.84rem;">
+              <li><i class="fa-solid fa-check text-green"></i> 產出高質量實戰專案代表作</li>
+              <li><i class="fa-solid fa-check text-green"></i> 直接提升職場就業與接案即戰力</li>
+            </ul>
+          </div>
+
+          <!-- Card 4: 雙軌回饋省學費 -->
+          <div class="feature-card">
+            <div class="feature-icon bg-yellow-glow" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24;">
+              <i class="fa-solid fa-coins"></i>
+            </div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">4. 雙軌回饋省學費</h3>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.55;">
+              學得越多省越多！購課回饋精幣折抵學費現金，集滿精通寶勳章解鎖 VIP 專屬好禮。
+            </p>
+            <ul class="feature-list" style="margin-top: 0.5rem; font-size: 0.84rem;">
+              <li><i class="fa-solid fa-check text-yellow"></i> 1 精幣 = NT$ 1 結帳立即現折</li>
+              <li><i class="fa-solid fa-check text-yellow"></i> 壽星送 100、好友推薦送 200</li>
             </ul>
           </div>
         </div>

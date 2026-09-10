@@ -1565,9 +1565,12 @@ function renderCourseGrid(category = 'all') {
           </div>
         </div>
 
-        <div class="course-actions">
-          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')">
-            <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案 (加 Line / 網頁留訊)
+        <div class="course-actions" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.85rem;">
+          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.88rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
+            <i class="fa-solid fa-cart-plus"></i> 加入購物車 (自學 NT$ ${(course.priceRecordOnly || 3600).toLocaleString()})
+          </button>
+          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')" style="font-weight:600; font-size:0.88rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
+            <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案 (含 1對1個教)
           </button>
         </div>
       </div>
@@ -5855,6 +5858,65 @@ function deleteLead(leadId) {
   renderLeadAdminTable();
 }
 
+function updateCartBadge() {
+  const cartCountEls = document.querySelectorAll('#cartCount');
+  cartCountEls.forEach(el => {
+    el.innerText = cart ? cart.length : 0;
+  });
+}
+
+function addToCart(courseId, type = 'record') {
+  const course = (typeof mockCourses !== 'undefined' ? mockCourses : []).find(c => c.id === courseId);
+  if (!course) return;
+
+  const price = type === 'combo' ? (course.priceWith1on1 || 10880) : (course.priceRecordOnly || 3600);
+  const planTitle = type === 'combo' ? `${course.title} (含1對1個教陪跑)` : `${course.title} (錄播自學版)`;
+
+  const existing = cart.find(item => item.courseId === courseId && item.type === type);
+  if (!existing) {
+    cart.push({
+      courseId: course.id,
+      title: planTitle,
+      price: price,
+      type: type
+    });
+  }
+
+  updateCartBadge();
+
+  // Visual pulse on cart button
+  const cartBtn = document.getElementById('cartBtn');
+  if (cartBtn) {
+    cartBtn.style.transform = 'scale(1.1)';
+    cartBtn.style.borderColor = '#38bdf8';
+    cartBtn.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)';
+    setTimeout(() => {
+      cartBtn.style.transform = '';
+      cartBtn.style.borderColor = 'rgba(139, 92, 246, 0.45)';
+      cartBtn.style.boxShadow = '';
+    }, 1000);
+  }
+
+  showToast(`✅ 已將【${course.title}】加入購物車！點擊上方「查看購物車」即可結帳`, 4000);
+}
+
+function openCartOrCheckoutModal() {
+  if (!cart || cart.length === 0) {
+    showToast('🛒 您目前尚未挑選課程，請前往商城選購！', 4000);
+    switchView('marketplace');
+    setTimeout(() => {
+      const marketplaceEl = document.getElementById('view-marketplace') || document.getElementById('courseCategoryFilters');
+      if (marketplaceEl) {
+        marketplaceEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
+    return;
+  }
+
+  const latestItem = cart[cart.length - 1];
+  openCheckoutModal(latestItem.courseId || 'course-1', latestItem.type || 'record');
+}
+
 function openCheckoutModalDirect(courseId, type) {
   openCheckoutModal(courseId, type);
 }
@@ -5909,10 +5971,16 @@ function openCheckoutModal(courseId, type) {
   const customQuote = (typeof mockCustomQuotes !== 'undefined' ? mockCustomQuotes : []).find(q => q.studentEmail.toLowerCase() === userEmail.toLowerCase()) || null;
 
   const isCombo = type === 'combo';
-  const displayTitle = customQuote ? customQuote.courseTitle : course.title;
-  const displayPrice = customQuote ? customQuote.customPrice : (isCombo ? course.priceWith1on1 : course.priceRecordOnly);
-  const createdBy = customQuote ? customQuote.createdBy : '專屬小編';
-  const quoteDetails = customQuote ? customQuote.details : (isCombo ? '🔥 錄播全套 + 4次教學多年業師 1-on-1 個教陪跑' : '📹 純錄播自主學習全套講義');
+  const displayTitle = (!isCombo) 
+    ? `${course.title} (錄播自學版)` 
+    : (customQuote ? customQuote.courseTitle : `${course.title} (含1對1個教陪跑)`);
+  const displayPrice = (!isCombo) 
+    ? (course.priceRecordOnly || 3600) 
+    : (customQuote ? customQuote.customPrice : (course.priceWith1on1 || 10880));
+  const createdBy = (!isCombo) ? '官網線上直購' : (customQuote ? customQuote.createdBy : '專屬小編');
+  const quoteDetails = (!isCombo) 
+    ? '📹 高畫質微單元影音隨選自學 + 全套雲端教材講義' 
+    : (customQuote ? customQuote.details : '🔥 錄播全套影音單元 + 4次業師 1-on-1 個教陪跑');
 
   const userCoins = currentUser ? (currentUser.coins || 0) : 0;
   const maxCoinsApplicable = Math.min(userCoins, displayPrice);
@@ -6625,9 +6693,8 @@ function processDirectPayment(e, title, originalPrice) {
     renderMemberCenterView();
   }
 
-  cart.push({ title, price: finalPrice });
-  const cartCountEl = document.getElementById('cartCount');
-  if (cartCountEl) cartCountEl.innerText = cart.length;
+  cart = cart.filter(item => item.title !== title);
+  updateCartBadge();
 
   let toastMsg = `🎉 結帳成功！已為 ${studentName} 開通【${title}】。提醒：1-on-1 最晚須課前 2 天改期，當天取消視為放棄；課前 10 分鐘即可提前進場測試！`;
   if (usedCoins > 0) {
@@ -6701,9 +6768,8 @@ function processPayment(e, title, originalPrice, type) {
   toastMsg += ` 🏆 獲贈 1 枚精通寶！提醒：1-on-1 最晚須課前 2 天線上改期，課前 10 分鐘開放入場！`;
   showToast(toastMsg);
   
-  cart.push({ title, price: finalPrice });
-  const cartCountEl = document.getElementById('cartCount');
-  if (cartCountEl) cartCountEl.innerText = cart.length;
+  cart = cart.filter(item => item.title !== title);
+  updateCartBadge();
 
   setTimeout(() => {
     switchView('member-center');
