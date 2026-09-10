@@ -190,7 +190,7 @@
   - `創業完整規劃書_簡報檔.html`：可直接列印為 PDF 的商業計畫書簡報 (含商業獲利模式、金流串接與學員權限開通機制)
   - `講師合作分潤與契約條款規範指南.md`：講師合作契約分潤機制對照條款、成本扣除淨利公式、SLA課後答疑服務水準與談判話術備忘錄
 - **GitHub 儲存庫**：`https://github.com/Peywen514/online-learning-platform`
-- **正式線上運作網址 (Cloudflare Workers)**：`https://online-class.pey514514.workers.dev/`
+- **正式線上運作網址 (Cloudflare Workers)**：`https://online-learning-platform.pey514514.workers.dev/` (舊網址: `https://online-class.pey514514.workers.dev/`)
 - **備用公開網址 (GitHub Pages)**：`https://peywen514.github.io/online-learning-platform/`
 
 ---
