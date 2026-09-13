@@ -269,6 +269,24 @@ function saveCoursesToStorage(syncToCloud = true) {
   }
 }
 
+function saveLeadsToStorage(syncToCloud = true) {
+  try {
+    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
+  } catch (err) {}
+  if (syncToCloud && typeof saveCloudData === 'function') {
+    saveCloudData('leads', mockLeads);
+  }
+}
+
+function saveQuotesToStorage(syncToCloud = true) {
+  try {
+    localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
+  } catch (err) {}
+  if (syncToCloud && typeof saveCloudData === 'function') {
+    saveCloudData('custom_quotes', mockCustomQuotes);
+  }
+}
+
 // 讀取本地 pentaskill_users 並自動補全 bankInfo
 try {
   const savedUsers = localStorage.getItem('pentaskill_users');
@@ -1221,9 +1239,7 @@ function handleRegisterSubmit(e) {
   };
 
   mockLeads.unshift(newLead);
-  try {
-    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
-  } catch (err) {}
+  saveLeadsToStorage();
 
   // 3. Sync to Google Apps Script Webhook (Google Sheets)
   syncLeadToGoogleSheet(newLead);
@@ -5680,9 +5696,7 @@ function handleLeadFormSubmit(e) {
   };
 
   mockLeads.unshift(newLead);
-  try {
-    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
-  } catch (err) {}
+  saveLeadsToStorage();
 
   // 🎁 推薦好禮發放：雙方各贈 200 元精幣
   let referralBonusGiven = false;
@@ -6339,9 +6353,7 @@ function updateLeadStatus(leadId) {
     lead.status = '🆕 新進諮詢';
   }
 
-  try {
-    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
-  } catch (err) {}
+  saveLeadsToStorage();
 
   showToast(`已更新 ${lead.name} 的跟進狀態為【${lead.status}】`);
   renderLeadAdminTable();
@@ -6349,9 +6361,7 @@ function updateLeadStatus(leadId) {
 
 function deleteLead(leadId) {
   mockLeads = mockLeads.filter(l => l.id !== leadId);
-  try {
-    localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
-  } catch (err) {}
+  saveLeadsToStorage();
 
   showToast('已刪除諮詢表單紀錄');
   renderLeadAdminTable();
@@ -6699,10 +6709,7 @@ function handleSaveCustomQuote(e) {
     showToast(`🎉 成功為 ${studentName} 建立專屬報價單（金額：NT$ ${customPrice.toLocaleString()}）並同步 Google Sheet`);
   }
 
-  try {
-    localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
-  } catch(err) {}
-  saveCloudData('custom_quotes', mockCustomQuotes);
+  saveQuotesToStorage();
 
   if (quoteToSync) {
     syncQuoteToGoogleSheet(quoteToSync);
@@ -7227,6 +7234,7 @@ function processDirectPayment(e, title, originalPrice) {
 
 function deleteCustomQuote(quoteId) {
   mockCustomQuotes = mockCustomQuotes.filter(q => q.id !== quoteId);
+  saveQuotesToStorage();
   showToast('已刪除學員專屬報價單');
   renderCustomQuotesAdminTable();
 }
