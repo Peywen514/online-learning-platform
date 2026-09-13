@@ -148,11 +148,17 @@
           <i class="fa-solid fa-comments"></i> 洽小編諮詢
         </button>
 
-        <!-- 購物/結帳快捷 (查看購物車膠囊) -->
+        <!-- 購物/結帳快捷 (查看購物車膠囊 - 電腦版) -->
         <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc; display: inline-flex; align-items: center; gap: 0.35rem;">
           <i class="fa-solid fa-cart-shopping text-purple"></i> 查看購物車 <span class="badge" id="cartCount">0</span>
         </button>
         
+        <!-- Mobile Cart Button (手機版頭像旁常駐購物車按鈕) -->
+        <button class="icon-btn mobile-cart-btn" id="mobileCartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="mobile-cart-badge" id="mobileCartCount">0</span>
+        </button>
+
         <!-- Login / User Auth Area -->
         <div id="authArea">
           <!-- Rendered dynamically by JS -->
@@ -560,9 +566,6 @@
                       <button class="btn btn-primary" onclick="addToCart('course-1', 'self')">
                         <i class="fa-solid fa-cart-plus"></i> 加入購物車
                       </button>
-                      <button class="btn btn-line" onclick="openConsultLineModal('course-1', 'combo')">
-                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -592,9 +595,6 @@
                       <button class="btn btn-primary" onclick="addToCart('course-2', 'self')">
                         <i class="fa-solid fa-cart-plus"></i> 加入購物車
                       </button>
-                      <button class="btn btn-line" onclick="openConsultLineModal('course-2', 'combo')">
-                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -623,9 +623,6 @@
                     <div class="c-slide-actions margin-top-md" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                       <button class="btn btn-primary" onclick="addToCart('course-3', 'self')">
                         <i class="fa-solid fa-cart-plus"></i> 加入購物車
-                      </button>
-                      <button class="btn btn-line" onclick="openConsultLineModal('course-3', 'combo')">
-                        <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案
                       </button>
                     </div>
                   </div>
@@ -1192,10 +1189,14 @@
 
               <div class="form-group margin-top-sm">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                  <label style="margin: 0;"><i class="fa-solid fa-calendar-days text-purple"></i> 選擇預約日期 (當月起往後預約)</label>
+                  <label style="margin: 0;"><i class="fa-solid fa-calendar-days text-purple"></i> 選擇預約日期 (提前 3 天開放預約)</label>
                   <span class="text-xs text-cyan"><i class="fa-solid fa-bolt"></i> 快捷選日</span>
                 </div>
-                <!-- 快捷選日標籤列 (當月向後滾動) -->
+                <!-- 預約須知醒目提示 (提前3天預約) -->
+                <div style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(139, 92, 246, 0.1); border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 8px; font-size: 0.78rem; color: #cbd5e1; line-height: 1.5;">
+                  <i class="fa-solid fa-circle-info text-purple"></i> <strong>【1對1預約須知】</strong>為確保教學品質並提前與業師協調課表，個教採預約制，<strong>開放自「當天起算向後 3 天」之時段</strong>（3天內時段已鎖定）。
+                </div>
+                <!-- 快捷選日標籤列 (3天後向後滾動) -->
                 <div class="quick-date-chips" id="bookingQuickDateChips"></div>
                 <input type="date" id="bookingDate" class="form-control margin-top-xs" onchange="updateAvailableSlots()">
                 <div class="slots-grid margin-top-sm" id="slotsGrid">
@@ -1207,8 +1208,8 @@
               </div>
 
               <div class="form-group margin-top-sm">
-                <label><i class="fa-solid fa-message"></i> 留言給講師 (附上專案連結或問題)</label>
-                <textarea id="bookingNotes" class="form-control" rows="3" placeholder="例如：我想針對第二章作業的 React State 傳遞問題進行檢討..."></textarea>
+                <label><i class="fa-solid fa-message text-cyan"></i> 留言給講師 / 填寫期望上課時間 <span class="text-xs text-muted">(實際時段以與老師確認為主)</span></label>
+                <textarea id="bookingNotes" class="form-control" rows="3" placeholder="💡 貼心提醒：您可以先在此留言寫下您其他方便的時間（例如：平日晚上 19:30 或週末下午等），若有特定想請教的專案問題也可一併寫上，實際開課時段將以與老師最終確認為主！"></textarea>
               </div>
 
               <button type="submit" class="btn btn-primary btn-block margin-top-md">
@@ -2323,10 +2324,10 @@
               <i class="fa-solid fa-circle-check"></i> 驗證碼已寄出！
             </div>
             <div class="text-xs text-muted" style="margin-top: 0.25rem; line-height: 1.4;">
-              系統已將 6 位數安全驗證碼寄送至 <strong id="forgotSentEmailDisplay" style="color:#fff;">user@gmail.com</strong>，請至信箱查收並於 10 分鐘內輸入。
+              系統已將 6 位數安全驗證碼寄送至 <strong id="forgotSentEmailDisplay" style="color:#fff;">user@gmail.com</strong>，驗證碼已寄至您的信箱，請至信箱查收並於 10 分鐘內輸入。
             </div>
-            <div id="simulatedCodeBanner" style="margin-top: 0.4rem; padding: 0.35rem 0.5rem; background: rgba(245, 158, 11, 0.15); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 4px; font-size: 0.78rem; color: #fbbf24;">
-              💡 <strong>信件驗證碼</strong>：您的重設驗證碼為 <code style="background:#000; padding:2px 6px; border-radius:4px; font-size:0.95rem; font-weight:700; color:#38bdf8;" id="simulatedCodeText">123456</code>
+            <div style="margin-top: 0.5rem; padding: 0.45rem 0.65rem; background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 6px; font-size: 0.8rem; color: #38bdf8;">
+              <i class="fa-solid fa-envelope-circle-check"></i> 驗證碼已寄至您的信箱，請至信箱查收（若未收到請檢查垃圾郵件信箱）。
             </div>
           </div>
 
@@ -3459,6 +3460,43 @@
             </div>
           </div>
         </div>
+
+        <!-- 肆、其他條款 -->
+        <div class="terms-section" style="margin-bottom: 1rem;">
+          <h4 style="color: #fb7185; font-size: 1.05rem; border-bottom: 1px solid rgba(251, 113, 133, 0.25); padding-bottom: 0.4rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-scale-balanced"></i> 肆、其他條款
+          </h4>
+
+          <div style="margin-bottom: 0.85rem;">
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十條、退款手續與作業時間</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 符合退費條件之申請，學員應以正式電子郵件（platform@pentaskill.com）或官方客服管道提出申請。</p>
+            <p style="margin: 0;">2. 本公司審核核可後，將於 15 至 30 個工作天內，扣除跨行轉帳手續費後，匯款至學員指定之本人帳戶。</p>
+          </div>
+
+          <div>
+            <strong style="color: #fff; display: block; margin-bottom: 0.2rem;">第十一條、條款修訂與管轄法院</strong>
+            <p style="margin: 0 0 0.4rem 0;">1. 本公司保留隨時修改、增刪本條款之權利，修改後之條款公佈於本平台網站即行生效。學員於條款修訂後繼續使用本服務者，視同同意修改後之內容。</p>
+            <p style="margin: 0;">2. 本條款之解釋與適用均依中華民國法律為準據法。因本服務所生之任何爭議，雙方合意以<strong>臺灣臺北地方法院</strong>為第一審管轄法院。</p>
+          </div>
+
+          <div style="text-align: right; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+            <strong>精五門 保留本條款之最終解釋與修訂權利</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.85rem; margin-top: 0.75rem;">
+        <button type="button" class="btn btn-primary btn-block" onclick="acceptTermsAndClose()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+          <i class="fa-solid fa-circle-check"></i> 我已閱讀並同意本條款（勾選並返回結帳）
+        </button>
+        <button type="button" class="btn btn-outline btn-block btn-sm margin-top-xs" onclick="closeTermsModal()" style="border-color: rgba(255,255,255,0.2); color: var(--text-muted);">
+          關閉條款視窗
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- MODAL 11: Comprehensive Lead Form Modal (無 LINE / 偏好網頁留訊專用) -->
   <div id="leadFormModal" class="modal-backdrop">

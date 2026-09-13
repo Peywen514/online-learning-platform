@@ -420,13 +420,16 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStudentBookings();
   renderChapters();
   
-  // 預約日期初始化 (今日起，不能選過去日期)
+  // 預約日期初始化 (提前 3 天起開放預約，3天內鎖定以利與老師排班協調)
+  const minBookingDate = new Date();
+  minBookingDate.setDate(minBookingDate.getDate() + 3);
+  const minBookingDateStr = getLocalDateString(minBookingDate);
   const todayStr = getLocalDateString();
   const dateInput = document.getElementById('bookingDate');
   if (dateInput) {
-    dateInput.min = todayStr;
-    if (!dateInput.value || dateInput.value < todayStr) {
-      dateInput.value = todayStr;
+    dateInput.min = minBookingDateStr;
+    if (!dateInput.value || dateInput.value < minBookingDateStr) {
+      dateInput.value = minBookingDateStr;
     }
   }
   const adminDateInput = document.getElementById('adminBookingDate');
@@ -906,12 +909,9 @@ function handleSendResetCode(e) {
     expiresAt: Date.now() + 10 * 60 * 1000 // 10 分鐘有效
   };
 
-  // 顯示寄送目標與模擬驗證碼
+  // 顯示寄送目標信箱
   const sentDisplay = document.getElementById('forgotSentEmailDisplay');
   if (sentDisplay) sentDisplay.innerText = matched.email;
-
-  const simCode = document.getElementById('simulatedCodeText');
-  if (simCode) simCode.innerText = verificationCode;
 
   // ⚡ 自動觸發雲端 Webhook 發送真實 Email 驗證信
   sendResetEmailViaWebhook(matched.email, verificationCode, matched.name);
@@ -922,7 +922,7 @@ function handleSendResetCode(e) {
   if (step1) step1.style.display = 'none';
   if (step2) step2.style.display = 'block';
 
-  showToast(`📧 6 位數安全驗證碼已自動發送至【${matched.email}】！請查收信件！`);
+  showToast(`📧 6 位數安全驗證碼已自動發送至【${matched.email}】！請至信箱查收！`);
 }
 
 function resendResetCode() {
@@ -934,13 +934,10 @@ function resendResetCode() {
   currentResetSession.code = verificationCode;
   currentResetSession.expiresAt = Date.now() + 10 * 60 * 1000;
 
-  const simCode = document.getElementById('simulatedCodeText');
-  if (simCode) simCode.innerText = verificationCode;
-
   const matched = mockUsers.find(u => u.email && u.email.toLowerCase() === currentResetSession.email.toLowerCase());
   sendResetEmailViaWebhook(currentResetSession.email, verificationCode, matched ? matched.name : '學員');
 
-  showToast(`📧 新的 6 位數驗證碼已重新寄送至【${currentResetSession.email}】！`);
+  showToast(`📧 新的 6 位數驗證碼已重新寄送至【${currentResetSession.email}】！請至信箱查收！`);
 }
 
 // 雲端自動寄送 Email 驗證碼引擎
@@ -1423,10 +1420,12 @@ function switchView(viewId, pushHistory = true) {
   if (viewId === 'live-classroom') {
     const dateInput = document.getElementById('bookingDate');
     if (dateInput) {
-      const todayStr = getLocalDateString();
-      dateInput.min = todayStr;
-      if (!dateInput.value || dateInput.value < todayStr) {
-        dateInput.value = todayStr;
+      const minBookingDate = new Date();
+      minBookingDate.setDate(minBookingDate.getDate() + 3);
+      const minBookingDateStr = getLocalDateString(minBookingDate);
+      dateInput.min = minBookingDateStr;
+      if (!dateInput.value || dateInput.value < minBookingDateStr) {
+        dateInput.value = minBookingDateStr;
       }
     }
     renderBookingInstructorDropdown();
@@ -1858,12 +1857,9 @@ function renderCourseGrid(category = 'all') {
           </div>
         </div>
 
-        <div class="course-actions" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.85rem;">
-          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.9rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
+        <div class="course-actions" style="margin-top:0.85rem;">
+          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.92rem; padding:0.65rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
             <i class="fa-solid fa-cart-plus"></i> 加入購物車
-          </button>
-          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')" style="font-weight:600; font-size:0.88rem; padding:0.55rem 0.6rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
-            <i class="fa-brands fa-line"></i> 洽小編諮詢專屬方案 (含 1對1個教)
           </button>
         </div>
       </div>
@@ -1924,12 +1920,9 @@ function renderHomeFeaturedCourses() {
           </div>
         </div>
 
-        <div class="course-actions">
-          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.85rem; padding:0.5rem 0.4rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+        <div class="course-actions" style="margin-top:0.65rem;">
+          <button class="btn btn-outline btn-block" onclick="addToCart('${course.id}', 'record')" style="border-color: rgba(6,182,212,0.65); color: #38bdf8; font-weight:600; font-size:0.88rem; padding:0.6rem 0.5rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
             <i class="fa-solid fa-cart-plus"></i> 加入購物車
-          </button>
-          <button class="btn btn-line btn-block" onclick="openConsultLineModal('${course.id}', 'combo')" style="font-weight:600; font-size:0.82rem; padding:0.5rem 0.4rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
-            <i class="fa-brands fa-line"></i> 洽小編諮詢方案
           </button>
         </div>
       </div>
@@ -4744,7 +4737,8 @@ function renderBookingQuickDateChips(selectedDateStr) {
   const chipsHtml = [];
   const baseDate = new Date();
 
-  for (let i = 0; i < 14; i++) {
+  // 從當天開始往後 3 天才開放預約 (今日、明日、後天鎖住不能預約，以利提前與業師協調排班)
+  for (let i = 3; i < 17; i++) {
     const d = new Date(baseDate);
     d.setDate(baseDate.getDate() + i);
     const dateStr = getLocalDateString(d);
@@ -4753,9 +4747,9 @@ function renderBookingQuickDateChips(selectedDateStr) {
     const w = weekdayNames[d.getDay()];
 
     let label = `${m}/${day} (${w})`;
-    if (i === 0) label = `今日 ${m}/${day}`;
-    else if (i === 1) label = `明日 ${m}/${day}`;
-    else if (i === 2) label = `後天 ${m}/${day}`;
+    if (i === 3) label = `3天後 ${m}/${day} (${w})`;
+    else if (i === 4) label = `4天後 ${m}/${day} (${w})`;
+    else if (i === 5) label = `5天後 ${m}/${day} (${w})`;
 
     const isActive = (dateStr === selectedDateStr);
     chipsHtml.push(`
@@ -4783,10 +4777,14 @@ function updateAvailableSlots() {
   const slotsContainer = document.getElementById('slotsGrid');
   if (!dateInput || !instSelect || !slotsContainer) return;
 
-  const todayStr = getLocalDateString();
-  dateInput.min = todayStr;
-  if (!dateInput.value || dateInput.value < todayStr) {
-    dateInput.value = todayStr;
+  // 1 對 1 個教限制：至少提前 3 天預約
+  const minBookingDate = new Date();
+  minBookingDate.setDate(minBookingDate.getDate() + 3);
+  const minBookingDateStr = getLocalDateString(minBookingDate);
+
+  dateInput.min = minBookingDateStr;
+  if (!dateInput.value || dateInput.value < minBookingDateStr) {
+    dateInput.value = minBookingDateStr;
   }
 
   const selectedDate = dateInput.value;
@@ -4833,7 +4831,19 @@ function handleBooking(e) {
   const date = document.getElementById('bookingDate').value;
   const notes = document.getElementById('bookingNotes') ? document.getElementById('bookingNotes').value : '';
 
-  // 1. 二次安全性與付費權限驗證 (避免未付費強碰或爭議)
+  // 1. 驗證預約時間是否至少在 3 天後 (前 3 天已鎖定，以利與老師協調排班)
+  const minBookingDate = new Date();
+  minBookingDate.setHours(0, 0, 0, 0);
+  minBookingDate.setDate(minBookingDate.getDate() + 3);
+  const minBookingDateStr = getLocalDateString(minBookingDate);
+
+  if (date < minBookingDateStr) {
+    showToast('⚠️ 1 對 1 個教須至少提前 3 天預約（以便提前與業師協調排班），請選擇 3 天後的時段！');
+    updateAvailableSlots();
+    return;
+  }
+
+  // 2. 二次安全性與付費權限驗證 (避免未付費強碰或爭議)
   const paidInstructors = getPaidInstructorsForUser(currentUser);
   if (paidInstructors.length === 0 || !paidInstructors.some(p => p.name === inst || inst.includes(p.name.split(' ')[0]))) {
     showToast(`⚠️ 權限驗證失敗：您尚未開通 ${inst} 講師的 1-on-1 個教時段，無法完成預約！`, 'warning');
@@ -5630,6 +5640,7 @@ function handleLeadFormSubmit(e) {
 
   const newLead = {
     id: `lead-${Date.now()}`,
+    type: 'lead',
     createdAt: getLocalDateTimeString(),
     name,
     phone,
@@ -6159,7 +6170,7 @@ function doPost(e) {
         message: "學員個人資料更新已成功寫入【學員資料與更新紀錄】試算表！",
         row: lastRow
       })).setMimeType(ContentService.MimeType.JSON);
-    } else {
+    } else if (data.type === "lead" || data.dataType === "lead" || data.identity || data.course || data.priorityHelp) {
       var leadSheet = initLeadSheet(ss);
       var row = [
         (data && data.createdAt) || getNowString(),
@@ -6216,6 +6227,11 @@ function doPost(e) {
         status: "success",
         message: "諮詢表單寫入成功並已發送通知信！",
         row: lastRow
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "未知的請求類型，略過處理"
       })).setMimeType(ContentService.MimeType.JSON);
     }
   } catch (err) {
@@ -6319,9 +6335,10 @@ function deleteLead(leadId) {
 }
 
 function updateCartBadge() {
-  const cartCountEls = document.querySelectorAll('#cartCount');
+  const count = cart ? cart.length : 0;
+  const cartCountEls = document.querySelectorAll('#cartCount, #mobileCartCount');
   cartCountEls.forEach(el => {
-    el.innerText = cart ? cart.length : 0;
+    el.innerText = count;
   });
 }
 
@@ -6344,17 +6361,30 @@ function addToCart(courseId, type = 'record') {
 
   updateCartBadge();
 
-  // Visual pulse on cart button
+  // Visual pulse on cart button (Desktop)
   const cartBtn = document.getElementById('cartBtn');
   if (cartBtn) {
     cartBtn.style.transform = 'scale(1.1)';
     cartBtn.style.borderColor = '#38bdf8';
     cartBtn.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.5)';
     setTimeout(() => {
-      cartBtn.style.transform = '';
+      cartBtn.style.transform = 'scale(1)';
       cartBtn.style.borderColor = 'rgba(139, 92, 246, 0.45)';
-      cartBtn.style.boxShadow = '';
-    }, 1000);
+      cartBtn.style.boxShadow = 'none';
+    }, 300);
+  }
+
+  // Visual pulse on cart button (Mobile)
+  const mobileCartBtn = document.getElementById('mobileCartBtn');
+  if (mobileCartBtn) {
+    mobileCartBtn.style.transform = 'scale(1.2)';
+    mobileCartBtn.style.borderColor = '#ec4899';
+    mobileCartBtn.style.boxShadow = '0 0 15px rgba(236, 72, 153, 0.6)';
+    setTimeout(() => {
+      mobileCartBtn.style.transform = 'scale(1)';
+      mobileCartBtn.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+      mobileCartBtn.style.boxShadow = 'none';
+    }, 300);
   }
 
   showToast(`✅ 已將【${course.title}】加入購物車！點擊上方「查看購物車」即可結帳`, 4000);
@@ -6540,16 +6570,18 @@ function openCheckoutModal(courseId, type) {
 
       <!-- 📜 購課服務條款與退費政策勾選區塊 -->
       <div class="terms-agreement-box margin-top-sm" id="termsAgreementBox" style="background: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; transition: var(--transition);">
-        <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0; font-size: 0.82rem; line-height: 1.45; color: #f1f5f9;">
-          <input type="checkbox" id="agreeTermsCheckbox" required onchange="onAgreeTermsChange(this.checked, 'termsAgreementBox')" style="margin-top: 3px; accent-color: var(--accent-purple); width: 16px; height: 16px; cursor: pointer;">
-          <span>
-            我已完整閱讀並同意
-            <a href="javascript:void(0)" onclick="openTermsModal(event)" style="color: var(--accent-purple); font-weight: 700; text-decoration: underline;">
+        <div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+          <input type="checkbox" id="agreeTermsCheckbox" required onchange="onAgreeTermsChange(this.checked, 'termsAgreementBox')" style="margin-top: 3px; accent-color: var(--accent-purple); width: 17px; height: 17px; cursor: pointer; flex-shrink: 0;">
+          <div style="font-size: 0.82rem; line-height: 1.5; color: #f1f5f9;">
+            <label for="agreeTermsCheckbox" style="cursor: pointer; margin: 0; display: inline;">
+              我已完整閱讀並同意
+            </label>
+            <button type="button" class="terms-link-btn" onclick="openTermsModal(event)">
               📜【精五門學員購課服務條款與退費政策】
-            </a>
-            （含錄播課法定排除 7 日猶豫期、1 對 1 個教 48 小時前請假改期與退費標準）<span class="text-pink">*</span>
-          </span>
-        </label>
+            </button>
+            <span>（含錄播課法定排除 7 日猶豫期、1 對 1 個教 48 小時前請假改期與退費標準）<span class="text-pink">*</span></span>
+          </div>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem;">
@@ -7062,16 +7094,18 @@ function openDirectPaymentModal(quoteData) {
 
       <!-- 📜 購課服務條款與退費政策勾選區塊 -->
       <div class="terms-agreement-box margin-top-sm" id="termsAgreementDirectBox" style="background: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; transition: var(--transition);">
-        <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0; font-size: 0.82rem; line-height: 1.45; color: #f1f5f9;">
-          <input type="checkbox" id="agreeTermsDirectCheckbox" required onchange="onAgreeTermsChange(this.checked, 'termsAgreementDirectBox')" style="margin-top: 3px; accent-color: var(--accent-purple); width: 16px; height: 16px; cursor: pointer;">
-          <span>
-            我已完整閱讀並同意
-            <a href="javascript:void(0)" onclick="openTermsModal(event)" style="color: var(--accent-purple); font-weight: 700; text-decoration: underline;">
+        <div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+          <input type="checkbox" id="agreeTermsDirectCheckbox" required onchange="onAgreeTermsChange(this.checked, 'termsAgreementDirectBox')" style="margin-top: 3px; accent-color: var(--accent-purple); width: 17px; height: 17px; cursor: pointer; flex-shrink: 0;">
+          <div style="font-size: 0.82rem; line-height: 1.5; color: #f1f5f9;">
+            <label for="agreeTermsDirectCheckbox" style="cursor: pointer; margin: 0; display: inline;">
+              我已完整閱讀並同意
+            </label>
+            <button type="button" class="terms-link-btn" onclick="openTermsModal(event)">
               📜【精五門學員購課服務條款與退費政策】
-            </a>
-            （含錄播課法定排除 7 日猶豫期、1 對 1 個教 48 小時前請假改期與退費標準）<span class="text-pink">*</span>
-          </span>
-        </label>
+            </button>
+            <span>（含錄播課法定排除 7 日猶豫期、1 對 1 個教 48 小時前請假改期與退費標準）<span class="text-pink">*</span></span>
+          </div>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block margin-top-md" style="font-size:1.05rem; padding:0.65rem 1rem;">
@@ -7377,10 +7411,15 @@ window.addEventListener('scroll', () => {
 
 // 📜 Terms & Refund Policy Modal Engine (精五門學員購課服務條款與退費政策)
 function openTermsModal(e) {
-  if (e && e.stopPropagation) e.stopPropagation();
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
   const modal = document.getElementById('termsModal');
   if (modal) {
     modal.classList.add('active');
+    const content = modal.querySelector('.terms-modal-content');
+    if (content) content.scrollTop = 0;
   }
 }
 
