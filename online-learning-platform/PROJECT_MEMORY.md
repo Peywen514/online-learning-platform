@@ -117,7 +117,7 @@
     1. **LINE / 電話客服直接手動建單**：學員未填前台表單直接在 LINE@ 或電話聊完報名時，Wen總監/員工 可直接於後台點擊「➕ 手動錄入學員諮詢 (LINE/電話對接)」，或直接至「新增報價單」輸入學員 Email、姓名、客製金額與方案，即時同步 Google Sheet。
     2. **一鍵將諮詢紀錄轉為專屬報價單 (1-Click Lead-to-Quote)**：在需求紀錄清單點擊「🏷️ 轉報價單」，系統自動帶入學員姓名、Email 與諮詢課程，總監只需輸入談好的特惠金額即可秒發報價單。
     3. **⚡ 免登入專屬直通付款連結 (極簡短網址 & 官網雙軌查單通道)**：
-       - **極簡短網址 (做法 2)**：在報價單清單點擊「🔗 複製直通連結」，生成如 `https://online-class.pey514514.workers.dev/?quote=quote-1` 之極簡短網址，不露長代碼，LINE / 簡訊 / Email 點開秒進專屬結帳畫面！
+       - **極簡短網址 (做法 2)**：在報價單清單點擊「🔗 複製直通連結」，生成如 `https://online-learning-platform.pey514514.workers.dev/?quote=quote-1` 之極簡短網址，不露長代碼，LINE / 簡訊 / Email 點開秒進專屬結帳畫面！
        - **官網首頁查單結帳 (做法 3 - 無 LINE/簡訊學員專用)**：學員直接至官網首頁或導覽列點擊 **「🏷️ 專屬報價結帳」**，輸入電話或 Email 即可秒查 Wen總監 開立之專屬報價單並線上刷卡/LINE Pay/ATM 開通！
        - **全方位結帳通知引導文案**：點擊「💬 複製 LINE 引導」自動生成同時包含「直通短網址」與「官網查單」之全方位通知，免登入免註冊即可完成付款！
   - **🎬 錄播試看結束彈窗 (Trial Ended Modal) 轉化機制**：因應後續與合作夥伴網站（完整看課影片與金流串接）結合之戰略，於【錄播學習中心】播放試看影片結束時，系統自動觸發「試看結束彈窗」HTML 結構 (`#videoTrialEndModal`)，呈現 **「喜歡相關課程嗎？立即解鎖其他課程」** 核心引導文案，將「解鎖其他課程」按鈕精準連結至合作夥伴金流課程購買網址 (`https://rbur2v-zz.myshopify.com/`)，並保留加 Line@ 洽小編領優惠、填寫客製化問卷與重新播放等功能。
@@ -180,7 +180,7 @@
 - **👤 學員專區個人資料修改與雲端雙向同步模組 (Student Profile Edit with Dual Cloud Sync)**：
   1. **學員專區專屬修改入口**：在學員專區 (`#view-member-center`) 頂部個人資訊卡片中，新增頭像相機按鈕、姓名旁「修改個人資料」膠囊按鈕、操作捷徑大按鈕，以及右上角個人下拉選單入口，隨時隨地一鍵開窗。
   2. **個人基本資料彈窗 (`#editProfileModal`)**：
-     - **頭像自訂與 4 款預設頭像快速套用**：可填寫外鏈圖片網址即時預覽，或一鍵點選男女風格精緻預設頭像。
+     - **大頭貼裝置直接上傳 (支援手機相簿/拍照/電腦檔案)**：全面汰除舊版輸入網址方式，改為點選相機/上傳按鈕直接開啟手機相簿/拍照或電腦檔案，內建智慧 Canvas 前端壓縮（自動轉為 320px 高畫質輕量 JPEG，不佔容量、防止 localStorage 爆滿），並保留 4 款預設頭像快速套用。
      - **真實姓名與稱呼 (先生/小姐)**。
      - **聯絡電話 / 手機**（即時同步顯示於學員專區頂部資訊列）。
      - **西元年月日生日選擇器**（智慧連動壽星享 100 精幣專屬徽章）。
@@ -216,7 +216,7 @@
   - `創業完整規劃書_簡報檔.html`：可直接列印為 PDF 的商業計畫書簡報 (含商業獲利模式、金流串接與學員權限開通機制)
   - `講師合作分潤與契約條款規範指南.md`：講師合作契約分潤機制對照條款、成本扣除淨利公式、SLA課後答疑服務水準與談判話術備忘錄
 - **GitHub 儲存庫**：`https://github.com/Peywen514/online-learning-platform`
-- **正式線上運作網址 (Cloudflare Workers)**：`https://online-learning-platform.pey514514.workers.dev/` (舊網址: `https://online-class.pey514514.workers.dev/`)
+- **正式線上運作網址 (Cloudflare Workers)**：`https://online-learning-platform.pey514514.workers.dev/`（⚠️ 原舊網址 online-class 已停用）
 - **備用公開網址 (GitHub Pages)**：`https://peywen514.github.io/online-learning-platform/`
 
 ---
@@ -233,7 +233,7 @@
    - 使用下方專屬 Prompt 啟動對話。
 3. **完成後（第三步）—— 發佈至 Cloudflare 與 GitHub**：
    - 終端機執行：git push origin main
-   - （Cloudflare 已綁定 GitHub，收到 push 後將於 30~60 秒內自動發佈至線上 online-class.pey514514.workers.dev）
+   - （Cloudflare 已綁定 GitHub，收到 push 後將於 30~60 秒內自動發佈至線上 online-learning-platform.pey514514.workers.dev）
    - 若在無 Git 指令環境，亦可將修改後檔案（index.html, pp.js, data.js, style.css, PROJECT_MEMORY.md）直接拖曳至 GitHub 網頁版上傳。
 
 ---

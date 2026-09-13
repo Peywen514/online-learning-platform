@@ -1592,6 +1592,9 @@ function openEditProfileModal() {
     passwordInput.value = '';
   }
 
+  const fileInput = document.getElementById('editProfileAvatarFile');
+  if (fileInput) fileInput.value = '';
+
   modal.classList.add('active');
 }
 
@@ -1600,11 +1603,21 @@ function closeEditProfileModal() {
   if (modal) modal.classList.remove('active');
 }
 
-function updateAvatarPreview(url) {
-  const preview = document.getElementById('editProfileAvatarPreview');
-  if (preview && url && url.trim()) {
-    preview.src = url.trim();
-  }
+function handleProfileAvatarUpload(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  compressImageFile(file, 320, 0.85, (err, dataUrl) => {
+    if (err || !dataUrl) {
+      showToast('⚠️ 圖片讀取失敗，請更換其他照片');
+      return;
+    }
+    const preview = document.getElementById('editProfileAvatarPreview');
+    const input = document.getElementById('editProfileAvatar');
+    if (preview) preview.src = dataUrl;
+    if (input) input.value = dataUrl;
+    showToast('📷 大頭貼照片載入成功！點擊儲存即可完成更新。');
+  });
 }
 
 function selectPresetAvatar(url) {
@@ -1612,6 +1625,7 @@ function selectPresetAvatar(url) {
   const preview = document.getElementById('editProfileAvatarPreview');
   if (avatarInput) avatarInput.value = url;
   if (preview) preview.src = url;
+  showToast('✨ 已套用預設頭像！點擊儲存即可完成更新。');
 }
 
 async function handleSaveProfile(e) {
@@ -2119,7 +2133,7 @@ function copyClassReminderMsg(bookingId) {
   const b = mockBookings.find(item => item.id === bookingId);
   if (!b) return;
 
-  const msg = `🔔【精五門 PentaSkill 課前提醒】\n\n學員 ${b.studentName} 您好：\n您預約於明日 (${b.date} ${b.slotTime}) 與【${b.instructor} 講師】進行 1 對 1 個教（主題：${b.topic}）。\n\n👉 請於課前 10 分鐘登入精五門網站，點擊「進入教室」準備上課囉！\n🔗 教室直通網址：https://online-class.pey514514.workers.dev/#live-classroom\n\n✨ 期待明天與您線上見，預祝您上課收穫滿滿！請於明日準時上課哦！`;
+  const msg = `🔔【精五門 PentaSkill 課前提醒】\n\n學員 ${b.studentName} 您好：\n您預約於明日 (${b.date} ${b.slotTime}) 與【${b.instructor} 講師】進行 1 對 1 個教（主題：${b.topic}）。\n\n👉 請於課前 10 分鐘登入精五門網站，點擊「進入教室」準備上課囉！\n🔗 教室直通網址：https://online-learning-platform.pey514514.workers.dev/#live-classroom\n\n✨ 期待明天與您線上見，預祝您上課收穫滿滿！請於明日準時上課哦！`;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(msg).then(() => {
@@ -2137,7 +2151,7 @@ function copy3DaysNoticeMsg(bookingId) {
   const b = mockBookings.find(item => item.id === bookingId);
   if (!b) return;
 
-  const msg = `📅【精五門 PentaSkill 個教行程與改期最後確認】\n\n學員 ${b.studentName} 您好：\n您預約於 3 天後 (${b.date} ${b.slotTime}) 與【${b.instructor} 講師】進行 1 對 1 個教（主題：${b.topic}）。\n\n⚠️ 貼心提醒：若您臨時有事需調整時間，最晚請於明天（上課前 2 天 / 48 小時前）於系統線上改期或通知 LINE@ 小編喔！逾期或當天臨時取消將視為放棄該堂課。\n\n🔗 預約管理中心：https://online-class.pey514514.workers.dev/#live-classroom\n感謝您的配合，預祝學習愉快！`;
+  const msg = `📅【精五門 PentaSkill 個教行程與改期最後確認】\n\n學員 ${b.studentName} 您好：\n您預約於 3 天後 (${b.date} ${b.slotTime}) 與【${b.instructor} 講師】進行 1 對 1 個教（主題：${b.topic}）。\n\n⚠️ 貼心提醒：若您臨時有事需調整時間，最晚請於明天（上課前 2 天 / 48 小時前）於系統線上改期或通知 LINE@ 小編喔！逾期或當天臨時取消將視為放棄該堂課。\n\n🔗 預約管理中心：https://online-learning-platform.pey514514.workers.dev/#live-classroom\n感謝您的配合，預祝學習愉快！`;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(msg).then(() => {
@@ -3426,35 +3440,79 @@ function deletePlatformExpense(expenseId) {
   }
 }
 
-// 頭像與照片上傳處理器 (支援本機選擇檔案並轉為 Base64 DataURL 即時預覽)
+// 通用圖片壓縮轉換器 (支援手機相簿/拍照/電腦圖片，自動使用 Canvas 縮小至最佳尺寸並壓縮為 JPEG，避免 localStorage 爆滿)
+function compressImageFile(file, maxDim = 320, quality = 0.85, callback) {
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const img = new Image();
+    img.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        callback(null, dataUrl);
+      } catch (err) {
+        callback(null, evt.target.result);
+      }
+    };
+    img.onerror = function(err) {
+      callback(err || new Error('Image load failed'));
+    };
+    img.src = evt.target.result;
+  };
+  reader.onerror = function(err) {
+    callback(err || new Error('File read failed'));
+  };
+  reader.readAsDataURL(file);
+}
+
+// 頭像與照片上傳處理器 (支援手機拍照/相簿與電腦選擇檔案，自動壓縮並轉為 Base64 DataURL 即時預覽)
 function handleUserAvatarUpload(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const dataUrl = evt.target.result;
+  compressImageFile(file, 320, 0.85, (err, dataUrl) => {
+    if (err || !dataUrl) {
+      showToast('⚠️ 圖片讀取失敗，請更換其他照片');
+      return;
+    }
     const preview = document.getElementById('userAvatarPreview');
     const input = document.getElementById('inputUserAvatar');
     if (preview) preview.src = dataUrl;
     if (input) input.value = dataUrl;
     showToast('📷 成員頭像照片載入成功！');
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function handleInstAvatarUpload(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const dataUrl = evt.target.result;
+  compressImageFile(file, 400, 0.85, (err, dataUrl) => {
+    if (err || !dataUrl) {
+      showToast('⚠️ 圖片讀取失敗，請更換其他照片');
+      return;
+    }
     const preview = document.getElementById('instAvatarPreview');
     const input = document.getElementById('inputInstAvatar');
     if (preview) preview.src = dataUrl;
     if (input) input.value = dataUrl;
     showToast('📷 講師照片載入成功！');
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 // Account Creation / Password Edit / Points Adjustment (主管與顧問專屬)
@@ -5507,7 +5565,7 @@ function updateReferralSharePreview() {
     ? senderInput.value.trim() 
     : (currentUser ? `${currentUser.name} (${currentUser.email || currentUser.phone || ''})`.trim() : '精五門好友推薦');
   
-  const siteUrl = `https://online-class.pey514514.workers.dev/?ref=${encodeURIComponent(senderTag)}#consult`;
+  const siteUrl = `https://online-learning-platform.pey514514.workers.dev/?ref=${encodeURIComponent(senderTag)}#consult`;
 
   const shareMsg = 
 `🎁【精五門 PentaSkill 好友專屬好禮推薦】
@@ -6146,7 +6204,7 @@ function doPost(e) {
           "⏰ 填表時間：" + sTime + "\\n" +
           "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n" +
           "👉 您可以直接撥打電話聯繫學員，或登入後台一鍵開立專屬報價單：\\n" +
-          "https://online-class.pey514514.workers.dev/#admin-dashboard\\n\\n" +
+          "https://online-learning-platform.pey514514.workers.dev/#admin-dashboard\\n\\n" +
           "精五門 PentaSkill 雲端自動化推播";
 
         MailApp.sendEmail(adminEmail, subject, emailBody);
@@ -6629,7 +6687,7 @@ function generateDirectPayUrl(quote) {
   let base = window.location.href.split('?')[0].split('#')[0];
   // 若在本機 file:/// 或 127.0.0.1 測試，自動使用正式 Cloudflare Workers 網址，確保發到 LINE/簡訊 100% 為可點擊的超連結
   if (!base.startsWith('http://') && !base.startsWith('https://') || base.includes('localhost') || base.includes('127.0.0.1') || base.startsWith('file:')) {
-    base = 'https://online-class.pey514514.workers.dev/';
+    base = 'https://online-learning-platform.pey514514.workers.dev/';
   }
   // ⚡ 做法 2：採用超簡潔短網址（乾淨俐落、不帶長代碼）
   return `${base}?quote=${quote.id}`;
@@ -6667,7 +6725,7 @@ function copyLineCheckoutGuide(quoteId) {
 🔗 ${directPayUrl}
 
 👉【方式二】或直接至官網點擊「專屬報價結帳」輸入您的 Email 或手機：
-🌐 https://online-class.pey514514.workers.dev/
+🌐 https://online-learning-platform.pey514514.workers.dev/
 
 核對您的資料並選擇付款方式（信用卡/LINE Pay/ATM）即可立即開通學習權限！
 若有任何問題隨時與我們聯繫 😊`;

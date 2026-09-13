@@ -514,7 +514,7 @@ let cloudflareStreamConfig = {
   accountId: "c6a2e87901fb4a88bc345123456789ab",
   customerSubdomain: "customer-88nzk2.cloudflarestream.com",
   requireSignedTokens: true,
-  allowedOrigins: ["online-class.pey514514.workers.dev", "peywen514.github.io", "pentaskill.com", "localhost"],
+  allowedOrigins: ["online-learning-platform.pey514514.workers.dev", "peywen514.github.io", "pentaskill.com", "localhost"],
   hlsEncryption: "AES-128 / Dynamic HLS Bitrate",
   signingKeyId: "key-cf-stream-pentaskill-2026"
 };

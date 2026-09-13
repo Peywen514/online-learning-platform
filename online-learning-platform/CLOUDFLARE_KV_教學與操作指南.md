@@ -20,7 +20,7 @@
 
 ### 🔹 步驟 1：檢查 Cloudflare 後台的 Binding 變數名稱
 
-1. 登入 [Cloudflare Dashboard](https://dash.cloudflare.com/) ➔ 點入您的 Worker（例如 `online-class`）。
+1. 登入 [Cloudflare Dashboard](https://dash.cloudflare.com/) ➔ 點入您的 Worker（例如 `online-learning-platform`）。
 2. 點擊上方選單 **「Settings」➔「Variables and Secrets」➔「KV Namespace Bindings」**。
 3. 確認或新增綁定：
    - **Variable Name（變數名稱）**：`PENTASKILL_KV` *(⚠️ 必須全大寫，完全相符)*
@@ -154,7 +154,7 @@ export default {
 
 網站前台已經加裝好專屬同步按鈕：
 
-1. 打開您的網站（例如 `https://online-class.pey514514.workers.dev/` 或本地環境）。
+1. 打開您的網站（例如 `https://online-learning-platform.pey514514.workers.dev/` 或本地環境）。
 2. 點擊右上角「登入」，使用主管權限帳號登入：
    - **帳號**：`pey514514@gmail.com`
    - **密碼**：`admin514`
