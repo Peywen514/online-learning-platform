@@ -2685,6 +2685,9 @@
               <input type="number" id="inputPriceCombo" class="form-control" placeholder="12800" required>
               <div class="text-xs text-pink" style="margin-top:2px;">前台卡面固定顯示「NT$ ????」</div>
             </div>
+          <div class="form-group margin-top-sm">
+            <label>課程亮點與簡介</label>
+            <textarea id="inputCourseDesc" class="form-control" rows="3" placeholder="簡短描述這門課程的核心技能、適用對象與特色亮點"></textarea>
           </div>
           <div class="form-group margin-top-sm" style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 8px; padding: 0.75rem 1rem;">
             <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; margin: 0; font-weight: 600; color: #f472b6;">
@@ -2862,6 +2865,22 @@
           <div class="form-group margin-top-sm">
             <label><i class="fa-regular fa-clock text-purple"></i> 選擇新時段 (已被預約時段自動防呆鎖定)</label>
             <div class="slots-grid margin-top-xs" id="rescheduleSlotsGrid">
+              <!-- Dynamically populated by updateRescheduleSlots() -->
+            </div>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-comment-dots text-cyan"></i> 改期原因或備註 (選填)</label>
+            <input type="text" id="rescheduleReason" class="form-control" placeholder="例如：臨時有公務會議需調整時段">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            確認異動時段並發送通知
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: Add/Edit Mentor Salary Settlement Modal (Wen總監專屬 CMS) -->
   <div id="editSalaryModal" class="modal-backdrop">
@@ -3964,6 +3983,98 @@
               <i class="fa-solid fa-paper-plane text-cyan"></i> 測試報價單記錄
             </button>
           </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit Portfolio Modal (CMS) -->
+  <div id="addPortfolioModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 600px;">
+      <button class="modal-close" onclick="closeAddPortfolioModal()">&times;</button>
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-award text-purple"></i> 新增 / 編輯學員實戰代表作</h3>
+        <p class="text-xs text-muted margin-top-xs">展示教學成果與 1-on-1 個教輔導產出，激勵更多學員加入！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSavePortfolio(event)">
+          <input type="hidden" id="editPortId">
+          <div class="form-group">
+            <label>作品專案名稱 <span class="text-pink">*</span></label>
+            <input type="text" id="inputPortTitle" class="form-control" placeholder="例如：SaaS 企業級 AI 數據分析儀表板" required>
+          </div>
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>專業領域標籤</label>
+              <select id="inputPortTag" class="form-control">
+                <option value="🤖 AI & 程式開發">🤖 AI & 程式開發</option>
+                <option value="🎨 UI/UX 與 品牌設計">🎨 UI/UX 與 品牌設計</option>
+                <option value="🎬 影音特效與短影音">🎬 影音特效與短影音</option>
+                <option value="🏛️ 室內空間 3D 渲染">🏛️ 室內空間 3D 渲染</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>指導業師 <span class="text-pink">*</span></label>
+              <input type="text" id="inputPortInstructor" class="form-control" placeholder="張哲銘 (Ethan)" required>
+            </div>
+          </div>
+          <div class="form-row grid grid-2 gap-sm margin-top-sm">
+            <div class="form-group">
+              <label>學員姓名 / 稱呼 <span class="text-pink">*</span></label>
+              <input type="text" id="inputPortStudent" class="form-control" placeholder="陳小美" required>
+            </div>
+            <div class="form-group">
+              <label>作品圖片封面網址</label>
+              <input type="url" id="inputPortImg" class="form-control" placeholder="https://..." required>
+            </div>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>專案描述與技術亮點 <span class="text-pink">*</span></label>
+            <textarea id="inputPortDesc" class="form-control" rows="2" placeholder="簡述此作品解決的商業問題與使用到的實戰技能" required></textarea>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>業師評語與診斷重點 <span class="text-pink">*</span></label>
+            <textarea id="inputPortFeedback" class="form-control" rows="2" placeholder="業師於 1-on-1 陪跑過程中的關鍵回饋與精修方向" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            儲存並發布作品展示
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Submit Assignment Modal -->
+  <div id="assignmentModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 560px;">
+      <button class="modal-close" onclick="closeAssignmentModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan"><i class="fa-solid fa-cloud-arrow-up"></i> 1-on-1 專屬作業</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-file-code text-cyan"></i> 繳交個教章節作業</h3>
+        <p class="text-xs text-muted margin-top-xs">送出後講師將於 24 小時內完成審查，並於 1-on-1 個教中針對您的作品進行深度診斷！</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleAssignmentSubmit(event)">
+          <div class="form-group">
+            <label>作業專案名稱 / 題目</label>
+            <input type="text" id="assignmentTitle" class="form-control" value="完成 AI 聊天對話框與 Error Boundary 機制" readonly style="background: rgba(255,255,255,0.05); color: #cbd5e1;">
+          </div>
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-brands fa-github text-purple"></i> 專案雲端連結 (GitHub / Google Drive / Figma / CodeSandbox) <span class="text-pink">*</span></label>
+            <input type="url" id="assignmentLink" class="form-control" placeholder="https://github.com/... 或 https://drive.google.com/..." required>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label><i class="fa-solid fa-comments text-green"></i> 實作心得或想向業師請教的痛點問題 (選填)</label>
+            <textarea id="assignmentNotes" class="form-control" rows="3" placeholder="例如：在串接 OpenAI API 時遇到串流渲染卡頓，希望能討論最佳化方式"></textarea>
+          </div>
+          <div class="text-xs text-muted margin-top-sm" style="line-height:1.5;">
+            💡 提醒：繳交完成後，請至「預約個教 1-on-1」選取講師與專屬時段，業師將為您進行 1 小時 (60分鐘) 實戰 Code Review。
+          </div>
+          <button type="submit" class="btn btn-primary btn-block margin-top-md">
+            <i class="fa-solid fa-paper-plane"></i> 確認送出作業
+          </button>
         </form>
       </div>
     </div>
