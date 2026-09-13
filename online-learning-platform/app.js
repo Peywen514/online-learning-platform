@@ -220,6 +220,7 @@ async function initCloudSync() {
 
     if (updated) {
       renderAuthArea();
+      updateUIPermissions();
       renderUserTable();
       renderCustomQuotesAdminTable();
       renderLeadAdminTable();
@@ -1264,6 +1265,28 @@ function updateUIPermissions() {
   const isManagerOrConsultant = (role === 'manager' || role === 'consultant');
   const isStaffOrAbove = (role === 'manager' || role === 'consultant' || role === 'staff');
   const isInstructorOrAbove = (role === 'manager' || role === 'consultant' || role === 'staff' || role === 'instructor');
+
+  // 0. Update body role class for CSS selectors (such as .manager-hide)
+  document.body.classList.remove('role-manager', 'role-consultant', 'role-staff', 'role-instructor', 'role-student', 'role-guest');
+  document.body.classList.add(`role-${role}`);
+
+  // 0.1 雯總監 / 主管 / 顧問：頂部導覽列不顯示「洽小編諮詢」與「查看購物車」
+  const navConsultBtn = document.getElementById('navConsultBtn');
+  if (navConsultBtn) {
+    navConsultBtn.style.display = isManagerOrConsultant ? 'none' : '';
+  }
+  const cartBtn = document.getElementById('cartBtn');
+  if (cartBtn) {
+    cartBtn.style.display = isManagerOrConsultant ? 'none' : '';
+  }
+  const mobileCartBtn = document.getElementById('mobileCartBtn');
+  if (mobileCartBtn) {
+    if (isManagerOrConsultant) {
+      mobileCartBtn.style.setProperty('display', 'none', 'important');
+    } else {
+      mobileCartBtn.style.removeProperty('display');
+    }
+  }
 
   // 1. Business Plan Link & Button (Manager & Consultant)
   const busLink = document.getElementById('navBusinessPlanLink');

@@ -143,18 +143,18 @@
       </nav>
 
       <div class="nav-actions">
-        <!-- 洽小編諮詢按鈕 -->
-        <button class="btn btn-line btn-sm mobile-hide" onclick="openLeadFormModal()" title="立即洽小編諮詢 / 填寫學習需求表單">
+        <!-- 洽小編諮詢按鈕 (主管/雯總監自動隱藏) -->
+        <button class="btn btn-line btn-sm mobile-hide manager-hide" id="navConsultBtn" onclick="openLeadFormModal()" title="立即洽小編諮詢 / 填寫學習需求表單">
           <i class="fa-solid fa-comments"></i> 洽小編諮詢
         </button>
 
-        <!-- 購物/結帳快捷 (查看購物車膠囊 - 電腦版) -->
-        <button class="btn btn-outline btn-sm mobile-hide" id="cartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc; display: inline-flex; align-items: center; gap: 0.35rem;">
+        <!-- 購物/結帳快捷 (查看購物車膠囊 - 電腦版，主管/雯總監自動隱藏) -->
+        <button class="btn btn-outline btn-sm mobile-hide manager-hide" id="cartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳" style="border-color: rgba(139, 92, 246, 0.45); color: #c084fc; display: inline-flex; align-items: center; gap: 0.35rem;">
           <i class="fa-solid fa-cart-shopping text-purple"></i> 查看購物車 <span class="badge" id="cartCount">0</span>
         </button>
         
-        <!-- Mobile Cart Button (手機版頭像旁常駐購物車按鈕) -->
-        <button class="icon-btn mobile-cart-btn" id="mobileCartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳">
+        <!-- Mobile Cart Button (僅手機版且非主管時顯示) -->
+        <button class="mobile-cart-btn manager-hide" id="mobileCartBtn" onclick="openCartOrCheckoutModal()" title="查看購物車與結帳">
           <i class="fa-solid fa-cart-shopping"></i>
           <span class="mobile-cart-badge" id="mobileCartCount">0</span>
         </button>
