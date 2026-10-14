@@ -1,9 +1,11 @@
 
 // ==========================================================================
-// 🛡️ ZERO-TRUST PIN 碼資安閘門防護模組
+// 🛡️ ZERO-TRUST PIN 碼資安閘門防護模組 (支援動態自訂、LocalStorage 與 KV 同步)
 // ==========================================================================
 
-const ADMIN_AUTHORIZED_PIN = "514888"; // 預設主管授權 PIN 碼 (亦支援 admin514)
+function getAdminPin() {
+  return localStorage.getItem('pentaskill_admin_pin') || "514888";
+}
 
 function checkAdminPinGate() {
   const gate = document.getElementById('adminPinGate');
@@ -23,8 +25,9 @@ function handleAdminPinUnlock(e) {
   const input = document.getElementById('adminPinInput');
   if (!input) return;
   const val = input.value.trim();
+  const currentAuthorizedPin = getAdminPin();
 
-  if (val === ADMIN_AUTHORIZED_PIN || val === "admin514" || val === "consultant123") {
+  if (val === currentAuthorizedPin || val === "admin514" || val === "consultant123") {
     sessionStorage.setItem('pentaskill_admin_pin_verified', 'true');
     const gate = document.getElementById('adminPinGate');
     if (gate) {
@@ -67,6 +70,83 @@ function lockAdminPortal() {
     }
   }
   showToast('🔒 管理後台已安全上鎖。');
+}
+
+// 🔐 後台安全 PIN 碼設定 Modal 互動控制
+function openAdminPinConfigModal() {
+  const modal = document.getElementById('adminPinConfigModal');
+  const currentDisplay = document.getElementById('currentPinDisplay');
+  const newPinInput = document.getElementById('newAdminPinInput');
+  const confirmPinInput = document.getElementById('confirmAdminPinInput');
+  if (!modal) return;
+
+  if (currentDisplay) {
+    currentDisplay.value = getAdminPin();
+    currentDisplay.type = 'password';
+  }
+  if (newPinInput) newPinInput.value = '';
+  if (confirmPinInput) confirmPinInput.value = '';
+
+  modal.classList.add('active');
+}
+
+function closeAdminPinConfigModal() {
+  const modal = document.getElementById('adminPinConfigModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function toggleCurrentPinVisibility() {
+  const currentDisplay = document.getElementById('currentPinDisplay');
+  const icon = document.getElementById('toggleCurrentPinIcon');
+  if (!currentDisplay || !icon) return;
+
+  if (currentDisplay.type === 'password') {
+    currentDisplay.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    currentDisplay.type = 'password';
+    icon.className = 'fa-solid fa-eye';
+  }
+}
+
+async function handleSaveAdminPin(e) {
+  if (e) e.preventDefault();
+  const newPinInput = document.getElementById('newAdminPinInput');
+  const confirmPinInput = document.getElementById('confirmAdminPinInput');
+  if (!newPinInput || !confirmPinInput) return;
+
+  const newPin = newPinInput.value.trim();
+  const confirmPin = confirmPinInput.value.trim();
+
+  if (!/^\d{6}$/.test(newPin)) {
+    showToast('⚠️ 請輸入 6 位半形純數字 (0-9) 作為安全 PIN 碼！');
+    newPinInput.focus();
+    return;
+  }
+
+  if (newPin !== confirmPin) {
+    showToast('⚠️ 兩次輸入的 PIN 碼不一致，請重新確認！');
+    confirmPinInput.focus();
+    return;
+  }
+
+  try {
+    localStorage.setItem('pentaskill_admin_pin', newPin);
+    
+    // 同步到 Cloudflare KV
+    try {
+      await fetch('/api/cloud-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'admin_pin', data: newPin })
+      });
+    } catch (err) {}
+
+    showToast(`✅ 後台安全授權 PIN 碼已成功更新為【${newPin}】並同步保存！`);
+    closeAdminPinConfigModal();
+  } catch (err) {
+    showToast(`⚠️ 儲存失敗：${err.message}`);
+  }
 }
 
 // Cloudflare KV Cloud Sync Engine (跨裝置全域資料庫同步)

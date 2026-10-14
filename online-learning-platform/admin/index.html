@@ -1218,6 +1218,9 @@
                 <span class="text-sm text-muted">目前共有 <strong id="userTotalCount">5</strong> 個使用者帳號</span>
               </div>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm manager-only-btn" onclick="openAdminPinConfigModal()" style="border-color: #38bdf8; color: #38bdf8;" title="自訂或修改後台 6 位數安全 PIN 碼">
+                  <i class="fa-solid fa-key text-cyan"></i> 🔐 設定安全 PIN 碼
+                </button>
                 <button class="btn btn-outline btn-sm manager-only-btn" onclick="syncAllDataToCloudflareKV()" style="border-color: var(--accent-yellow); color: var(--accent-yellow);" title="將目前的成員名單與點數全量寫入 Cloudflare KV">
                   <i class="fa-solid fa-cloud-arrow-up text-yellow"></i> ⚡ 同步至 Cloudflare KV
                 </button>
@@ -4008,10 +4011,50 @@
       <div class="tooltip-text">
         <span class="pulse-icon">🔥</span> 想領取 <strong>專屬超值好禮包</strong>？<br>加 LINE 洽小編或追蹤 IG 掌握最新資訊！
       </div>
+  <!-- MODAL: Admin PIN Configuration Modal -->
+  <div id="adminPinConfigModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 480px;">
+      <button class="modal-close" onclick="closeAdminPinConfigModal()">&times;</button>
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan"><i class="fa-solid fa-shield-halved"></i> 邊緣資安保護</span>
+        </div>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-key text-cyan"></i> 設定後台安全授權 PIN 碼</h3>
+        <p class="text-xs text-muted margin-top-xs">此 PIN 碼用於解鎖管理後台全權限。設定後將即時生效，並自動持久化保存。</p>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleSaveAdminPin(event)">
+          <div class="form-group">
+            <label>當前生效之 PIN 碼</label>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="password" id="currentPinDisplay" class="form-control" readonly style="background:rgba(255,255,255,0.05); color:#38bdf8; font-weight:700; letter-spacing:4px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleCurrentPinVisibility()" title="顯示/隱藏當前 PIN 碼">
+                <i class="fa-solid fa-eye" id="toggleCurrentPinIcon"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>設定全新 6 位數 PIN 碼 <span class="text-pink">*</span></label>
+            <input type="password" id="newAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="請輸入 6 位數字 (例如: 514888)" required style="letter-spacing:4px; font-weight:700;">
+            <small class="text-xs text-muted">請輸入 6 位半形純數字 (0-9)</small>
+          </div>
+          <div class="form-group margin-top-sm">
+            <label>再次確認全新 PIN 碼 <span class="text-pink">*</span></label>
+            <input type="password" id="confirmAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="請再次輸入 6 位數字" required style="letter-spacing:4px; font-weight:700;">
+          </div>
+          <div class="margin-top-md" style="display:flex; justify-content:flex-end; gap:0.5rem;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="closeAdminPinConfigModal()">取消</button>
+            <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); border:none;">
+              <i class="fa-solid fa-floppy-disk"></i> 儲存並啟用 PIN 碼
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <!-- 懸浮按鈕群組 (精緻極簡純圖示圓鈕) -->
-    <div class="social-btn-group">
+  <!-- 懸浮按鈕群組 (精緻極簡純圖示圓鈕) -->
+  <div class="social-btn-group">
       <!-- IG 追蹤按鈕 -->
       <a href="https://www.instagram.com/penta.skill?igsi=MXA4M3IzcDB0azhuMg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" class="social-btn btn-ig-float" title="追蹤精五門官方 Instagram (@penta.skill) 掌握最新資訊" aria-label="追蹤官方 Instagram">
         <i class="fa-brands fa-instagram"></i>
