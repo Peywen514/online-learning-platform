@@ -13,24 +13,42 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-  <!-- 🛡️ Zero-Trust PIN 碼邊緣安全驗證閘門 -->
+  <!-- 🛡️ Zero-Trust 動態一次性 Email OTP 安全驗證閘門 -->
   <div id="adminPinGate">
     <div class="pin-gate-card">
       <div class="pin-gate-icon">
         <i class="fa-solid fa-shield-halved"></i>
       </div>
-      <h2>精五門 PentaSkill 管理後台</h2>
-      <p>Zero-Trust 邊緣資安保護閘門<br>請輸入 6 位數主管安全授權 PIN 碼以解鎖核心權限</p>
+      <h2>精五門 PentaSkill 核心後台</h2>
+      <p style="margin-bottom: 1.25rem;">
+        <span class="badge-tag bg-cyan" style="font-size: 0.75rem;"><i class="fa-solid fa-envelope-circle-check"></i> Zero-Trust 動態 Email OTP 認證</span><br>
+        為保障商業機密，系統採用<strong>不固定一次性動態 PIN 碼</strong>防護。
+      </p>
+
+      <div class="admin-otp-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem; text-align: left;">
+        <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 0.4rem;">授權管理者 Email：</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem;">
+          <input type="email" id="adminAuthEmail" class="form-control" value="pey514514@gmail.com" placeholder="請輸入主管 Email" style="font-size: 0.9rem; font-weight: 600; color: #38bdf8;">
+        </div>
+        
+        <button type="button" class="btn btn-outline btn-sm" id="btnSendAdminOtp" onclick="sendAdminDynamicOtp()" style="width: 100%; border-color: #06b6d4; color: #38bdf8; padding: 0.6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <i class="fa-solid fa-paper-plane"></i> <span id="sendOtpBtnText">發送動態 PIN 碼至主管信箱</span>
+        </button>
+        <div id="otpStatusTip" style="display: none; font-size: 0.75rem; color: #34d399; margin-top: 0.5rem; text-align: center;"></div>
+      </div>
+
       <form onsubmit="handleAdminPinUnlock(event)" autocomplete="off">
-        <div class="pin-input-box">
-          <input type="password" id="adminPinInput" class="pin-input-field" maxlength="6" placeholder="••••••" autofocus required>
+        <div class="pin-input-box" style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.8rem; color: #94a3b8; display: block; text-align: left; margin-bottom: 0.4rem;">輸入信箱收到的 6 位數動態 PIN 碼：</label>
+          <input type="text" id="adminPinInput" class="pin-input-field" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autofocus required style="letter-spacing: 8px;">
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;">有效時間 10 分鐘 • 每次登入自動換號</div>
         </div>
         <button type="submit" class="pin-gate-btn">
-          <i class="fa-solid fa-lock-open"></i> 驗證身分並解鎖後台
+          <i class="fa-solid fa-lock-open"></i> 驗證動態碼並解鎖後台
         </button>
       </form>
       <div class="pin-gate-footer">
-        <i class="fa-solid fa-circle-check text-green"></i> 256-bit 端對端全域邊緣加密保護 (預設PIN: 514888)
+        <i class="fa-solid fa-circle-check text-green"></i> 支援 Cloudflare Zero Trust 雙軌防護 (主管密碼亦可應急解鎖)
       </div>
     </div>
   </div>

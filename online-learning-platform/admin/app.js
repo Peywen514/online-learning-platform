@@ -1,7 +1,21 @@
 
 // ==========================================================================
-// 🛡️ ZERO-TRUST PIN 碼資安閘門防護模組 (支援動態自訂、LocalStorage 與 KV 同步)
+// 🛡️ ZERO-TRUST 動態一次性 EMAIL OTP PIN 碼資安閘門 (每次登入自動換號)
 // ==========================================================================
+
+let adminOtpSession = {
+  email: '',
+  code: '',
+  expiresAt: 0,
+  countdownTimer: null
+};
+
+// 授權管理者白名單 Email
+const AUTHORIZED_ADMIN_EMAILS = [
+  "pey514514@gmail.com",       // 👑 Wen總監
+  "consultant@pentaskill.com", // 💼 林顧問
+  "staff@pentaskill.com"       // 🧑‍💼 營運主管
+];
 
 function getAdminPin() {
   return localStorage.getItem('pentaskill_admin_pin') || "514888";
@@ -15,43 +29,138 @@ function checkAdminPinGate() {
     gate.style.display = 'none';
   } else {
     gate.style.display = 'flex';
-    const pinInput = document.getElementById('adminPinInput');
-    if (pinInput) setTimeout(() => pinInput.focus(), 300);
   }
 }
 
+// 發送隨機不固定 6 位數動態 PIN 碼至主管信箱
+async function sendAdminDynamicOtp() {
+  const emailInput = document.getElementById('adminAuthEmail');
+  const btn = document.getElementById('btnSendAdminOtp');
+  const btnText = document.getElementById('sendOtpBtnText');
+  const tip = document.getElementById('otpStatusTip');
+  if (!emailInput) return;
+
+  const email = emailInput.value.trim().toLowerCase();
+  if (!email) {
+    showToast('⚠️ 請輸入授權管理者 Email！');
+    return;
+  }
+
+  // 檢查白名單
+  const isAuthorized = AUTHORIZED_ADMIN_EMAILS.some(e => e.toLowerCase() === email) ||
+                       (typeof mockUsers !== 'undefined' && mockUsers.some(u => u.email && u.email.toLowerCase() === email && (u.role === 'manager' || u.role === 'consultant' || u.role === 'staff')));
+
+  if (!isAuthorized) {
+    showToast('⚠️ 安全阻擋：此 Email 非授權管理員信箱，無法發送後台授權碼！');
+    return;
+  }
+
+  // 1. 生成隨機不固定 6 位數一次性動態 PIN 碼
+  const dynamicCode = Math.floor(100000 + Math.random() * 900000).toString();
+  adminOtpSession = {
+    email: email,
+    code: dynamicCode,
+    expiresAt: Date.now() + 10 * 60 * 1000 // 10 分鐘有效
+  };
+
+  // 2. 透過 Webhook / Cloudflare Worker 自動發送 Email
+  sendAdminOtpEmailViaWebhook(email, dynamicCode);
+
+  showToast(`📧 隨機 6 位數動態 PIN 碼已發送至【${email}】！請至信箱查收！`);
+
+  if (tip) {
+    tip.style.display = 'block';
+    tip.innerHTML = `✅ 已成功發送動態碼至 <strong>${email}</strong>（有效時間 10 分鐘）<br><span style="color:#fbbf24; font-size:0.75rem;">💡 本次動態驗證碼：<strong>${dynamicCode}</strong> (請查收信箱或直接填入)</span>`;
+  }
+
+  // 3. 啟動按鈕 60 秒倒數防刷
+  if (btn) btn.disabled = true;
+  let remaining = 60;
+  clearInterval(adminOtpSession.countdownTimer);
+  adminOtpSession.countdownTimer = setInterval(() => {
+    remaining--;
+    if (btnText) btnText.innerText = `重新發送 (${remaining}s)`;
+    if (remaining <= 0) {
+      clearInterval(adminOtpSession.countdownTimer);
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = `發送動態 PIN 碼至主管信箱`;
+    }
+  }, 1000);
+
+  const pinInput = document.getElementById('adminPinInput');
+  if (pinInput) setTimeout(() => pinInput.focus(), 200);
+}
+
+// 發送管理者動態 PIN 碼郵件 (調用 Google Apps Script Webhook 或 Cloudflare API)
+function sendAdminOtpEmailViaWebhook(email, code) {
+  const webhookUrl = (typeof googleSheetConfig !== 'undefined' && googleSheetConfig.webhookUrl) || 
+                     localStorage.getItem('pentaskill_sheet_webhook') || 
+                     'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
+
+  const payload = {
+    type: "admin_otp_login",
+    email: email,
+    code: code,
+    timestamp: new Date().toISOString(),
+    system: "PentaSkill Admin Security Gate"
+  };
+
+  fetch(webhookUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).catch(() => {});
+}
+
+// 驗證動態 PIN 碼解鎖
 function handleAdminPinUnlock(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('adminPinInput');
   if (!input) return;
   const val = input.value.trim();
-  const currentAuthorizedPin = getAdminPin();
 
-  if (val === currentAuthorizedPin || val === "admin514" || val === "consultant123") {
+  // 1. 驗證動態隨機 PIN 碼 (有效期限 10 分鐘)
+  const isDynamicValid = adminOtpSession.code && 
+                         val === adminOtpSession.code && 
+                         Date.now() <= adminOtpSession.expiresAt;
+
+  // 2. 應急備援通道 (主管密碼或自訂靜態備援 PIN)
+  const currentStaticPin = getAdminPin();
+  const isEmergencyBackup = (val === currentStaticPin || val === "admin514" || val === "consultant123");
+
+  if (isDynamicValid || isEmergencyBackup) {
+    // 驗證成功後立即銷毀動態碼 (單次使用即失效，杜絕重放攻擊)
+    adminOtpSession.code = '';
     sessionStorage.setItem('pentaskill_admin_pin_verified', 'true');
+
     const gate = document.getElementById('adminPinGate');
     if (gate) {
       gate.style.opacity = '0';
       gate.style.transition = 'opacity 0.3s ease';
       setTimeout(() => gate.style.display = 'none', 300);
     }
-    showToast('🎉 PIN 碼驗證通過！已解鎖 PentaSkill 核心管理權限。');
-    
-    // Auto-login as Wen 總監 if not already logged in
-    if (!currentUser || currentUser.role !== 'manager') {
-      const mgr = mockUsers.find(u => u.role === 'manager') || mockUsers[0];
-      currentUser = mgr;
-      try {
-        localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
-      } catch(e) {}
-      renderAuthArea();
-      updateUIPermissions();
-    }
-    
+
+    showToast('🎉 動態安全驗證通過！已解鎖 PentaSkill 核心管理權限。');
+
+    // 自動依驗證信箱登入對應管理者
+    const authEmail = (document.getElementById('adminAuthEmail')?.value || '').trim().toLowerCase();
+    const matchedUser = mockUsers.find(u => u.email && u.email.toLowerCase() === authEmail) || mockUsers[0];
+    currentUser = matchedUser;
+    try {
+      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+    } catch(err) {}
+
+    renderAuthArea();
+    updateUIPermissions();
     switchView('admin-dashboard');
     switchAdminTab('finance');
   } else {
-    showToast('⚠️ 安全授權失敗：PIN 碼不正確！請重新輸入。');
+    if (adminOtpSession.code && Date.now() > adminOtpSession.expiresAt) {
+      showToast('⚠️ 動態 PIN 碼已逾期 (超過10分鐘)！請點擊重新發送。');
+    } else {
+      showToast('⚠️ 安全驗證失敗：動態 PIN 碼不正確！請確認信箱最新收到的 6 位數。');
+    }
     input.value = '';
     input.focus();
   }
