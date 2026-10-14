@@ -1,0 +1,13 @@
+{
+  "name": "pentaskill-admin",
+  "version": "1.0.0",
+  "description": "PentaSkill 精五門 - 核心營運與財務損益管理後台",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve .",
+    "start": "npx -y serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

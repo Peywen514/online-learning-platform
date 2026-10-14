@@ -1,0 +1,13 @@
+{
+  "name": "pentaskill-client",
+  "version": "1.0.0",
+  "description": "PentaSkill 精五門 - 前台官網與學員/講師專區",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve .",
+    "start": "npx -y serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
