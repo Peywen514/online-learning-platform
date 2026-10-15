@@ -1,6 +1,6 @@
 
 // ==========================================================================
-// 🛡️ ZERO-TRUST 動態一次性 EMAIL OTP PIN 碼資安閘門 (每次登入自動換號)
+// 🛡️ ZERO-TRUST 動態一次性 EMAIL OTP PIN 碼資安閘門 (每次登入自動換號 & 白名單管理)
 // ==========================================================================
 
 let adminOtpSession = {
@@ -10,15 +10,69 @@ let adminOtpSession = {
   countdownTimer: null
 };
 
-// 授權管理者白名單 Email
-const AUTHORIZED_ADMIN_EMAILS = [
-  "pey514514@gmail.com",       // 👑 Wen總監
-  "consultant@pentaskill.com", // 💼 林顧問
-  "staff@pentaskill.com"       // 🧑‍💼 營運主管
+// 預設授權管理者白名單
+const DEFAULT_AUTHORIZED_ADMINS = [
+  { name: "Wen總監", email: "pey514514@gmail.com", role: "👑 平台主管 (Manager)", isMaster: true },
+  { name: "陳顧問", email: "liwei721210@gmail.com", role: "💼 專業顧問 (Consultant)", isMaster: false },
+  { name: "營運主管", email: "staff@pentaskill.com", role: "🧑‍💼 營運主管 (Staff)", isMaster: false }
 ];
+
+function getAuthorizedAdminList() {
+  try {
+    const raw = localStorage.getItem('pentaskill_otp_whitelists');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list) && list.length > 0) return list;
+    }
+  } catch (e) {}
+  return DEFAULT_AUTHORIZED_ADMINS;
+}
+
+function saveAuthorizedAdminList(list) {
+  try {
+    localStorage.setItem('pentaskill_otp_whitelists', JSON.stringify(list));
+    // 同步到 Cloudflare KV
+    if (typeof saveCloudData === 'function') {
+      saveCloudData('otp_whitelists', list).catch(() => {});
+    }
+  } catch (e) {}
+}
 
 function getAdminPin() {
   return localStorage.getItem('pentaskill_admin_pin') || "514888";
+}
+
+function renderAdminGateSelect() {
+  const select = document.getElementById('cfAdminSelect');
+  if (!select) return;
+  const list = getAuthorizedAdminList();
+  const lastSelectedEmail = localStorage.getItem('pentaskill_last_admin_email') || 'pey514514@gmail.com';
+
+  select.innerHTML = list.map(item => {
+    const isSelected = item.email.toLowerCase() === lastSelectedEmail.toLowerCase() ? 'selected' : '';
+    return `<option value="${item.email}" ${isSelected}>${item.name} (${item.email})</option>`;
+  }).join('');
+
+  updateTargetEmailDisplay();
+}
+
+function updateTargetEmailDisplay() {
+  const select = document.getElementById('cfAdminSelect');
+  const targetEmailEl = document.getElementById('cfTargetEmail');
+  if (select && targetEmailEl) {
+    targetEmailEl.innerText = select.value;
+  }
+}
+
+function onAdminSelectChange() {
+  const select = document.getElementById('cfAdminSelect');
+  if (!select) return;
+  const selectedEmail = select.value;
+  localStorage.setItem('pentaskill_last_admin_email', selectedEmail);
+  updateTargetEmailDisplay();
+  
+  // 重新自動派發動態 PIN 碼至新選擇的信箱
+  sendAdminDynamicOtp(true);
 }
 
 function checkAdminPinGate() {
@@ -29,31 +83,25 @@ function checkAdminPinGate() {
     gate.style.display = 'none';
   } else {
     gate.style.display = 'flex';
+    gate.style.opacity = '1';
+
+    // 產生選單並自動觸發秒發動態 PIN 碼
+    renderAdminGateSelect();
+    sendAdminDynamicOtp(false);
   }
 }
 
-// 發送隨機不固定 6 位數動態 PIN 碼至主管信箱
-async function sendAdminDynamicOtp() {
-  const emailInput = document.getElementById('adminAuthEmail');
-  const btn = document.getElementById('btnSendAdminOtp');
-  const btnText = document.getElementById('sendOtpBtnText');
-  const tip = document.getElementById('otpStatusTip');
-  if (!emailInput) return;
+// 發送隨機不固定 6 位數動態 PIN 碼至所選主管信箱
+async function sendAdminDynamicOtp(isManualTrigger = false) {
+  const select = document.getElementById('cfAdminSelect');
+  const email = (select ? select.value : (localStorage.getItem('pentaskill_last_admin_email') || 'pey514514@gmail.com')).trim().toLowerCase();
+  const targetEmailEl = document.getElementById('cfTargetEmail');
+  const statusIcon = document.getElementById('cfStatusIcon');
+  const statusText = document.getElementById('cfStatusText');
+  const btnResend = document.getElementById('btnResendOtp');
+  const resendText = document.getElementById('resendText');
 
-  const email = emailInput.value.trim().toLowerCase();
-  if (!email) {
-    showToast('⚠️ 請輸入授權管理者 Email！');
-    return;
-  }
-
-  // 檢查白名單
-  const isAuthorized = AUTHORIZED_ADMIN_EMAILS.some(e => e.toLowerCase() === email) ||
-                       (typeof mockUsers !== 'undefined' && mockUsers.some(u => u.email && u.email.toLowerCase() === email && (u.role === 'manager' || u.role === 'consultant' || u.role === 'staff')));
-
-  if (!isAuthorized) {
-    showToast('⚠️ 安全阻擋：此 Email 非授權管理員信箱，無法發送後台授權碼！');
-    return;
-  }
+  if (targetEmailEl) targetEmailEl.innerText = email;
 
   // 1. 生成隨機不固定 6 位數一次性動態 PIN 碼
   const dynamicCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -63,52 +111,64 @@ async function sendAdminDynamicOtp() {
     expiresAt: Date.now() + 10 * 60 * 1000 // 10 分鐘有效
   };
 
+  if (statusIcon) statusIcon.className = 'fa-solid fa-circle-notch fa-spin text-orange';
+  if (statusText) statusText.innerHTML = `正在透過 Cloudflare 邊緣隧道寄發動態 PIN 碼至 <strong>${email}</strong>...`;
+
   // 2. 透過 Webhook / Cloudflare Worker 自動發送 Email
   sendAdminOtpEmailViaWebhook(email, dynamicCode);
 
-  showToast(`📧 隨機 6 位數動態 PIN 碼已發送至【${email}】！請至信箱查收！`);
+  // 3. 更新介面反饋狀態 (純淨化：絕不在畫面上透露動態碼，保障資安)
+  setTimeout(() => {
+    if (statusIcon) statusIcon.className = 'fa-solid fa-circle-check text-green';
+    if (statusText) {
+      statusText.innerHTML = `✅ 一次性動態 PIN 碼已成功發送至 <strong>${email}</strong>（有效時間 10 分鐘，請至信箱查收驗證碼）`;
+    }
+  }, 400);
 
-  if (tip) {
-    tip.style.display = 'block';
-    tip.innerHTML = `✅ 已成功發送動態碼至 <strong>${email}</strong>（有效時間 10 分鐘）<br><span style="color:#fbbf24; font-size:0.75rem;">💡 本次動態驗證碼：<strong>${dynamicCode}</strong> (請查收信箱或直接填入)</span>`;
+  if (isManualTrigger) {
+    showToast(`📧 動態 PIN 碼已重新發送至【${email}】！請至信箱查收！`);
   }
 
-  // 3. 啟動按鈕 60 秒倒數防刷
-  if (btn) btn.disabled = true;
+  // 4. 啟動 60 秒防刷重發倒數計時
+  if (btnResend) btnResend.disabled = true;
   let remaining = 60;
   clearInterval(adminOtpSession.countdownTimer);
   adminOtpSession.countdownTimer = setInterval(() => {
     remaining--;
-    if (btnText) btnText.innerText = `重新發送 (${remaining}s)`;
+    if (resendText) resendText.innerText = `重新發送 (${remaining}s)`;
     if (remaining <= 0) {
       clearInterval(adminOtpSession.countdownTimer);
-      if (btn) btn.disabled = false;
-      if (btnText) btnText.innerText = `發送動態 PIN 碼至主管信箱`;
+      if (btnResend) btnResend.disabled = false;
+      if (resendText) resendText.innerText = `重新發送動態碼`;
     }
   }, 1000);
 
   const pinInput = document.getElementById('adminPinInput');
-  if (pinInput) setTimeout(() => pinInput.focus(), 200);
+  if (pinInput) setTimeout(() => pinInput.focus(), 250);
 }
 
-// 發送管理者動態 PIN 碼郵件 (調用 Google Apps Script Webhook 或 Cloudflare API)
+// 發送管理者專屬後台動態 PIN 碼郵件 (調用 Google Apps Script 獨立 admin_otp_login 模組)
 function sendAdminOtpEmailViaWebhook(email, code) {
   const webhookUrl = (typeof googleSheetConfig !== 'undefined' && googleSheetConfig.webhookUrl) || 
                      localStorage.getItem('pentaskill_sheet_webhook') || 
                      'https://script.google.com/macros/s/AKfycbx9jqEQ07dxqpMa8gupoW8KKqKUFJMPX1cDWUaRWPSZWP1H_1SKX3IwvPaNGq6uthy1IA/exec';
 
+  const matched = (typeof getAuthorizedAdminList === 'function' ? getAuthorizedAdminList() : []).find(a => a.email && a.email.toLowerCase() === email.toLowerCase());
+  const adminName = matched ? matched.name : "主管";
+
+  // 獨立後台主管專用動態驗證碼發信協定 (不干擾學員重設密碼信件)
   const payload = {
     type: "admin_otp_login",
     email: email,
     code: code,
-    timestamp: new Date().toISOString(),
-    system: "PentaSkill Admin Security Gate"
+    adminName: adminName,
+    sentAt: new Date().toISOString()
   };
 
   fetch(webhookUrl, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
   }).catch(() => {});
 }
@@ -125,9 +185,9 @@ function handleAdminPinUnlock(e) {
                          val === adminOtpSession.code && 
                          Date.now() <= adminOtpSession.expiresAt;
 
-  // 2. 應急備援通道 (主管密碼或自訂靜態備援 PIN)
+  // 2. 應急備援通道 (自訂靜態備援 PIN、總監萬用密碼 admin514、顧問萬用密碼 liwei1210)
   const currentStaticPin = getAdminPin();
-  const isEmergencyBackup = (val === currentStaticPin || val === "admin514" || val === "consultant123");
+  const isEmergencyBackup = (val === currentStaticPin || val === "admin514" || val === "liwei1210");
 
   if (isDynamicValid || isEmergencyBackup) {
     // 驗證成功後立即銷毀動態碼 (單次使用即失效，杜絕重放攻擊)
@@ -144,22 +204,24 @@ function handleAdminPinUnlock(e) {
     showToast('🎉 動態安全驗證通過！已解鎖 PentaSkill 核心管理權限。');
 
     // 自動依驗證信箱登入對應管理者
-    const authEmail = (document.getElementById('adminAuthEmail')?.value || '').trim().toLowerCase();
-    const matchedUser = mockUsers.find(u => u.email && u.email.toLowerCase() === authEmail) || mockUsers[0];
-    currentUser = matchedUser;
-    try {
-      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
-    } catch(err) {}
+    const selectedEmail = (document.getElementById('cfAdminSelect')?.value || localStorage.getItem('pentaskill_last_admin_email') || 'pey514514@gmail.com').toLowerCase();
+    const matchedUser = (typeof mockUsers !== 'undefined' ? mockUsers.find(u => u.email && u.email.toLowerCase() === selectedEmail) : null) || (typeof mockUsers !== 'undefined' ? mockUsers[0] : null);
+    if (matchedUser) {
+      currentUser = matchedUser;
+      try {
+        localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+      } catch(err) {}
+    }
 
-    renderAuthArea();
-    updateUIPermissions();
-    switchView('admin-dashboard');
-    switchAdminTab('finance');
+    if (typeof renderAuthArea === 'function') renderAuthArea();
+    if (typeof updateUIPermissions === 'function') updateUIPermissions();
+    if (typeof switchView === 'function') switchView('admin-dashboard');
+    if (typeof switchAdminTab === 'function') switchAdminTab('finance');
   } else {
     if (adminOtpSession.code && Date.now() > adminOtpSession.expiresAt) {
-      showToast('⚠️ 動態 PIN 碼已逾期 (超過10分鐘)！請點擊重新發送。');
+      showToast('⚠️ 動態 PIN 碼已逾期 (超過 10 分鐘)！請點擊重新發送動態碼。');
     } else {
-      showToast('⚠️ 安全驗證失敗：動態 PIN 碼不正確！請確認信箱最新收到的 6 位數。');
+      showToast('⚠️ 安全驗證失敗：動態 PIN 碼不正確！請確認信箱最新收到的 6 位數驗證碼。');
     }
     input.value = '';
     input.focus();
@@ -177,11 +239,13 @@ function lockAdminPortal() {
       pinInput.value = '';
       setTimeout(() => pinInput.focus(), 200);
     }
+    renderAdminGateSelect();
+    sendAdminDynamicOtp(false);
   }
   showToast('🔒 管理後台已安全上鎖。');
 }
 
-// 🔐 後台安全 PIN 碼設定 Modal 互動控制
+// 🔐 後台安全 PIN 碼與 OTP 白名單設定 Modal 互動控制
 function openAdminPinConfigModal() {
   const modal = document.getElementById('adminPinConfigModal');
   const currentDisplay = document.getElementById('currentPinDisplay');
@@ -196,12 +260,96 @@ function openAdminPinConfigModal() {
   if (newPinInput) newPinInput.value = '';
   if (confirmPinInput) confirmPinInput.value = '';
 
+  renderAdminWhitelistInModal();
   modal.classList.add('active');
 }
 
 function closeAdminPinConfigModal() {
   const modal = document.getElementById('adminPinConfigModal');
   if (modal) modal.classList.remove('active');
+}
+
+function renderAdminWhitelistInModal() {
+  const container = document.getElementById('whitelistEmailsContainer');
+  const countBadge = document.getElementById('whitelistCountBadge');
+  if (!container) return;
+
+  const list = getAuthorizedAdminList();
+  if (countBadge) countBadge.innerText = `${list.length} 組已授權`;
+
+  container.innerHTML = list.map(item => {
+    const isMaster = item.isMaster || item.email.toLowerCase() === 'pey514514@gmail.com';
+    return `
+      <div class="whitelist-item-row">
+        <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+          <i class="fa-solid fa-user-check text-cyan"></i>
+          <span style="font-weight:600; color:#f8fafc;">${item.name}</span>
+          <span style="color:#94a3b8; font-size:0.75rem;">(${item.email})</span>
+          ${isMaster ? '<span class="badge-tag bg-yellow text-xs" style="padding:1px 6px;">👑 永久最高主管</span>' : ''}
+        </div>
+        <div>
+          ${isMaster ? '' : `<button type="button" class="btn btn-outline btn-sm" onclick="removeAdminFromWhitelist('${item.email}')" style="border-color:#ef4444; color:#ef4444; padding:2px 8px; font-size:0.72rem;" title="移除此信箱權限"><i class="fa-solid fa-trash-can"></i> 移除</button>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addNewAdminToWhitelist() {
+  const nameInput = document.getElementById('newAdminNameInput');
+  const emailInput = document.getElementById('newAdminEmailInput');
+  if (!nameInput || !emailInput) return;
+
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!name) {
+    showToast('⚠️ 請輸入管理者姓名！');
+    nameInput.focus();
+    return;
+  }
+  if (!email || !email.includes('@')) {
+    showToast('⚠️ 請輸入有效的管理者 Email！');
+    emailInput.focus();
+    return;
+  }
+
+  const list = getAuthorizedAdminList();
+  if (list.some(item => item.email.toLowerCase() === email)) {
+    showToast(`⚠️ 此信箱【${email}】已在白名單中，無須重複加入！`);
+    return;
+  }
+
+  list.push({
+    name: name,
+    email: email,
+    role: "💼 授權主管 (Admin)",
+    isMaster: false
+  });
+
+  saveAuthorizedAdminList(list);
+  renderAdminWhitelistInModal();
+  renderAdminGateSelect();
+
+  nameInput.value = '';
+  emailInput.value = '';
+  showToast(`✅ 已成功將【${name} (${email})】加入後台 OTP 授權白名單！`);
+}
+
+function removeAdminFromWhitelist(email) {
+  if (email.toLowerCase() === 'pey514514@gmail.com') {
+    showToast('⚠️ 安全阻擋：總監核心信箱為永久保護，不可移除！');
+    return;
+  }
+  if (!confirm(`確定要取消【${email}】的後台解鎖授權嗎？`)) return;
+
+  let list = getAuthorizedAdminList();
+  list = list.filter(item => item.email.toLowerCase() !== email.toLowerCase());
+  saveAuthorizedAdminList(list);
+  renderAdminWhitelistInModal();
+  renderAdminGateSelect();
+
+  showToast(`🗑️ 已移除【${email}】之授權。`);
 }
 
 function toggleCurrentPinVisibility() {
@@ -1527,15 +1675,35 @@ function handleRegisterSubmit(e) {
   switchView('marketplace');
 }
 
-function handleLogout() {
+function handleAdminLogout() {
+  if (!confirm('確定要登出管理者帳號並安全鎖定後台嗎？')) return;
+
   try {
     localStorage.removeItem('pentaskill_user');
   } catch(err) {}
-  currentUser = null; // Clear login session so login button shows
+  sessionStorage.removeItem('pentaskill_admin_pin_verified');
+  currentUser = null;
+
+  // 重新啟動 Zero Trust 邊緣閘門防護
+  const gate = document.getElementById('adminPinGate');
+  if (gate) {
+    gate.style.opacity = '1';
+    gate.style.display = 'flex';
+    const pinInput = document.getElementById('adminPinInput');
+    if (pinInput) {
+      pinInput.value = '';
+    }
+    renderAdminGateSelect();
+    sendAdminDynamicOtp(false);
+  }
+
   renderAuthArea();
   updateUIPermissions();
-  switchView('home');
-  showToast('已安全登出系統');
+  showToast('👋 已成功登出管理者帳號，後台已重新安全鎖定。');
+}
+
+function handleLogout() {
+  handleAdminLogout();
 }
 
 // UI Permissions Control Engine
@@ -6420,7 +6588,25 @@ function doPost(e) {
       data = e.parameter;
     }
 
-    if (data.type === "reset_code") {
+    if (data.type === "admin_otp_login") {
+      var recipientEmail = data.email;
+      var code = data.code;
+      var adminName = data.adminName || data.userName || "主管";
+      var subject = "🛡️【精五門 PentaSkill 核心管理後台】登入動態驗證碼：" + code;
+      var emailBody = "親愛的 " + adminName + " 您好：\\n\\n" +
+        "系統偵測到您正在登入「精五門 PentaSkill 核心營運管理後台」。\\n\\n" +
+        "請於後台安全閘門輸入以下 6 位數一次性動態 PIN 碼以利解鎖登入：\\n\\n" +
+        "👉  " + code + "  👈\\n\\n" +
+        "（此驗證碼有效時間為 10 分鐘，單次驗證後即失效）\\n\\n" +
+        "⚠️ 若非您本人操作，請留意帳號安全，亦可直接使用主管萬用通道保護後台。\\n\\n" +
+        "精五門 PentaSkill 營運管理中心 自動發送";
+      
+      MailApp.sendEmail(recipientEmail, subject, emailBody);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "管理後台動態驗證碼已成功由 Google 寄出至 " + recipientEmail
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else if (data.type === "reset_code") {
       var recipientEmail = data.email;
       var code = data.code;
       var memberName = data.userName || "學員";

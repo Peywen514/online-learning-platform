@@ -40,9 +40,9 @@ const mockUsers = [
   },
   {
     id: "u-1b",
-    name: "林顧問",
-    email: "consultant@pentaskill.com",
-    password: "consultant123",
+    name: "陳顧問",
+    email: "liwei721210@gmail.com",
+    password: "liwei1210",
     role: "consultant",
     roleLabel: "💼 顧問 (Consultant)",
     bankInfo: { bankName: "中國信託 (822)", bankAccount: "82299887766554433", accountLast5: "54433" },

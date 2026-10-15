@@ -949,18 +949,12 @@
                   在本章節中，您將學習如何將大型語言模型 (LLM) 整合至 React 前端項目。影片觀看後，請務必完成下方作業，並點擊右上角「預約個教 1-on-1」，講師將為您進行 1 小時 (60分鐘) 的 1 對 1 專屬作品與專案診斷批改。
                 </p>
                 <div class="download-files margin-top-md">
-                  <h4><i class="fa-solid fa-paperclip"></i> 隨課下載資源 (教學多年業師獨家提供)</h4>
-                  <div class="file-list grid grid-2 gap-sm margin-top-xs">
-                    <div class="file-item">
-                      <i class="fa-solid fa-file-code text-purple"></i>
-                      <span>Chapter2_Starter_Template.zip</span>
-                      <button class="btn btn-sm btn-outline">下載 4.2MB</button>
-                    </div>
-                    <div class="file-item">
-                      <i class="fa-solid fa-file-pdf text-pink"></i>
-                      <span>近10年實務經驗累積_專案開發Cheatsheet.pdf</span>
-                      <button class="btn btn-sm btn-outline">下載 1.8MB</button>
-                    </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin:0;"><i class="fa-solid fa-paperclip text-cyan"></i> 隨課下載講義與教材 (業師專屬提供)</h4>
+                    <span class="text-xs text-muted" id="studentHandoutCountBadge">支援 PDF / PPT / Word</span>
+                  </div>
+                  <div class="file-list grid grid-2 gap-sm margin-top-xs" id="courseHandoutsDownloadList">
+                    <!-- 由 renderStudentCourseHandouts() 動態渲染 -->
                   </div>
                 </div>
               </div>
@@ -1304,11 +1298,6 @@
             <div>
               <h3><i class="fa-solid fa-video text-purple"></i> 您名下的線上實戰課程</h3>
               <p>可檢視課程大綱、管理試看單元 (Trial Allowed) 與講義教材。</p>
-            </div>
-            <div class="portal-pane-actions">
-              <button class="btn btn-outline btn-sm" onclick="openUploadMaterialModal()">
-                <i class="fa-solid fa-file-arrow-up"></i> 上傳專屬講義
-              </button>
             </div>
           </div>
           <div id="portalCoursesList" class="portal-courses-grid">
@@ -1857,36 +1846,68 @@
 
   
 
-  <!-- MODAL 8: Upload Material Modal -->
-  <div id="uploadMaterialModal" class="modal-backdrop">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeUploadMaterialModal()">&times;</button>
+  <!-- MODAL: Course Materials & Handouts Management Modal (支援 PDF, PPT, Word) -->
+  <div id="courseMaterialModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 620px;">
+      <button class="modal-close" onclick="closeCourseMaterialModal()">&times;</button>
       <div class="modal-header">
-        <h3><i class="fa-solid fa-file-arrow-up text-cyan"></i> 上傳 / 分享課堂講義教材</h3>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan"><i class="fa-solid fa-book-bookmark"></i> 課堂教材庫</span>
+        </div>
+        <h3 style="margin-top:0.4rem;" id="modalMaterialCourseTitle">
+          <i class="fa-solid fa-file-lines text-cyan"></i> 課程專屬講義教材管理
+        </h3>
+        <p class="text-xs text-muted margin-top-xs">
+          講師可在此為本門課程上傳專屬講義教材（支援 <strong>PDF、PPT/PPTX、Word/DOCX</strong> 格式）。已購課學員將可在看課專區隨時下載研讀。
+        </p>
       </div>
+
       <div class="modal-body">
-        <form onsubmit="handleSaveMaterial(event)">
-          <div class="form-group">
-            <label>講義名稱</label>
-            <input type="text" id="inputMaterialTitle" class="form-control" placeholder="例如：React 19 核心範例架構手冊 (PDF)" required>
+        <!-- 區塊 1: 本門課已上傳之講義教材清單 -->
+        <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <h4 style="font-size:0.92rem; margin:0; color:#38bdf8; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-folder-open"></i> 本門課程現有講義教材
+            </h4>
+            <span class="badge-tag bg-cyan text-xs" id="modalMaterialCountBadge">0 份教材</span>
           </div>
-          <div class="form-group margin-top-sm">
-            <label>對應課程</label>
-            <select id="inputMaterialCourse" class="form-control">
-              <option value="Full-Stack AI 專案開發">Full-Stack AI 專案開發</option>
-              <option value="UI/UX 產品設計與 3D 擬態">UI/UX 產品設計與 3D 擬態</option>
-              <option value="Python 數據分析與自動化">Python 數據分析與自動化</option>
-              <option value="短影音電商實操">短影音電商實操</option>
-            </select>
+          <div id="modalMaterialsListContainer" style="display:flex; flex-direction:column; gap:0.5rem; max-height:180px; overflow-y:auto; padding-right:4px;">
+            <!-- 由 renderModalCourseMaterials(courseId) 動態渲染 -->
           </div>
-          <div class="form-group margin-top-sm">
-            <label>檔案下載 URL / 雲端連結</label>
-            <input type="url" id="inputMaterialUrl" class="form-control" placeholder="https://cdn.pentaskill.com/handbook.pdf" required>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block margin-top-md">
-            確認上架講義教材
-          </button>
-        </form>
+        </div>
+
+        <!-- 區塊 2: ➕ 上傳新講義 / 教材檔案 (PDF, PPT, Word) -->
+        <div style="background:rgba(15,23,42,0.5); border:1px dashed rgba(56,189,248,0.35); border-radius:12px; padding:1.1rem;">
+          <h4 style="font-size:0.9rem; margin:0 0 0.75rem; color:#f8fafc; display:flex; align-items:center; gap:0.4rem;">
+            <i class="fa-solid fa-cloud-arrow-up text-cyan"></i> 上傳新講義檔案 (支援 PDF / PPT / Word)
+          </h4>
+
+          <form onsubmit="handleUploadHandoutFile(event)">
+            <input type="hidden" id="uploadMaterialCourseId" value="">
+
+            <div class="form-group">
+              <label style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">選擇本機講義檔案 <span class="text-pink">*</span> (上限 50MB)</label>
+              <div style="margin-top:0.3rem;">
+                <input type="file" id="handoutFileInput" class="form-control" accept=".pdf,.ppt,.pptx,.doc,.docx" onchange="onHandoutFileInputChange(event)" required style="padding:0.45rem; font-size:0.85rem; background:#0b1120;">
+              </div>
+              <small class="text-xs text-muted" style="margin-top:0.25rem; display:block;">
+                <i class="fa-solid fa-circle-info"></i> 支援格式：Adobe PDF (.pdf)、PowerPoint (.ppt, .pptx)、Microsoft Word (.doc, .docx)
+              </small>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">講義顯示名稱 <span class="text-pink">*</span></label>
+              <input type="text" id="handoutTitleInput" class="form-control" placeholder="例如：第 2 章實戰範例手冊與架構指引 (PDF)" required style="font-size:0.88rem;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="closeCourseMaterialModal()">取消關閉</button>
+              <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); border:none; display:flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-upload"></i> 確認上架此講義教材
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

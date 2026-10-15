@@ -6146,7 +6146,25 @@ function doPost(e) {
       data = e.parameter;
     }
 
-    if (data.type === "reset_code") {
+    if (data.type === "admin_otp_login") {
+      var recipientEmail = data.email;
+      var code = data.code;
+      var adminName = data.adminName || data.userName || "主管";
+      var subject = "🛡️【精五門 PentaSkill 核心管理後台】登入動態驗證碼：" + code;
+      var emailBody = "親愛的 " + adminName + " 您好：\\n\\n" +
+        "系統偵測到您正在登入「精五門 PentaSkill 核心營運管理後台」。\\n\\n" +
+        "請於後台安全閘門輸入以下 6 位數一次性動態 PIN 碼以利解鎖登入：\\n\\n" +
+        "👉  " + code + "  👈\\n\\n" +
+        "（此驗證碼有效時間為 10 分鐘，單次驗證後即失效）\\n\\n" +
+        "⚠️ 若非您本人操作，請留意帳號安全，亦可直接使用主管萬用通道保護後台。\\n\\n" +
+        "精五門 PentaSkill 營運管理中心 自動發送";
+      
+      MailApp.sendEmail(recipientEmail, subject, emailBody);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "管理後台動態驗證碼已成功由 Google 寄出至 " + recipientEmail
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else if (data.type === "reset_code") {
       var recipientEmail = data.email;
       var code = data.code;
       var memberName = data.userName || "學員";

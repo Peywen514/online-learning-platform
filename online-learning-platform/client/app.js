@@ -438,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPortfolios();
   renderStudentBookings();
   renderChapters();
+  renderStudentCourseHandouts('course-1');
   
   // 預約日期初始化 (提前 3 天起開放預約，3天內鎖定以利與老師排班協調)
   const minBookingDate = new Date();
@@ -1436,6 +1437,7 @@ function switchView(viewId, pushHistory = true) {
   }
   if (viewId === 'video-player') {
     loadCloudflareStreamLesson(currentActiveLessonId);
+    renderStudentCourseHandouts(currentViewCourseId || 'course-1');
   }
   if (viewId === 'live-classroom') {
     const dateInput = document.getElementById('bookingDate');
@@ -4078,31 +4080,452 @@ function handleSaveInstructor(e) {
   renderInstructorAdminTable();
 }
 
-// Material Upload Handlers
-function openUploadMaterialModal() {
-  document.getElementById('uploadMaterialModal').classList.add('active');
+// ==========================================
+// 📚 課程專屬講義與隨課教材管理引擎 (支援 PDF, PPT, Word)
+// ==========================================
+
+const DEFAULT_COURSE_MATERIALS = [
+  // Course 1: Full-Stack AI
+  {
+    id: "mat-101",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "React 19 與 Next.js 15 核心架構指引手冊 (PDF)",
+    fileName: "React19_Next15_Architecture_Guide.pdf",
+    fileType: "pdf",
+    fileSize: "3.8 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-2, '10:30'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  {
+    id: "mat-102",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "Claude & OpenAI API 自動化工作流實戰簡報 (PPT)",
+    fileName: "AI_Workflow_Automation_Slides.pptx",
+    fileType: "ppt",
+    fileSize: "5.2 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-2, '11:15'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  {
+    id: "mat-103",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "期末獨立專案規格需求與評分標準手冊 (Word)",
+    fileName: "Final_Project_Requirements_Spec.docx",
+    fileType: "doc",
+    fileSize: "1.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-1, '14:20'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  // Course 2: UI/UX & Figma
+  {
+    id: "mat-201",
+    courseId: "course-2",
+    courseTitle: "UI/UX 產品設計與 Figma 設計系統實力班",
+    title: "Figma 150+ 企業級設計系統元件規範指南 (PDF)",
+    fileName: "Figma_Design_System_Spec.pdf",
+    fileType: "pdf",
+    fileSize: "6.4 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-3, '09:20'),
+    instructorName: "陳婷俐 (Tina)"
+  },
+  {
+    id: "mat-202",
+    courseId: "course-2",
+    courseTitle: "UI/UX 產品設計與 Figma 設計系統實力班",
+    title: "UI/UX 產品設計提案與商業簡報模板 (PPT)",
+    fileName: "UX_Proposal_Client_Pitch_Deck.pptx",
+    fileType: "ppt",
+    fileSize: "8.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-3, '14:00'),
+    instructorName: "陳婷俐 (Tina)"
+  },
+  // Course 3: Python Data
+  {
+    id: "mat-301",
+    courseId: "course-3",
+    courseTitle: "Python 數據分析與自動化爬蟲實務",
+    title: "Python 網路爬蟲與 Anti-Bot 破解 Cheatsheet (PDF)",
+    fileName: "Python_Scraper_Cheatsheet.pdf",
+    fileType: "pdf",
+    fileSize: "2.6 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-4, '16:30'),
+    instructorName: "歐陽翔 (Shawn)"
+  },
+  {
+    id: "mat-302",
+    courseId: "course-3",
+    courseTitle: "Python 數據分析與自動化爬蟲實務",
+    title: "Pandas 資料清理與機器學習預處理講義 (Word)",
+    fileName: "Pandas_Data_Cleaning_Handbook.docx",
+    fileType: "doc",
+    fileSize: "1.9 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-4, '17:00'),
+    instructorName: "歐陽翔 (Shawn)"
+  },
+  // Course 4: Digital Marketing & Video
+  {
+    id: "mat-401",
+    courseId: "course-4",
+    courseTitle: "高轉化率數位整合行銷與短影音電商實操",
+    title: "短影音前 3 秒開頭鉤子文案 50 組高轉化公式 (PDF)",
+    fileName: "Short_Video_Hook_Formulas.pdf",
+    fileType: "pdf",
+    fileSize: "4.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-5, '11:00'),
+    instructorName: "林雅涵 (Hannah)"
+  },
+  {
+    id: "mat-402",
+    courseId: "course-4",
+    courseTitle: "高轉化率數位整合行銷與短影音電商實操",
+    title: "電商爆款短影音分鏡腳本範本 (Word)",
+    fileName: "Ecommerce_Video_Storyboard_Template.docx",
+    fileType: "doc",
+    fileSize: "950 KB",
+    uploadedAt: calcDynamicDateTimeOffset(-5, '15:30'),
+    instructorName: "林雅涵 (Hannah)"
+  }
+];
+
+let currentViewCourseId = 'course-1';
+
+function getAllCourseMaterials() {
+  try {
+    const raw = localStorage.getItem('pentaskill_course_materials');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to parse course materials from localStorage:', e);
+  }
+  return [...DEFAULT_COURSE_MATERIALS];
+}
+
+function saveAllCourseMaterials(materials) {
+  try {
+    localStorage.setItem('pentaskill_course_materials', JSON.stringify(materials));
+  } catch (e) {
+    console.warn('Failed to save course materials to localStorage:', e);
+  }
+}
+
+function getHandoutFileIcon(str = '') {
+  const lower = String(str).toLowerCase();
+  if (lower.includes('pdf')) {
+    return '<i class="fa-solid fa-file-pdf" style="color:#f43f5e; font-size:1.3rem;"></i>';
+  } else if (lower.includes('ppt') || lower.includes('pptx')) {
+    return '<i class="fa-solid fa-file-powerpoint" style="color:#f97316; font-size:1.3rem;"></i>';
+  } else if (lower.includes('doc') || lower.includes('docx') || lower.includes('word')) {
+    return '<i class="fa-solid fa-file-word" style="color:#3b82f6; font-size:1.3rem;"></i>';
+  }
+  return '<i class="fa-solid fa-file-lines" style="color:#06b6d4; font-size:1.3rem;"></i>';
+}
+
+function openCourseMaterialModal(courseId = 'course-1') {
+  const modal = document.getElementById('courseMaterialModal');
+  if (!modal) return;
+
+  const course = mockCourses.find(c => c.id === courseId) || mockCourses[0];
+  const hiddenId = document.getElementById('uploadMaterialCourseId');
+  if (hiddenId) hiddenId.value = course.id;
+
+  const titleElem = document.getElementById('modalMaterialCourseTitle');
+  if (titleElem) {
+    titleElem.innerHTML = `<i class="fa-solid fa-file-lines text-cyan"></i> 【${course.title}】專屬講義教材管理`;
+  }
+
+  // Reset upload fields
+  const fileInput = document.getElementById('handoutFileInput');
+  if (fileInput) fileInput.value = '';
+  const titleInput = document.getElementById('handoutTitleInput');
+  if (titleInput) titleInput.value = '';
+
+  renderModalCourseMaterials(course.id);
+  modal.classList.add('active');
+}
+
+function closeCourseMaterialModal() {
+  const modal = document.getElementById('courseMaterialModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Backwards compatibility alias
+function openUploadMaterialModal(courseId) {
+  openCourseMaterialModal(courseId || 'course-1');
 }
 
 function closeUploadMaterialModal() {
-  document.getElementById('uploadMaterialModal').classList.remove('active');
+  closeCourseMaterialModal();
 }
 
-function handleSaveMaterial(e) {
+function onHandoutFileInputChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const validExts = ['.pdf', '.ppt', '.pptx', '.doc', '.docx'];
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  if (!validExts.includes(ext)) {
+    showToast('⚠️ 僅支援上傳 PDF (.pdf)、PowerPoint (.ppt, .pptx) 或 Word (.doc, .docx) 檔案！');
+    e.target.value = '';
+    return;
+  }
+
+  const titleInput = document.getElementById('handoutTitleInput');
+  if (titleInput && !titleInput.value.trim()) {
+    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    let typeLabel = 'PDF';
+    if (ext.includes('ppt')) typeLabel = 'PPT';
+    if (ext.includes('doc')) typeLabel = 'Word';
+    titleInput.value = `${baseName} (${typeLabel})`;
+  }
+}
+
+function handleUploadHandoutFile(e) {
   e.preventDefault();
-  const title = document.getElementById('inputMaterialTitle').value;
-  const course = document.getElementById('inputMaterialCourse').value;
-  const url = document.getElementById('inputMaterialUrl').value;
+  const courseId = document.getElementById('uploadMaterialCourseId').value || 'course-1';
+  const fileInput = document.getElementById('handoutFileInput');
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  const titleInput = document.getElementById('handoutTitleInput');
+  const title = (titleInput ? titleInput.value.trim() : '') || (file ? file.name : '課程講義');
 
-  mockMaterials.push({
-    id: `mat-${Date.now().toString().slice(-4)}`,
-    title: title,
-    instructor: currentUser ? currentUser.name : "張哲銘 (Ethan)",
-    course: course,
-    url: url
-  });
+  if (!file) {
+    showToast('⚠️ 請先選擇要上傳的講義檔案 (PDF / PPT / Word)');
+    return;
+  }
 
-  showToast(`📄 講義與隨課教材上架成功：${title}`);
-  closeUploadMaterialModal();
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  let fileType = 'other';
+  if (ext === '.pdf') fileType = 'pdf';
+  else if (ext === '.ppt' || ext === '.pptx') fileType = 'ppt';
+  else if (ext === '.doc' || ext === '.docx') fileType = 'doc';
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const course = mockCourses.find(c => c.id === courseId) || { id: courseId, title: "實戰課程" };
+  const instructorName = currentUser ? currentUser.name : "金牌講師";
+
+  const finishUpload = (dataUrl = '') => {
+    const newMaterial = {
+      id: `mat-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      courseId: courseId,
+      courseTitle: course.title,
+      title: title,
+      fileName: file.name,
+      fileType: fileType,
+      fileSize: formatSize(file.size),
+      fileData: dataUrl,
+      uploadedAt: getLocalDateTimeString(new Date()),
+      instructorName: instructorName
+    };
+
+    const allMaterials = getAllCourseMaterials();
+    allMaterials.unshift(newMaterial);
+    saveAllCourseMaterials(allMaterials);
+
+    // Reset inputs
+    fileInput.value = '';
+    titleInput.value = '';
+
+    renderModalCourseMaterials(courseId);
+    renderStudentCourseHandouts(courseId);
+
+    showToast(`✅ 講義上架成功！已同步至學員看課專區：${title}`);
+  };
+
+  if (file.size <= 4 * 1024 * 1024) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      finishUpload(evt.target.result);
+    };
+    reader.onerror = function() {
+      finishUpload('');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    finishUpload('');
+  }
+}
+
+function renderModalCourseMaterials(courseId) {
+  const container = document.getElementById('modalMaterialsListContainer');
+  const countBadge = document.getElementById('modalMaterialCountBadge');
+  if (!container) return;
+
+  const allMaterials = getAllCourseMaterials();
+  const materials = allMaterials.filter(m => m.courseId === courseId);
+
+  if (countBadge) {
+    countBadge.innerText = `${materials.length} 份教材`;
+  }
+
+  if (materials.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:1.75rem 1rem; color:#94a3b8; font-size:0.85rem; border:1px dashed rgba(255,255,255,0.08); border-radius:8px;">
+        <i class="fa-solid fa-folder-open" style="font-size:1.6rem; margin-bottom:0.4rem; display:block; color:#64748b;"></i>
+        目前尚未為本門課程上傳講義教材<br>
+        <span style="font-size:0.75rem; color:#64748b;">請由下方選擇 PDF、PPT 或 Word 檔案上傳</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = materials.map(m => {
+    const icon = getHandoutFileIcon(m.fileType || m.fileName);
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:0.6rem 0.8rem; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem; overflow:hidden; min-width:0;">
+          ${icon}
+          <div style="overflow:hidden;">
+            <div style="font-size:0.85rem; font-weight:600; color:#f8fafc; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" title="${m.title}">${m.title}</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">${m.fileName || m.title} • ${m.fileSize || '2.0 MB'} • ${m.uploadedAt || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.35rem; flex-shrink:0;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="downloadCourseMaterial('${m.id}')" title="下載測試" style="padding:0.25rem 0.55rem; font-size:0.75rem;">
+            <i class="fa-solid fa-download"></i> 下載
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="deleteCourseMaterial('${m.id}', '${courseId}')" title="刪除教材" style="padding:0.25rem 0.55rem; font-size:0.75rem; color:#f43f5e; border-color:rgba(244,63,94,0.3);">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteCourseMaterial(materialId, courseId) {
+  if (!confirm('確定要自本課程下架並刪除此份講義教材嗎？')) return;
+
+  let allMaterials = getAllCourseMaterials();
+  allMaterials = allMaterials.filter(m => m.id !== materialId);
+  saveAllCourseMaterials(allMaterials);
+
+  renderModalCourseMaterials(courseId);
+  renderStudentCourseHandouts(courseId);
+
+  showToast('🗑️ 已成功刪除該份講義教材。');
+}
+
+function renderStudentCourseHandouts(courseId) {
+  if (courseId) currentViewCourseId = courseId;
+  const targetId = courseId || currentViewCourseId || 'course-1';
+  const container = document.getElementById('courseHandoutsDownloadList');
+  if (!container) return;
+
+  const badge = document.getElementById('studentHandoutCountBadge');
+  const allMaterials = getAllCourseMaterials();
+  const materials = allMaterials.filter(m => m.courseId === targetId);
+
+  if (badge) {
+    badge.innerText = `共 ${materials.length} 份專屬講義教材 (支援 PDF / PPT / Word)`;
+  }
+
+  if (materials.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 1.5rem; color: #94a3b8; background: rgba(15, 23, 42, 0.4); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.08);">
+        <i class="fa-solid fa-paperclip text-cyan" style="font-size: 1.3rem; margin-bottom: 0.35rem; display:block;"></i>
+        <span>本門課程講師正在精編最新版隨課講義，敬請期待！</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = materials.map(m => {
+    const icon = getHandoutFileIcon(m.fileType || m.fileName);
+    return `
+      <div class="file-item" style="display:flex; align-items:center; justify-content:space-between; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); padding:0.65rem 0.85rem; border-radius:8px;">
+        <div style="display:flex; align-items:center; gap:0.65rem; overflow:hidden; min-width:0;">
+          ${icon}
+          <div style="overflow:hidden;">
+            <div style="font-size:0.85rem; font-weight:600; color:#f8fafc; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" title="${m.title}">${m.title}</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">${m.fileName || m.title} • ${m.fileSize || '2.5 MB'}</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="downloadCourseMaterial('${m.id}')" style="white-space:nowrap; padding:0.35rem 0.75rem; font-size:0.8rem; margin-left:0.5rem; flex-shrink:0;">
+          <i class="fa-solid fa-download"></i> 下載
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function downloadCourseMaterial(materialId) {
+  const allMaterials = getAllCourseMaterials();
+  const mat = allMaterials.find(m => m.id === materialId);
+  if (!mat) {
+    showToast('⚠️ 查無該講義檔案，可能已被講師移除。');
+    return;
+  }
+
+  // 權限檢查：只有購買這門課的學員、或是平台主管/顧問/員工/講師可以下載講義
+  const isPaid = currentUser && currentUser.purchasedCourses && (
+    currentUser.purchasedCourses.includes(mat.courseId) ||
+    currentUser.purchasedCourses.includes('course-1')
+  );
+  const isStaffOrInstructor = currentUser && (
+    currentUser.role === 'manager' ||
+    currentUser.role === 'consultant' ||
+    currentUser.role === 'staff' ||
+    currentUser.role === 'instructor'
+  );
+
+  if (!isPaid && !isStaffOrInstructor) {
+    showToast('🔒 講義教材僅供【已購課學員】與【授課師資】專屬下載！請先加入購物車並結帳。');
+    return;
+  }
+
+  // 下載動作觸發
+  if (mat.fileData && mat.fileData.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = mat.fileData;
+    a.download = mat.fileName || `${mat.title}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    const ext = mat.fileName && mat.fileName.includes('.') ? mat.fileName.substring(mat.fileName.lastIndexOf('.')).toLowerCase() : '.pdf';
+    let mimeType = 'application/pdf';
+    if (ext.includes('ppt')) mimeType = 'application/vnd.ms-powerpoint';
+    if (ext.includes('doc')) mimeType = 'application/msword';
+
+    const content = `========================================================\n` +
+      `精五門 PentaSkill 實戰線上學習平台 — 專屬課堂講義教材\n` +
+      `========================================================\n\n` +
+      `【講義名稱】：${mat.title}\n` +
+      `【對應課程】：${mat.courseTitle || '實戰錄播課程'}\n` +
+      `【授課講師】：${mat.instructorName || '金牌講師'}\n` +
+      `【發布日期】：${mat.uploadedAt || getLocalDateTimeString(new Date())}\n` +
+      `【檔案規格】：${mat.fileName || mat.title} (${mat.fileSize || '2.5 MB'})\n` +
+      `【下載學員】：${currentUser ? currentUser.name + ' (' + currentUser.email + ')' : '付費學員'}\n\n` +
+      `--------------------------------------------------------\n` +
+      `📌 著作權聲明與使用條款：\n` +
+      `本講義與隨課教材所有內容受中華民國著作權法與智慧財產權保護。\n` +
+      `僅供精五門已購課學員個人研習使用，嚴禁未經授權之散布、轉載、公開上傳或商業轉售。\n` +
+      `--------------------------------------------------------\n\n` +
+      `祝您學習順利、收穫滿滿！\n` +
+      `精五門 PentaSkill 教務教學團隊 敬上\n` +
+      `官方網站：https://online-learning-platform.pey514514.workers.dev/\n`;
+
+    const blob = new Blob([content], { type: mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = mat.fileName || `${mat.title}${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  }
+
+  showToast(`📥 講義下載已啟動：${mat.title}`);
 }
 
 // Video Player Playback Simulator & Cloudflare Stream DRM Engine
@@ -6127,7 +6550,25 @@ function doPost(e) {
       data = e.parameter;
     }
 
-    if (data.type === "reset_code") {
+    if (data.type === "admin_otp_login") {
+      var recipientEmail = data.email;
+      var code = data.code;
+      var adminName = data.adminName || data.userName || "主管";
+      var subject = "🛡️【精五門 PentaSkill 核心管理後台】登入動態驗證碼：" + code;
+      var emailBody = "親愛的 " + adminName + " 您好：\\n\\n" +
+        "系統偵測到您正在登入「精五門 PentaSkill 核心營運管理後台」。\\n\\n" +
+        "請於後台安全閘門輸入以下 6 位數一次性動態 PIN 碼以利解鎖登入：\\n\\n" +
+        "👉  " + code + "  👈\\n\\n" +
+        "（此驗證碼有效時間為 10 分鐘，單次驗證後即失效）\\n\\n" +
+        "⚠️ 若非您本人操作，請留意帳號安全，亦可直接使用主管萬用通道保護後台。\\n\\n" +
+        "精五門 PentaSkill 營運管理中心 自動發送";
+      
+      MailApp.sendEmail(recipientEmail, subject, emailBody);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "管理後台動態驗證碼已成功由 Google 寄出至 " + recipientEmail
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else if (data.type === "reset_code") {
       var recipientEmail = data.email;
       var code = data.code;
       var memberName = data.userName || "學員";
@@ -7659,11 +8100,11 @@ function renderPortalCourses() {
           <span><i class="fa-solid fa-star text-amber"></i> ${c.rating} (${c.reviewCount}人評分)</span>
         </div>
         <div class="portal-course-actions">
-          <button class="btn btn-outline btn-sm" onclick="switchView('video-player')" style="flex:1;">
+          <button class="btn btn-outline btn-sm" onclick="switchView('video-player'); renderStudentCourseHandouts('${c.id}');" style="flex:1;">
             <i class="fa-solid fa-eye"></i> 預覽看課
           </button>
-          <button class="btn btn-outline btn-sm" onclick="openUploadMaterialModal()" style="flex:1;">
-            <i class="fa-solid fa-file-pdf"></i> 講義管理
+          <button class="btn btn-outline btn-sm" onclick="openCourseMaterialModal('${c.id}')" style="flex:1;">
+            <i class="fa-solid fa-file-lines text-cyan"></i> 講義管理
           </button>
         </div>
       </div>

@@ -28,7 +28,7 @@ function calcDynamicDateTimeOffset(offsetDays = 0, timeStr = '12:00') {
   return `${calcDynamicDateOffset(offsetDays)} ${timeStr}`;
 }
 
-// 脫敏使用者列表：僅保留前台學員與金牌講師帳號（已徹底剔除 Wen總監、林顧問、營運員工帳號與密碼）
+// 脫敏使用者列表：僅保留前台學員與金牌講師帳號（已徹底剔除 Wen總監、陳顧問、營運員工帳號與密碼）
 const mockUsers = [
   {
     id: "u-3",
