@@ -684,9 +684,9 @@ function renderAuthArea() {
             <i class="fa-solid fa-comments text-green"></i> 洽小編 / 學習需求諮詢
           </button>
 
-          ${currentUser.role === 'instructor' ? `
+          ${(currentUser.role === 'instructor' || currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff') ? `
             <button class="dropdown-item" onclick="switchView('instructor-portal'); closeAllDropdowns();" style="color: #38bdf8; font-weight:600;">
-              <i class="fa-solid fa-chalkboard-user text-cyan"></i> 👨‍🏫 講師工作台
+              <i class="fa-solid fa-chalkboard-user text-cyan"></i> 👨‍🏫 講師工作台 (課程與講義管理)
             </button>
           ` : ''}
 
@@ -1349,10 +1349,14 @@ function updateUIPermissions() {
     }
   }
 
-  // 6. Update Member Center Link
+  // 6. Update Member Center & Instructor Portal Links
   const navMemberLink = document.getElementById('navMemberCenterLink');
   if (navMemberLink) {
     navMemberLink.style.display = currentUser ? 'inline-flex' : 'none';
+  }
+  const navInstructorPortalLink = document.getElementById('navInstructorPortalLink');
+  if (navInstructorPortalLink) {
+    navInstructorPortalLink.style.display = isInstructorOrAbove ? 'inline-flex' : 'none';
   }
 
   if (currentView === 'admin-dashboard') {
@@ -1360,6 +1364,9 @@ function updateUIPermissions() {
   }
   if (currentView === 'member-center') {
     renderMemberCenterView();
+  }
+  if (currentView === 'instructor-portal') {
+    renderInstructorPortal();
   }
   if (currentView === 'live-classroom') {
     renderBookingInstructorDropdown();
@@ -1372,8 +1379,8 @@ function switchView(viewId, pushHistory = true) {
   const isManagerOrConsultant = (role === 'manager' || role === 'consultant');
   const isInstructorOrAbove = (role === 'manager' || role === 'consultant' || role === 'staff' || role === 'instructor');
 
-  if (viewId === 'instructor-portal' && (!currentUser || currentUser.role !== 'instructor')) {
-    showToast('⚠️ 請先登入金牌講師帳號以進入講師工作台！');
+  if (viewId === 'instructor-portal' && !isInstructorOrAbove) {
+    showToast('⚠️ 請先登入金牌講師或主管帳號以進入講師工作台！');
     openLoginModal();
     return;
   }
@@ -4246,11 +4253,15 @@ function openCourseMaterialModal(courseId = 'course-1') {
 
   renderModalCourseMaterials(course.id);
   modal.classList.add('active');
+  modal.style.display = 'flex';
 }
 
 function closeCourseMaterialModal() {
   const modal = document.getElementById('courseMaterialModal');
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
 }
 
 // Backwards compatibility alias
@@ -7941,12 +7952,14 @@ function switchPortalTab(tabKey) {
 }
 
 function renderInstructorPortal() {
-  if (!currentUser || currentUser.role !== 'instructor') {
-    showToast('⚠️ 請先登入金牌講師帳號！');
+  const isInstructorOrAbove = currentUser && (currentUser.role === 'instructor' || currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff');
+  if (!isInstructorOrAbove) {
+    showToast('⚠️ 請先登入金牌講師或主管帳號！');
     openLoginModal();
     return;
   }
 
+  const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
   const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
 
   // 1. Header Card Info
@@ -7954,18 +7967,25 @@ function renderInstructorPortal() {
   const welcomeEl = document.getElementById('portalInstructorWelcome');
   const titleEl = document.getElementById('portalInstructorTitle');
   if (avatarEl) avatarEl.src = currentUser.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80';
-  if (welcomeEl) welcomeEl.innerText = `${currentUser.name} 講師，歡迎回到講師工作台！`;
+  if (welcomeEl) {
+    welcomeEl.innerText = isAdminPreview
+      ? `${currentUser.name}，歡迎進入講師工作台（全平台課程與講義管理模式）！`
+      : `${currentUser.name} 講師，歡迎回到講師工作台！`;
+  }
   
   // Find instructor metadata from mockInstructors
-  const instMeta = mockInstructors.find(i => i.name.includes(cleanName));
+  const instMeta = mockInstructors.find(i => i.name.includes(cleanName)) || mockInstructors[0];
   if (titleEl && instMeta) {
-    titleEl.innerText = `${instMeta.role} • ${instMeta.exp}`;
+    titleEl.innerText = isAdminPreview
+      ? `👑 平台主管視角 • 可預覽並管理全站 ${mockCourses.length} 門課程講義與排班`
+      : `${instMeta.role} • ${instMeta.exp}`;
   }
 
   // 2. Calculate Personal KPIs
-  const myBookings = mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
-  const myCourses = mockCourses.filter(c => c.instructor && c.instructor.includes(cleanName));
-  const salaryData = (typeof getInstructorPersonalSalary === 'function') ? getInstructorPersonalSalary(currentUser.name) : null;
+  const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+  const myCourses = isAdminPreview ? mockCourses : mockCourses.filter(c => c.instructor && c.instructor.includes(cleanName));
+  const targetSalaryName = isAdminPreview ? (mockInstructors[0] ? mockInstructors[0].name : currentUser.name) : currentUser.name;
+  const salaryData = (typeof getInstructorPersonalSalary === 'function') ? getInstructorPersonalSalary(targetSalaryName) : null;
 
   const kpiBookingsEl = document.getElementById('portalKpiBookings');
   const kpiCoursesEl = document.getElementById('portalKpiCourses');
@@ -7986,8 +8006,9 @@ function renderPortalBookings() {
   const container = document.getElementById('portalBookingsList');
   if (!container || !currentUser) return;
 
+  const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
   const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
-  const myBookings = mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+  const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
 
   if (myBookings.length === 0) {
     container.innerHTML = `
@@ -8071,8 +8092,9 @@ function renderPortalCourses() {
   const container = document.getElementById('portalCoursesList');
   if (!container || !currentUser) return;
 
+  const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
   const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
-  const myCourses = mockCourses.filter(c => c.instructor && c.instructor.includes(cleanName));
+  const myCourses = isAdminPreview ? mockCourses : mockCourses.filter(c => c.instructor && c.instructor.includes(cleanName));
 
   if (myCourses.length === 0) {
     container.innerHTML = `
@@ -8117,7 +8139,9 @@ function renderPortalSalary() {
   const container = document.getElementById('portalSalaryContent');
   if (!container || !currentUser) return;
 
-  const salary = (typeof getInstructorPersonalSalary === 'function') ? getInstructorPersonalSalary(currentUser.name) : null;
+  const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
+  const targetSalaryName = isAdminPreview ? (mockInstructors[0] ? mockInstructors[0].name : currentUser.name) : currentUser.name;
+  const salary = (typeof getInstructorPersonalSalary === 'function') ? getInstructorPersonalSalary(targetSalaryName) : null;
   if (!salary) return;
 
   const bank = currentUser.bankInfo || { bankName: "玉山銀行 (808)", accountLast5: "58923" };
@@ -8196,8 +8220,9 @@ function renderPortalProfile() {
   const container = document.getElementById('portalProfileContent');
   if (!container || !currentUser) return;
 
+  const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
   const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
-  const inst = mockInstructors.find(i => i.name.includes(cleanName));
+  const inst = mockInstructors.find(i => i.name.includes(cleanName)) || (isAdminPreview ? mockInstructors[0] : null);
 
   if (!inst) {
     container.innerHTML = `<p class="text-muted">查無公開師資檔案。</p>`;

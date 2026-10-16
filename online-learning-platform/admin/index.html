@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logos/logonew.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261016_v1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -107,7 +107,7 @@
           <i class="fa-solid fa-layer-group text-cyan"></i> 課程管理
         </button>
         <button class="nav-link" onclick="switchAdminTab('instructors')">
-          <i class="fa-solid fa-chalkboard-user text-yellow"></i> 師資團隊
+          <i class="fa-solid fa-chalkboard-user text-yellow"></i> 講師管理
         </button>
         <button class="nav-link" onclick="switchAdminTab('bookings')">
           <i class="fa-solid fa-calendar-check text-green"></i> 排班調度
@@ -1231,14 +1231,14 @@
 
         <!-- Admin Sub Tabs -->
         <div class="admin-tab-bar margin-top-lg">
-          <button class="admin-tab active manager-only-tab" data-atab="users" onclick="switchAdminTab('users')">
+          <button class="admin-tab manager-only-tab" data-atab="users" onclick="switchAdminTab('users')">
             <i class="fa-solid fa-users-gear"></i> 帳號密碼與權限設定 (主管/顧問專屬)
           </button>
           <button class="admin-tab" data-atab="courses" onclick="switchAdminTab('courses')">
             <i class="fa-solid fa-book-open"></i> 課程上架與價格管理
           </button>
           <button class="admin-tab" data-atab="instructors" onclick="switchAdminTab('instructors')">
-            <i class="fa-solid fa-chalkboard-user"></i> 講師師資團隊管理
+            <i class="fa-solid fa-chalkboard-user"></i> 講師管理 (師資團隊)
           </button>
           <button class="admin-tab" data-atab="chapters" onclick="switchAdminTab('chapters')">
             <i class="fa-solid fa-film"></i> 錄播章節與影片增修
@@ -1246,7 +1246,7 @@
           <button class="admin-tab" data-atab="bookings" onclick="switchAdminTab('bookings')">
             <i class="fa-solid fa-calendar-check text-cyan"></i> 📅 講師個教預約與排班管理 (學生預約清單)
           </button>
-          <button class="admin-tab manager-only-tab" data-atab="finance" onclick="switchAdminTab('finance')">
+          <button class="admin-tab active manager-only-tab" data-atab="finance" onclick="switchAdminTab('finance')">
             <i class="fa-solid fa-chart-column text-yellow"></i> 📊 營運統計與講師月結薪資 (管理專屬)
           </button>
           <button class="admin-tab" data-atab="leads" onclick="switchAdminTab('leads')">
@@ -3240,36 +3240,68 @@
     </div>
   </div>
 
-  <!-- MODAL 8: Upload Material Modal -->
-  <div id="uploadMaterialModal" class="modal-backdrop">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeUploadMaterialModal()">&times;</button>
+  <!-- MODAL 8: Course Materials & Handouts Management Modal (支援 PDF, PPT, Word) -->
+  <div id="courseMaterialModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 620px;">
+      <button class="modal-close" onclick="closeCourseMaterialModal()">&times;</button>
       <div class="modal-header">
-        <h3><i class="fa-solid fa-file-arrow-up text-cyan"></i> 上傳 / 分享課堂講義教材</h3>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="badge-tag bg-cyan"><i class="fa-solid fa-book-bookmark"></i> 課堂教材庫</span>
+        </div>
+        <h3 style="margin-top:0.4rem;" id="modalMaterialCourseTitle">
+          <i class="fa-solid fa-file-lines text-cyan"></i> 課程專屬講義教材管理
+        </h3>
+        <p class="text-xs text-muted margin-top-xs">
+          講師與主管可在此為本門課程上傳專屬講義教材（支援 <strong>PDF、PPT/PPTX、Word/DOCX</strong> 格式）。已購課學員將可在看課專區隨時下載研讀。
+        </p>
       </div>
+
       <div class="modal-body">
-        <form onsubmit="handleSaveMaterial(event)">
-          <div class="form-group">
-            <label>講義名稱</label>
-            <input type="text" id="inputMaterialTitle" class="form-control" placeholder="例如：React 19 核心範例架構手冊 (PDF)" required>
+        <!-- 區塊 1: 本門課已上傳之講義教材清單 -->
+        <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <h4 style="font-size:0.92rem; margin:0; color:#38bdf8; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-folder-open"></i> 本門課程現有講義教材
+            </h4>
+            <span class="badge-tag bg-cyan text-xs" id="modalMaterialCountBadge">0 份教材</span>
           </div>
-          <div class="form-group margin-top-sm">
-            <label>對應課程</label>
-            <select id="inputMaterialCourse" class="form-control">
-              <option value="Full-Stack AI 專案開發">Full-Stack AI 專案開發</option>
-              <option value="UI/UX 產品設計與 3D 擬態">UI/UX 產品設計與 3D 擬態</option>
-              <option value="Python 數據分析與自動化">Python 數據分析與自動化</option>
-              <option value="短影音電商實操">短影音電商實操</option>
-            </select>
+          <div id="modalMaterialsListContainer" style="display:flex; flex-direction:column; gap:0.5rem; max-height:180px; overflow-y:auto; padding-right:4px;">
+            <!-- 由 renderModalCourseMaterials(courseId) 動態渲染 -->
           </div>
-          <div class="form-group margin-top-sm">
-            <label>檔案下載 URL / 雲端連結</label>
-            <input type="url" id="inputMaterialUrl" class="form-control" placeholder="https://cdn.pentaskill.com/handbook.pdf" required>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block margin-top-md">
-            確認上架講義教材
-          </button>
-        </form>
+        </div>
+
+        <!-- 區塊 2: ➕ 上傳新講義 / 教材檔案 (PDF, PPT, Word) -->
+        <div style="background:rgba(15,23,42,0.5); border:1px dashed rgba(56,189,248,0.35); border-radius:12px; padding:1.1rem;">
+          <h4 style="font-size:0.9rem; margin:0 0 0.75rem; color:#f8fafc; display:flex; align-items:center; gap:0.4rem;">
+            <i class="fa-solid fa-cloud-arrow-up text-cyan"></i> 上傳新講義檔案 (支援 PDF / PPT / Word)
+          </h4>
+
+          <form onsubmit="handleUploadHandoutFile(event)">
+            <input type="hidden" id="uploadMaterialCourseId" value="">
+
+            <div class="form-group">
+              <label style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">選擇本機講義檔案 <span class="text-pink">*</span> (上限 50MB)</label>
+              <div style="margin-top:0.3rem;">
+                <input type="file" id="handoutFileInput" class="form-control" accept=".pdf,.ppt,.pptx,.doc,.docx" onchange="onHandoutFileInputChange(event)" required style="padding:0.45rem; font-size:0.85rem; background:#0b1120;">
+              </div>
+              <small class="text-xs text-muted" style="margin-top:0.25rem; display:block;">
+                <i class="fa-solid fa-circle-info"></i> 支援格式：Adobe PDF (.pdf)、PowerPoint (.ppt, .pptx)、Microsoft Word (.doc, .docx)
+              </small>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">講義顯示名稱 <span class="text-pink">*</span></label>
+              <input type="text" id="handoutTitleInput" class="form-control" placeholder="例如：第 2 章實戰範例手冊與架構指引 (PDF)" required style="font-size:0.88rem;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="closeCourseMaterialModal()">取消關閉</button>
+              <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); border:none; display:flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-upload"></i> 確認上架此講義教材
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -4172,7 +4204,7 @@
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
-  <script src="data.js?v=20260823_v5"></script>
-  <script src="app.js?v=20260823_v5"></script>
+  <script src="data.js?v=20261016_v1"></script>
+  <script src="app.js?v=20261016_v1"></script>
 </body>
 </html>

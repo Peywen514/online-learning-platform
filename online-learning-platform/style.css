@@ -3736,3 +3736,12 @@ select option {
     display: none !important;
   }
 }
+
+/* Course Material Management Modal Priority */
+#courseMaterialModal {
+  z-index: 2900 !important;
+}
+#courseMaterialModal.active {
+  display: flex !important;
+}
+

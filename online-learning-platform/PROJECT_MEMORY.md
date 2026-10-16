@@ -289,6 +289,20 @@
   - **課程專屬「講義管理」模組 (`openCourseMaterialModal`)**：講師名下每門錄播課程獨立配置「講義管理」按鈕，點擊彈出管理面板。
   - **支援 3 大主流檔案格式**：全面支援 Adobe PDF (`.pdf`)、PowerPoint 簡報 (`.ppt`, `.pptx`) 以及 Microsoft Word 文件 (`.doc`, `.docx`)，具備格式驗證與自動帶入名稱功能。
   - **學員看課專區隨課動態下載 (`#courseHandoutsDownloadList`)**：學員進入看課中心時，系統依該門課程動態展示專屬教材清單，已購課學員點擊「下載」即可立即下載講義檔案（本機上傳檔案直接下載、系統預設教材以授權規範檔下載）；未購課學員主動提示需先購課以保護智慧財產權。
+- **🔧「點講師管理沒有反應」問題徹底修復紀錄 (2026/10/16 完工)**：
+  1. **後台端 (`admin/app.js`, `admin/index.html`)**：
+     - **PIN 碼驗證 Session 狀態自動還原**：`checkAdminPinGate()` 修正為若 `sessionStorage.pentaskill_admin_pin_verified === 'true'`，自動將 `currentUser` 還原為授權主管 (`mockUsers[0]` / `pey514514@gmail.com`)，避免因前台學員/講師登入覆蓋共享 `localStorage` 導致後台權限失效。
+     - **預設檢視路由修正**：初始化 `currentView = 'admin-dashboard'`、`activeAdminTab = 'finance'`，移除初始 `location.hash = 'home'`，杜絕在 `admin/` 目錄中載入有 `display:none` 的 `#view-home` 造成畫面空白。
+     - **`switchAdminTab()` 容錯與強制作動**：切換至任何分頁時，一律確保 `#view-admin-dashboard` 為 active 且 display block，並為 12 個表格渲染函式加上 `try/catch` 獨立隔離，防止任一函式報錯導致後續表格（包含講師管理）中斷。
+     - **講師總表與操作按鈕健全**：在 `renderInstructorAdminTable()` 加入「講義管理 (`openCourseMaterialModal`)」、「編輯資料與照片」及「刪除講師 (`deleteInstructor`)」按鈕；更新 navbar 顯示為「講師管理 (師資團隊)」。
+     - **講義教材彈窗更新**：將舊版相依遺漏的 `#uploadMaterialModal` 升級為標準 `#courseMaterialModal`，補全 PDF / PPT / Word 上架與下載邏輯。
+  2. **前台端 (`client/app.js`, `client/index.html`, `client/style.css`)**：
+     - **導覽列講師工作台入口顯示**：在 `updateUIPermissions()` 確保主管與講師身分時 `#navInstructorPortalLink` 正常顯示（`display: inline-flex`）。
+     - **工作台進入權限放寬**：`switchView('instructor-portal')` 與 `renderInstructorPortal()` 放寬允許主管 (`manager`)、顧問 (`consultant`) 與營運員工 (`staff`) 進入測試與預覽，以主管視角展示全站課程與排班。
+     - **彈窗樣式與圖層層級保證**：在 `style.css` 補上 `#courseMaterialModal { z-index: 2900 !important; }` 與 `#courseMaterialModal.active { display: flex !important; }`，並由 JS 雙重控制 `classList` 與 `style.display`。
+  3. **根目錄與版本快取快照同步 (`index.html`, `app.js`, `style.css`)**：
+     - 同步更新根目錄中的講義管理彈窗與函式，並全面將 `style.css`、`data.js` 與 `app.js` 的快取查詢字串更新為 `?v=20261016_v1`，避免瀏覽器讀取過期快取。
+
 
 
 

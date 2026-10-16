@@ -81,6 +81,16 @@ function checkAdminPinGate() {
   const isVerified = sessionStorage.getItem('pentaskill_admin_pin_verified') === 'true';
   if (isVerified) {
     gate.style.display = 'none';
+    if (!currentUser || (currentUser.role !== 'manager' && currentUser.role !== 'consultant' && currentUser.role !== 'staff')) {
+      const selectedEmail = (localStorage.getItem('pentaskill_last_admin_email') || 'pey514514@gmail.com').toLowerCase();
+      const matchedUser = (typeof mockUsers !== 'undefined' ? mockUsers.find(u => u.email && u.email.toLowerCase() === selectedEmail) : null) || (typeof mockUsers !== 'undefined' ? mockUsers[0] : null);
+      if (matchedUser) {
+        currentUser = matchedUser;
+        try {
+          localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+        } catch (err) {}
+      }
+    }
   } else {
     gate.style.display = 'flex';
     gate.style.opacity = '1';
@@ -828,9 +838,9 @@ try {
   }
 } catch (err) {}
 
-let currentView = 'home';
+let currentView = 'admin-dashboard';
 let cart = [];
-let activeAdminTab = 'users';
+let activeAdminTab = 'finance';
 
 // Carousel State
 let currentSlideIndex = 0;
@@ -884,12 +894,18 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlReferralParam(); // 🎁 檢查好友推薦邀請碼/推薦人 URL 參數自動帶入
   initCloudSync(); // 🌟 啟動自動連線 Cloudflare KV 雲端資料庫雙向同步
 
-  // Initial Hash view or home
+  // Initial Hash view or default to admin-dashboard
   const initialHash = location.hash.replace('#', '');
-  if (initialHash) {
-    switchView(initialHash, false);
+  const validAdminTabs = ['finance', 'users', 'courses', 'instructors', 'chapters', 'bookings', 'leads', 'quotes', 'sheets'];
+  if (initialHash === 'business-plan') {
+    switchView('business-plan', false);
+  } else if (validAdminTabs.includes(initialHash)) {
+    switchView('admin-dashboard', false);
+    switchAdminTab(initialHash);
   } else {
-    if (history.replaceState) history.replaceState({ viewId: 'home' }, '', '#home');
+    switchView('admin-dashboard', false);
+    switchAdminTab(activeAdminTab || 'finance');
+    if (history.replaceState) history.replaceState({ viewId: 'admin-dashboard' }, '', '#admin-dashboard');
   }
 });
 
@@ -899,7 +915,7 @@ window.addEventListener('popstate', (e) => {
     switchView(e.state.viewId, false);
   } else {
     const hash = location.hash.replace('#', '');
-    switchView(hash || 'home', false);
+    switchView(hash === 'business-plan' ? 'business-plan' : 'admin-dashboard', false);
   }
 });
 
@@ -1814,21 +1830,16 @@ function updateUIPermissions() {
 
 // Navigation View Switcher with Permission Guards & Browser History Support
 function switchView(viewId, pushHistory = true) {
-  const role = currentUser ? currentUser.role : 'guest';
+  if (viewId !== 'admin-dashboard' && viewId !== 'business-plan') {
+    viewId = 'admin-dashboard';
+  }
+
+  const role = currentUser ? currentUser.role : 'manager';
   const isManagerOrConsultant = (role === 'manager' || role === 'consultant');
   const isInstructorOrAbove = (role === 'manager' || role === 'consultant' || role === 'staff' || role === 'instructor');
 
   if (viewId === 'business-plan' && !isManagerOrConsultant) {
     showToast('⚠️ 權限不足：【創業完整規劃書】僅供 👑 平台主管與 💼 顧問 查閱');
-    return;
-  }
-  if (viewId === 'admin-dashboard' && !isInstructorOrAbove) {
-    showToast('⚠️ 權限不足：【後台管理中心】僅供 👑 主管、💼 顧問 與 🧑‍💼 員工/講師 存取');
-    return;
-  }
-  if (viewId === 'member-center' && !currentUser) {
-    showToast('💡 請先登入學員帳號以查看學員專區與精幣餘額！');
-    openLoginModal();
     return;
   }
 
@@ -1840,67 +1851,31 @@ function switchView(viewId, pushHistory = true) {
     history.pushState({ viewId: viewId }, '', `#${viewId}`);
   }
 
-  document.querySelectorAll('.nav-link, .dropdown-item.nav-item-btn').forEach(link => {
-    if (link.getAttribute('data-target') === viewId) {
-      link.classList.add('active');
+  document.querySelectorAll('#adminNavLinks .nav-link').forEach(lnk => {
+    const fnStr = lnk.getAttribute('onclick') || '';
+    if (viewId === 'business-plan') {
+      lnk.classList.toggle('active', fnStr.includes('business-plan'));
     } else {
-      link.classList.remove('active');
+      lnk.classList.toggle('active', fnStr.includes(`'${activeAdminTab}'`));
     }
   });
 
-  // Highlight parent dropdown button when sub-item is active
-  const coursesViews = ['marketplace', 'video-player', 'live-classroom', 'instructors'];
-  const adminViews = ['admin-dashboard', 'business-plan'];
-  
-  const coursesDropdownBtn = document.querySelector('#navCoursesDropdown .nav-dropdown-btn');
-  if (coursesDropdownBtn) {
-    coursesDropdownBtn.classList.toggle('active', coursesViews.includes(viewId));
-  }
-  const adminDropdownBtn = document.querySelector('#navAdminDropdown .nav-dropdown-btn');
-  if (adminDropdownBtn) {
-    adminDropdownBtn.classList.toggle('active', adminViews.includes(viewId));
-  }
-
   document.querySelectorAll('.view-section').forEach(section => {
     section.classList.remove('active');
+    if (section.id === 'view-admin-dashboard' || section.id === 'view-business-plan') {
+      section.style.display = (section.id === `view-${viewId}`) ? 'block' : 'none';
+    }
   });
 
   const targetSection = document.getElementById(`view-${viewId}`);
   if (targetSection) {
     targetSection.classList.add('active');
+    targetSection.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  if (viewId === 'home') {
-    renderHomeFeaturedCourses();
-  }
-  if (viewId === 'marketplace') {
-    updateCarouselTransform();
-    renderPortfolios();
-  }
   if (viewId === 'admin-dashboard') {
     renderAdminTables();
-  }
-  if (viewId === 'member-center') {
-    renderMemberCenterView();
-  }
-  if (viewId === 'video-player') {
-    loadCloudflareStreamLesson(currentActiveLessonId);
-  }
-  if (viewId === 'live-classroom') {
-    const dateInput = document.getElementById('bookingDate');
-    if (dateInput) {
-      const minBookingDate = new Date();
-      minBookingDate.setDate(minBookingDate.getDate() + 3);
-      const minBookingDateStr = getLocalDateString(minBookingDate);
-      dateInput.min = minBookingDateStr;
-      if (!dateInput.value || dateInput.value < minBookingDateStr) {
-        dateInput.value = minBookingDateStr;
-      }
-    }
-    renderBookingInstructorDropdown();
-    renderStudentBookings();
-    updateAvailableSlots();
   }
 }
 
@@ -2414,6 +2389,22 @@ function setupFilterEvents() {
 
 // Admin Dashboard Tabs & Tables
 function switchAdminTab(tabKey) {
+  // Always ensure #view-admin-dashboard is the active view when switching any admin tab
+  if (currentView !== 'admin-dashboard') {
+    currentView = 'admin-dashboard';
+  }
+  document.querySelectorAll('.view-section').forEach(section => {
+    if (section.id === 'view-admin-dashboard') {
+      section.classList.add('active');
+      section.style.display = 'block';
+    } else {
+      section.classList.remove('active');
+      if (section.id === 'view-business-plan') {
+        section.style.display = 'none';
+      }
+    }
+  });
+
   // Highlight active link in #adminNavLinks
   const navLinks = document.querySelectorAll('#adminNavLinks .nav-link');
   navLinks.forEach(lnk => {
@@ -2425,12 +2416,12 @@ function switchAdminTab(tabKey) {
     }
   });
 
-  const isManagerOrConsultant = currentUser && (currentUser.role === 'manager' || currentUser.role === 'consultant');
-  if (tabKey === 'users' && !isManagerOrConsultant) {
+  const isManagerOrConsultant = !currentUser || (currentUser.role === 'manager' || currentUser.role === 'consultant');
+  if (tabKey === 'users' && currentUser && !isManagerOrConsultant) {
     showToast('⚠️ 帳號密碼與權限管理僅供 👑 平台主管與 💼 顧問 操作');
     return;
   }
-  if (tabKey === 'finance' && !isManagerOrConsultant) {
+  if (tabKey === 'finance' && currentUser && !isManagerOrConsultant) {
     showToast('⚠️ 營運統計與薪資結算僅供 👑 平台主管與 💼 顧問 操作');
     return;
   }
@@ -2441,25 +2432,27 @@ function switchAdminTab(tabKey) {
   });
 
   document.querySelectorAll('.admin-content-pane').forEach(pane => {
-    pane.classList.toggle('active', pane.id === `atab-${tabKey}`);
+    const isTarget = (pane.id === `atab-${tabKey}`);
+    pane.classList.toggle('active', isTarget);
+    pane.style.display = isTarget ? 'block' : 'none';
   });
 
   renderAdminTables();
 }
 
 function renderAdminTables() {
-  renderUserTable();
-  renderCourseAdminTable();
-  renderInstructorAdminTable();
-  renderChapterAdminList();
-  renderBookingAdminTable();
-  renderMentorSalaryTable();
-  renderStaffSalaryTable();
-  renderPlatformExpensesTable();
-  renderFinanceDashboardKPIs();
-  renderLeadAdminTable();
-  renderCustomQuotesAdminTable();
-  renderGoogleSheetAdminSection();
+  try { renderUserTable(); } catch (e) { console.error(e); }
+  try { renderCourseAdminTable(); } catch (e) { console.error(e); }
+  try { renderInstructorAdminTable(); } catch (e) { console.error(e); }
+  try { renderChapterAdminList(); } catch (e) { console.error(e); }
+  try { renderBookingAdminTable(); } catch (e) { console.error(e); }
+  try { renderMentorSalaryTable(); } catch (e) { console.error(e); }
+  try { renderStaffSalaryTable(); } catch (e) { console.error(e); }
+  try { renderPlatformExpensesTable(); } catch (e) { console.error(e); }
+  try { renderFinanceDashboardKPIs(); } catch (e) { console.error(e); }
+  try { renderLeadAdminTable(); } catch (e) { console.error(e); }
+  try { renderCustomQuotesAdminTable(); } catch (e) { console.error(e); }
+  try { renderGoogleSheetAdminSection(); } catch (e) { console.error(e); }
 }
 
 // User Accounts Table (Manager & Consultant Only)
@@ -2470,7 +2463,7 @@ function renderUserTable() {
 
   if (userCountSpan) userCountSpan.innerText = mockUsers.length;
 
-  const isManagerOrConsultant = currentUser && (currentUser.role === 'manager' || currentUser.role === 'consultant');
+  const isManagerOrConsultant = !currentUser || (currentUser.role === 'manager' || currentUser.role === 'consultant');
 
   tbody.innerHTML = mockUsers.map(user => {
     let roleBadgeClass = 'badge-student';
@@ -2516,7 +2509,7 @@ function renderUserTable() {
         <td data-label="操作與設定">
           ${isManagerOrConsultant ? `
             <button class="btn btn-sm btn-outline" onclick="openEditUserModal('${user.id}')"><i class="fa-solid fa-pen"></i> 編輯帳號/薪資戶</button>
-            ${user.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+            ${(!currentUser || user.id !== currentUser.id) ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
           ` : '<span class="text-muted">無權限</span>'}
         </td>
       </tr>
@@ -2529,7 +2522,7 @@ function renderCourseAdminTable() {
   const tbody = document.getElementById('courseTableBody');
   if (!tbody) return;
 
-  const isManagerOrConsultant = currentUser && (currentUser.role === 'manager' || currentUser.role === 'consultant');
+  const isManagerOrConsultant = !currentUser || (currentUser.role === 'manager' || currentUser.role === 'consultant');
 
   tbody.innerHTML = mockCourses.map(c => `
     <tr>
@@ -2543,8 +2536,11 @@ function renderCourseAdminTable() {
       <td data-label="含1對1個教"><span class="text-pink">NT$ ${(c.priceWith1on1 || 0).toLocaleString()}</span> <small class="text-muted" style="display:block; font-size:0.72rem;">(前台顯示 ????)</small></td>
       <td data-label="上架狀態"><span class="badge badge-success">已上架</span></td>
       <td data-label="操作管理">
-        <button class="btn btn-sm btn-outline" onclick="openEditCourseModal('${c.id}')"><i class="fa-solid fa-pen"></i> 編輯價格/內容</button>
-        ${isManagerOrConsultant ? `<button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline" onclick="openEditCourseModal('${c.id}')"><i class="fa-solid fa-pen"></i> 編輯價格/內容</button>
+          <button class="btn btn-sm btn-outline" onclick="openCourseMaterialModal('${c.id}')" style="border-color:#06b6d4; color:#38bdf8;"><i class="fa-solid fa-file-lines"></i> 講義管理</button>
+          ${isManagerOrConsultant ? `<button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        </div>
       </td>
     </tr>
   `).join('');
@@ -2555,7 +2551,13 @@ function renderInstructorAdminTable() {
   const tbody = document.getElementById('instructorTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = mockInstructors.map(inst => `
+  const isManagerOrConsultant = !currentUser || (currentUser.role === 'manager' || currentUser.role === 'consultant');
+
+  tbody.innerHTML = mockInstructors.map(inst => {
+    const cleanInstName = inst.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
+    const matchedCourse = mockCourses.find(c => c.instructor && c.instructor.includes(cleanInstName)) || mockCourses[0];
+    const courseIdForMat = matchedCourse ? matchedCourse.id : 'course-1';
+    return `
     <tr>
       <td data-label="講師師資">
         <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -2571,11 +2573,15 @@ function renderInstructorAdminTable() {
       <td data-label="個教鐘點" class="text-purple"><strong>${inst.rate1on1}</strong></td>
       <td data-label="學員評鑑">⭐ ${inst.rating} (${inst.studentCount}學員)</td>
       <td data-label="操作管理">
-        <button class="btn btn-sm btn-outline" onclick="openInstructorModal('${inst.id}')"><i class="fa-solid fa-eye"></i> 預覽</button>
-        <button class="btn btn-sm btn-primary staff-manager-btn" onclick="openEditInstructorModal('${inst.id}')"><i class="fa-solid fa-pen"></i> 編輯資料與照片</button>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline" onclick="openInstructorModal('${inst.id}')"><i class="fa-solid fa-eye"></i> 預覽</button>
+          <button class="btn btn-sm btn-primary" onclick="openEditInstructorModal('${inst.id}')"><i class="fa-solid fa-pen"></i> 編輯資料與照片</button>
+          <button class="btn btn-sm btn-outline" onclick="openCourseMaterialModal('${courseIdForMat}')" style="border-color:#06b6d4; color:#38bdf8;"><i class="fa-solid fa-file-lines"></i> 講義管理</button>
+          ${isManagerOrConsultant ? `<button class="btn btn-sm btn-danger" onclick="deleteInstructor('${inst.id}')" title="刪除此講師"><i class="fa-solid fa-trash"></i></button>` : ''}
+        </div>
       </td>
     </tr>
-  `).join('');
+  `}).join('');
 }
 
 // Chapter Admin List
@@ -4539,31 +4545,387 @@ function handleSaveInstructor(e) {
   renderInstructorAdminTable();
 }
 
-// Material Upload Handlers
-function openUploadMaterialModal() {
-  document.getElementById('uploadMaterialModal').classList.add('active');
+function deleteInstructor(instId) {
+  const inst = mockInstructors.find(i => i.id === instId);
+  if (!inst) return;
+  if (confirm(`確定要移除講師【${inst.name}】嗎？`)) {
+    const idx = mockInstructors.findIndex(i => i.id === instId);
+    if (idx !== -1) {
+      mockInstructors.splice(idx, 1);
+      saveInstructorsToStorage();
+      renderInstructors();
+      renderInstructorAdminTable();
+      showToast(`🗑️ 已移除講師：${inst.name}`);
+    }
+  }
+}
+
+// ==========================================================================
+// 📚 課程專屬講義教材管理核心模組 (支援 PDF, PPT/PPTX, Word/DOCX)
+// ==========================================================================
+const DEFAULT_COURSE_MATERIALS = [
+  {
+    id: "mat-101",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "React 19 與 Next.js 15 核心架構指引手冊 (PDF)",
+    fileName: "React19_Next15_Architecture_Guide.pdf",
+    fileType: "pdf",
+    fileSize: "3.8 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-2, '10:30'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  {
+    id: "mat-102",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "Claude & OpenAI API 自動化工作流實戰簡報 (PPT)",
+    fileName: "AI_Workflow_Automation_Slides.pptx",
+    fileType: "ppt",
+    fileSize: "5.2 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-2, '11:15'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  {
+    id: "mat-103",
+    courseId: "course-1",
+    courseTitle: "AI 驅動 Full-Stack Web 開發實戰營",
+    title: "期末獨立專案規格需求與評分標準手冊 (Word)",
+    fileName: "Final_Project_Requirements_Spec.docx",
+    fileType: "doc",
+    fileSize: "1.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-1, '14:20'),
+    instructorName: "張哲銘 (Ethan)"
+  },
+  {
+    id: "mat-201",
+    courseId: "course-2",
+    courseTitle: "UI/UX 產品設計與 Figma 設計系統實力班",
+    title: "Figma 150+ 企業級設計系統元件規範指南 (PDF)",
+    fileName: "Figma_Design_System_Spec.pdf",
+    fileType: "pdf",
+    fileSize: "6.4 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-3, '09:20'),
+    instructorName: "陳婷俐 (Tina)"
+  },
+  {
+    id: "mat-202",
+    courseId: "course-2",
+    courseTitle: "UI/UX 產品設計與 Figma 設計系統實力班",
+    title: "UI/UX 產品設計提案與商業簡報模板 (PPT)",
+    fileName: "UX_Proposal_Client_Pitch_Deck.pptx",
+    fileType: "ppt",
+    fileSize: "8.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-3, '14:00'),
+    instructorName: "陳婷俐 (Tina)"
+  },
+  {
+    id: "mat-301",
+    courseId: "course-3",
+    courseTitle: "Python 數據分析與自動化爬蟲實務",
+    title: "Python 網路爬蟲與 Anti-Bot 破解 Cheatsheet (PDF)",
+    fileName: "Python_Scraper_Cheatsheet.pdf",
+    fileType: "pdf",
+    fileSize: "2.6 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-4, '16:30'),
+    instructorName: "歐陽翔 (Shawn)"
+  },
+  {
+    id: "mat-302",
+    courseId: "course-3",
+    courseTitle: "Python 數據分析與自動化爬蟲實務",
+    title: "Pandas 資料清理與機器學習預處理講義 (Word)",
+    fileName: "Pandas_Data_Cleaning_Handbook.docx",
+    fileType: "doc",
+    fileSize: "1.9 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-4, '17:00'),
+    instructorName: "歐陽翔 (Shawn)"
+  },
+  {
+    id: "mat-401",
+    courseId: "course-4",
+    courseTitle: "高轉化率數位整合行銷與短影音電商實操",
+    title: "短影音前 3 秒開頭鉤子文案 50 組高轉化公式 (PDF)",
+    fileName: "Short_Video_Hook_Formulas.pdf",
+    fileType: "pdf",
+    fileSize: "4.1 MB",
+    uploadedAt: calcDynamicDateTimeOffset(-5, '11:00'),
+    instructorName: "林雅涵 (Hannah)"
+  },
+  {
+    id: "mat-402",
+    courseId: "course-4",
+    courseTitle: "高轉化率數位整合行銷與短影音電商實操",
+    title: "電商爆款短影音分鏡腳本範本 (Word)",
+    fileName: "Ecommerce_Video_Storyboard_Template.docx",
+    fileType: "doc",
+    fileSize: "950 KB",
+    uploadedAt: calcDynamicDateTimeOffset(-5, '15:30'),
+    instructorName: "林雅涵 (Hannah)"
+  }
+];
+
+let currentViewCourseId = 'course-1';
+
+function getAllCourseMaterials() {
+  try {
+    const raw = localStorage.getItem('pentaskill_course_materials');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [...DEFAULT_COURSE_MATERIALS];
+}
+
+function saveAllCourseMaterials(materials) {
+  try {
+    localStorage.setItem('pentaskill_course_materials', JSON.stringify(materials));
+  } catch (e) {}
+}
+
+function getHandoutFileIcon(str = '') {
+  const lower = String(str).toLowerCase();
+  if (lower.includes('pdf')) {
+    return '<i class="fa-solid fa-file-pdf" style="color:#f43f5e; font-size:1.3rem;"></i>';
+  } else if (lower.includes('ppt') || lower.includes('pptx')) {
+    return '<i class="fa-solid fa-file-powerpoint" style="color:#f97316; font-size:1.3rem;"></i>';
+  } else if (lower.includes('doc') || lower.includes('docx') || lower.includes('word')) {
+    return '<i class="fa-solid fa-file-word" style="color:#3b82f6; font-size:1.3rem;"></i>';
+  }
+  return '<i class="fa-solid fa-file-lines" style="color:#06b6d4; font-size:1.3rem;"></i>';
+}
+
+function openCourseMaterialModal(courseId = 'course-1') {
+  const modal = document.getElementById('courseMaterialModal');
+  if (!modal) return;
+
+  const course = mockCourses.find(c => c.id === courseId) || mockCourses[0];
+  const hiddenId = document.getElementById('uploadMaterialCourseId');
+  if (hiddenId) hiddenId.value = course.id;
+
+  const titleElem = document.getElementById('modalMaterialCourseTitle');
+  if (titleElem) {
+    titleElem.innerHTML = `<i class="fa-solid fa-file-lines text-cyan"></i> 【${course.title}】專屬講義教材管理`;
+  }
+
+  const fileInput = document.getElementById('handoutFileInput');
+  if (fileInput) fileInput.value = '';
+  const titleInput = document.getElementById('handoutTitleInput');
+  if (titleInput) titleInput.value = '';
+
+  renderModalCourseMaterials(course.id);
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+}
+
+function closeCourseMaterialModal() {
+  const modal = document.getElementById('courseMaterialModal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+function openUploadMaterialModal(courseId) {
+  openCourseMaterialModal(courseId || 'course-1');
 }
 
 function closeUploadMaterialModal() {
-  document.getElementById('uploadMaterialModal').classList.remove('active');
+  closeCourseMaterialModal();
 }
 
-function handleSaveMaterial(e) {
+function onHandoutFileInputChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const validExts = ['.pdf', '.ppt', '.pptx', '.doc', '.docx'];
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  if (!validExts.includes(ext)) {
+    showToast('⚠️ 僅支援上傳 PDF (.pdf)、PowerPoint (.ppt, .pptx) 或 Word (.doc, .docx) 檔案！');
+    e.target.value = '';
+    return;
+  }
+
+  const titleInput = document.getElementById('handoutTitleInput');
+  if (titleInput && !titleInput.value.trim()) {
+    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    let typeLabel = 'PDF';
+    if (ext.includes('ppt')) typeLabel = 'PPT';
+    if (ext.includes('doc')) typeLabel = 'Word';
+    titleInput.value = `${baseName} (${typeLabel})`;
+  }
+}
+
+function handleUploadHandoutFile(e) {
   e.preventDefault();
-  const title = document.getElementById('inputMaterialTitle').value;
-  const course = document.getElementById('inputMaterialCourse').value;
-  const url = document.getElementById('inputMaterialUrl').value;
+  const courseId = document.getElementById('uploadMaterialCourseId').value || 'course-1';
+  const fileInput = document.getElementById('handoutFileInput');
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  const titleInput = document.getElementById('handoutTitleInput');
+  const title = (titleInput ? titleInput.value.trim() : '') || (file ? file.name : '課程講義');
 
-  mockMaterials.push({
-    id: `mat-${Date.now().toString().slice(-4)}`,
-    title: title,
-    instructor: currentUser ? currentUser.name : "張哲銘 (Ethan)",
-    course: course,
-    url: url
-  });
+  if (!file) {
+    showToast('⚠️ 請先選擇要上傳的講義檔案 (PDF / PPT / Word)');
+    return;
+  }
 
-  showToast(`📄 講義與隨課教材上架成功：${title}`);
-  closeUploadMaterialModal();
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  let fileType = 'other';
+  if (ext === '.pdf') fileType = 'pdf';
+  else if (ext === '.ppt' || ext === '.pptx') fileType = 'ppt';
+  else if (ext === '.doc' || ext === '.docx') fileType = 'doc';
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const course = mockCourses.find(c => c.id === courseId) || { id: courseId, title: "實戰課程" };
+  const instructorName = currentUser ? currentUser.name : "金牌講師";
+
+  const finishUpload = (dataUrl = '') => {
+    const newMaterial = {
+      id: `mat-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      courseId: courseId,
+      courseTitle: course.title,
+      title: title,
+      fileName: file.name,
+      fileType: fileType,
+      fileSize: formatSize(file.size),
+      fileData: dataUrl,
+      uploadedAt: getLocalDateTimeString(new Date()),
+      instructorName: instructorName
+    };
+
+    const allMaterials = getAllCourseMaterials();
+    allMaterials.unshift(newMaterial);
+    saveAllCourseMaterials(allMaterials);
+
+    fileInput.value = '';
+    titleInput.value = '';
+
+    renderModalCourseMaterials(courseId);
+    if (typeof renderStudentCourseHandouts === 'function') renderStudentCourseHandouts(courseId);
+
+    showToast(`✅ 講義上架成功！已同步至學員看課專區：${title}`);
+  };
+
+  if (file.size <= 4 * 1024 * 1024) {
+    const reader = new FileReader();
+    reader.onload = function(evt) { finishUpload(evt.target.result); };
+    reader.onerror = function() { finishUpload(''); };
+    reader.readAsDataURL(file);
+  } else {
+    finishUpload('');
+  }
+}
+
+function renderModalCourseMaterials(courseId) {
+  const container = document.getElementById('modalMaterialsListContainer');
+  const countBadge = document.getElementById('modalMaterialCountBadge');
+  if (!container) return;
+
+  const allMaterials = getAllCourseMaterials();
+  const materials = allMaterials.filter(m => m.courseId === courseId);
+
+  if (countBadge) {
+    countBadge.innerText = `${materials.length} 份教材`;
+  }
+
+  if (materials.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:1.75rem 1rem; color:#94a3b8; font-size:0.85rem; border:1px dashed rgba(255,255,255,0.08); border-radius:8px;">
+        <i class="fa-solid fa-folder-open" style="font-size:1.6rem; margin-bottom:0.4rem; display:block; color:#64748b;"></i>
+        目前尚未為本門課程上傳講義教材<br>
+        <span style="font-size:0.75rem; color:#64748b;">請由下方選擇 PDF、PPT 或 Word 檔案上傳</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = materials.map(m => {
+    const icon = getHandoutFileIcon(m.fileType || m.fileName);
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:0.6rem 0.8rem; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem; overflow:hidden; min-width:0;">
+          ${icon}
+          <div style="overflow:hidden;">
+            <div style="font-size:0.85rem; font-weight:600; color:#f8fafc; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" title="${m.title}">${m.title}</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">${m.fileName || m.title} • ${m.fileSize || '2.0 MB'} • ${m.uploadedAt || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.35rem; flex-shrink:0;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="downloadCourseMaterial('${m.id}')" title="下載測試" style="padding:0.25rem 0.55rem; font-size:0.75rem;">
+            <i class="fa-solid fa-download"></i> 下載
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="deleteCourseMaterial('${m.id}', '${courseId}')" title="刪除教材" style="padding:0.25rem 0.55rem; font-size:0.75rem; color:#f43f5e; border-color:rgba(244,63,94,0.3);">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteCourseMaterial(materialId, courseId) {
+  if (!confirm('確定要自本課程下架並刪除此份講義教材嗎？')) return;
+
+  let allMaterials = getAllCourseMaterials();
+  allMaterials = allMaterials.filter(m => m.id !== materialId);
+  saveAllCourseMaterials(allMaterials);
+
+  renderModalCourseMaterials(courseId);
+  if (typeof renderStudentCourseHandouts === 'function') renderStudentCourseHandouts(courseId);
+
+  showToast('🗑️ 已成功刪除該份講義教材。');
+}
+
+function downloadCourseMaterial(materialId) {
+  const allMaterials = getAllCourseMaterials();
+  const mat = allMaterials.find(m => m.id === materialId);
+  if (!mat) {
+    showToast('⚠️ 查無該講義檔案，可能已被講師移除。');
+    return;
+  }
+
+  if (mat.fileData && mat.fileData.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = mat.fileData;
+    a.download = mat.fileName || `${mat.title}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    const ext = mat.fileName && mat.fileName.includes('.') ? mat.fileName.substring(mat.fileName.lastIndexOf('.')).toLowerCase() : '.pdf';
+    let mimeType = 'application/pdf';
+    if (ext.includes('ppt')) mimeType = 'application/vnd.ms-powerpoint';
+    if (ext.includes('doc')) mimeType = 'application/msword';
+
+    const content = `========================================================\n` +
+      `精五門 PentaSkill 實戰線上學習平台 — 專屬課堂講義教材\n` +
+      `========================================================\n\n` +
+      `【講義名稱】：${mat.title}\n` +
+      `【對應課程】：${mat.courseTitle || '實戰錄播課程'}\n` +
+      `【授課講師】：${mat.instructorName || '金牌講師'}\n` +
+      `【發布日期】：${mat.uploadedAt || getLocalDateTimeString(new Date())}\n` +
+      `【檔案規格】：${mat.fileName || mat.title} (${mat.fileSize || '2.5 MB'})\n\n` +
+      `祝您學習順利、收穫滿滿！\n` +
+      `精五門 PentaSkill 教務教學團隊 敬上\n`;
+
+    const blob = new Blob([content], { type: mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = mat.fileName || `${mat.title}${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  }
+
+  showToast(`📥 講義下載已啟動：${mat.title}`);
 }
 
 // Video Player Playback Simulator & Cloudflare Stream DRM Engine

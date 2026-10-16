@@ -4047,3 +4047,12 @@ select option {
   background: rgba(30, 41, 59, 0.8);
   border-color: rgba(56, 189, 248, 0.3);
 }
+
+/* Course Material Management Modal Priority */
+#courseMaterialModal {
+  z-index: 2900 !important;
+}
+#courseMaterialModal.active {
+  display: flex !important;
+}
+
