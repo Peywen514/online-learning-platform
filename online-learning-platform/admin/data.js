@@ -520,13 +520,16 @@ let cloudflareStreamConfig = {
 };
 
 let mockChapters = [
+  // ===== 課程 1：AI 驅動 Full-Stack Web 開發實戰營 (張哲銘 Ethan) =====
   {
     id: 1,
+    courseId: "course-1",
     title: "第 1 章：專案環境建置與現代前端趨勢",
     duration: "45 分鐘",
     lessons: [
       { 
         id: "1-1", 
+        courseId: "course-1",
         title: "1-1 開發環境準備與 VS Code 神級 Extension", 
         completed: true,
         streamId: "5d5ba37905d088d80097030722b813f2",
@@ -535,6 +538,7 @@ let mockChapters = [
       },
       { 
         id: "1-2", 
+        courseId: "course-1",
         title: "1-2 Git / GitHub 團隊協作與個教作業繳交流程", 
         completed: true,
         streamId: "b67c489721ad43209887711aa6768892",
@@ -545,11 +549,13 @@ let mockChapters = [
   },
   {
     id: 2,
+    courseId: "course-1",
     title: "第 2 章：Full-Stack React & AI 專案架構拆解",
     duration: "65 分鐘",
     lessons: [
       { 
         id: "2-1", 
+        courseId: "course-1",
         title: "2-1 React 19 新特性與 Component 設計哲學", 
         completed: true,
         streamId: "fc38d9982a1740d7a0491823901bc093",
@@ -558,6 +564,7 @@ let mockChapters = [
       },
       { 
         id: "2-2", 
+        courseId: "course-1",
         title: "2-2 LLM API 串接與 Server-Sent Events (SSE)", 
         completed: false, 
         active: true,
@@ -567,6 +574,7 @@ let mockChapters = [
       },
       { 
         id: "2-3", 
+        courseId: "course-1",
         title: "2-3 【作業】建立第一個 AI 對話模組與 Error 處理", 
         completed: false,
         streamId: "9a1829bc8310495ea721980012bc4410",
@@ -577,11 +585,13 @@ let mockChapters = [
   },
   {
     id: 3,
+    courseId: "course-1",
     title: "第 3 章：1-on-1 個教 Code Review 實戰微調",
     duration: "40 分鐘",
     lessons: [
       { 
         id: "3-1", 
+        courseId: "course-1",
         title: "3-1 講師帶你審視性能瓶頸 (Re-render 優化)", 
         completed: false,
         streamId: "e4418a09bcae412398457788102947a1",
@@ -590,11 +600,252 @@ let mockChapters = [
       },
       { 
         id: "3-2", 
+        courseId: "course-1",
         title: "3-2 部署至 Vercel / Cloudflare 並設定 Domain", 
         completed: false,
         streamId: "fa90812bc81047712a55981245671190",
         isTrialAllowed: false,
         durationSeconds: 1200
+      }
+    ]
+  },
+
+  // ===== 課程 2：UI/UX 產品設計與 Figma 設計系統實力班 (陳婷俐 Tina) =====
+  {
+    id: 101,
+    courseId: "course-2",
+    title: "第 1 章：Figma 介面佈局與 Auto-Layout 實務規範",
+    duration: "50 分鐘",
+    lessons: [
+      {
+        id: "c2-1-1",
+        courseId: "course-2",
+        title: "1-1 Figma 核心操作流與全域快捷鍵心法",
+        completed: true,
+        streamId: "5d5ba37905d088d80097030722b813f2",
+        isTrialAllowed: true,
+        durationSeconds: 1200
+      },
+      {
+        id: "c2-1-2",
+        courseId: "course-2",
+        title: "1-2 Auto-Layout 深入解析：動態拉伸與響應式斷點",
+        completed: false,
+        streamId: "b67c489721ad43209887711aa6768892",
+        isTrialAllowed: false,
+        durationSeconds: 1800
+      }
+    ]
+  },
+  {
+    id: 102,
+    courseId: "course-2",
+    title: "第 2 章：Design System 企業級組件庫與 Design Tokens",
+    duration: "60 分鐘",
+    lessons: [
+      {
+        id: "c2-2-1",
+        courseId: "course-2",
+        title: "2-1 變體組件 Variants 與屬性架構規劃",
+        completed: false,
+        streamId: "fc38d9982a1740d7a0491823901bc093",
+        isTrialAllowed: true,
+        durationSeconds: 1500
+      },
+      {
+        id: "c2-2-2",
+        courseId: "course-2",
+        title: "2-2 企業級色彩與字級 Tokens 跨端同步技巧",
+        completed: false,
+        streamId: "729486c91a0248888bf402a7b189872e",
+        isTrialAllowed: false,
+        durationSeconds: 2100
+      }
+    ]
+  },
+  {
+    id: 103,
+    courseId: "course-2",
+    title: "第 3 章：星級高保真原型與 1-on-1 業師作品集重構",
+    duration: "45 分鐘",
+    lessons: [
+      {
+        id: "c2-3-1",
+        courseId: "course-2",
+        title: "3-1 Smart Animate 微互動微動效全流程串接",
+        completed: false,
+        streamId: "e4418a09bcae412398457788102947a1",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      },
+      {
+        id: "c2-3-2",
+        courseId: "course-2",
+        title: "3-2 【個教準備】業師 1 對 1 商業作品集通關診斷",
+        completed: false,
+        streamId: "fa90812bc81047712a55981245671190",
+        isTrialAllowed: false,
+        durationSeconds: 1200
+      }
+    ]
+  },
+
+  // ===== 課程 3：Python 數據分析與自動化爬蟲實務 (歐陽翔 Shawn) =====
+  {
+    id: 201,
+    courseId: "course-3",
+    title: "第 1 章：Python 資料科學環境與 HTTP 爬蟲基石",
+    duration: "45 分鐘",
+    lessons: [
+      {
+        id: "c3-1-1",
+        courseId: "course-3",
+        title: "1-1 VS Code + Jupyter Notebook 開發環境配置",
+        completed: true,
+        streamId: "5d5ba37905d088d80097030722b813f2",
+        isTrialAllowed: true,
+        durationSeconds: 1200
+      },
+      {
+        id: "c3-1-2",
+        courseId: "course-3",
+        title: "1-2 Requests 模組請求與 JSON API 資料抓取",
+        completed: false,
+        streamId: "b67c489721ad43209887711aa6768892",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      }
+    ]
+  },
+  {
+    id: 202,
+    courseId: "course-3",
+    title: "第 2 章：BeautifulSoup 與 Selenium 動態網頁爬蟲",
+    duration: "55 分鐘",
+    lessons: [
+      {
+        id: "c3-2-1",
+        courseId: "course-3",
+        title: "2-1 DOM 樹解析與防爬 Headers 對策實操",
+        completed: false,
+        streamId: "fc38d9982a1740d7a0491823901bc093",
+        isTrialAllowed: true,
+        durationSeconds: 1500
+      },
+      {
+        id: "c3-2-2",
+        courseId: "course-3",
+        title: "2-2 Selenium 模擬點擊登入與無限滾動翻頁",
+        completed: false,
+        streamId: "729486c91a0248888bf402a7b189872e",
+        isTrialAllowed: false,
+        durationSeconds: 1800
+      }
+    ]
+  },
+  {
+    id: 203,
+    courseId: "course-3",
+    title: "第 3 章：Pandas 數據清洗與視覺化自動排程",
+    duration: "50 分鐘",
+    lessons: [
+      {
+        id: "c3-3-1",
+        courseId: "course-3",
+        title: "3-1 Pandas 異常值篩選、聚合統計與特徵工程",
+        completed: false,
+        streamId: "e4418a09bcae412398457788102947a1",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      },
+      {
+        id: "c3-3-2",
+        courseId: "course-3",
+        title: "3-2 Matplotlib 視覺化與自動排程寄送報表",
+        completed: false,
+        streamId: "fa90812bc81047712a55981245671190",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      }
+    ]
+  },
+
+  // ===== 課程 4：高轉化率數位整合行銷與短影音電商實操 (林雅涵 Hannah) =====
+  {
+    id: 301,
+    courseId: "course-4",
+    title: "第 1 章：數位行銷轉化漏斗與精準受眾定位",
+    duration: "45 分鐘",
+    lessons: [
+      {
+        id: "c4-1-1",
+        courseId: "course-4",
+        title: "1-1 商業模式拆解與精準受眾痛點畫像",
+        completed: true,
+        streamId: "5d5ba37905d088d80097030722b813f2",
+        isTrialAllowed: true,
+        durationSeconds: 1200
+      },
+      {
+        id: "c4-1-2",
+        courseId: "course-4",
+        title: "1-2 競爭對手分析與高轉化文案切角法",
+        completed: false,
+        streamId: "b67c489721ad43209887711aa6768892",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      }
+    ]
+  },
+  {
+    id: 302,
+    courseId: "course-4",
+    title: "第 2 章：Meta & Google 廣告投放實操與數據分析",
+    duration: "55 分鐘",
+    lessons: [
+      {
+        id: "c4-2-1",
+        courseId: "course-4",
+        title: "2-1 Meta 像素設定與自訂受眾群漏斗",
+        completed: false,
+        streamId: "fc38d9982a1740d7a0491823901bc093",
+        isTrialAllowed: true,
+        durationSeconds: 1500
+      },
+      {
+        id: "c4-2-2",
+        courseId: "course-4",
+        title: "2-2 廣告成效解讀與 ROAS 投報率優化實戰",
+        completed: false,
+        streamId: "729486c91a0248888bf402a7b189872e",
+        isTrialAllowed: false,
+        durationSeconds: 1800
+      }
+    ]
+  },
+  {
+    id: 303,
+    courseId: "course-4",
+    title: "第 3 章：爆款短影音腳本結構與剪輯實操",
+    duration: "50 分鐘",
+    lessons: [
+      {
+        id: "c4-3-1",
+        courseId: "course-4",
+        title: "3-1 前 3 秒吸睛鉤子 Hook 設計公式",
+        completed: false,
+        streamId: "e4418a09bcae412398457788102947a1",
+        isTrialAllowed: false,
+        durationSeconds: 1500
+      },
+      {
+        id: "c4-3-2",
+        courseId: "course-4",
+        title: "3-2 剪映專業節奏踩點與商業完播率調校",
+        completed: false,
+        streamId: "fa90812bc81047712a55981245671190",
+        isTrialAllowed: false,
+        durationSeconds: 1500
       }
     ]
   }
@@ -652,8 +903,12 @@ let mockPortfolios = [
 ];
 
 let mockMaterials = [
-  { id: "mat-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "Full-Stack AI 專案開發", url: "https://cdn.pentaskill.com/react19_ai_handbook.pdf" },
-  { id: "mat-2", title: "UI/UX Design System 150+ Figma 元件庫", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 3D 擬態", url: "https://figma.com/file/demo-design-system" }
+  { id: "mat-1", courseId: "course-1", title: "React 19 與 AI Agent 核心講義 (PDF)", instructor: "張哲銘 (Ethan)", course: "AI 驅動 Full-Stack Web 開發實戰營", fileName: "React19_AI_Handbook.pdf", fileType: "pdf", fileSize: "3.8 MB", url: "https://cdn.pentaskill.com/react19_ai_handbook.pdf" },
+  { id: "mat-2", courseId: "course-1", title: "全端專案架構與 API 串接範例檔 (Word)", instructor: "張哲銘 (Ethan)", course: "AI 驅動 Full-Stack Web 開發實戰營", fileName: "Fullstack_Architecture_Guide.docx", fileType: "word", fileSize: "1.9 MB", url: "https://cdn.pentaskill.com/fullstack_guide.docx" },
+  { id: "mat-3", courseId: "course-2", title: "UI/UX Design System 150+ Figma 元件庫 (Figma)", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 Figma 設計系統實力班", fileName: "Design_System_150_Tokens.figma", fileType: "ppt", fileSize: "8.2 MB", url: "https://figma.com/file/demo-design-system" },
+  { id: "mat-4", courseId: "course-2", title: "星級求職作品集排版與設計覆盤指南 (PDF)", instructor: "陳婷俐 (Tina)", course: "UI/UX 產品設計與 Figma 設計系統實力班", fileName: "Portfolio_Review_Framework.pdf", fileType: "pdf", fileSize: "4.5 MB", url: "https://cdn.pentaskill.com/portfolio_framework.pdf" },
+  { id: "mat-5", courseId: "course-3", title: "Python 爬蟲腳本範例與 Requests 模組實戰 (PDF)", instructor: "歐陽翔 (Shawn)", course: "Python 數據分析與自動化爬蟲實務", fileName: "Python_Crawler_Mastery.pdf", fileType: "pdf", fileSize: "2.7 MB", url: "https://cdn.pentaskill.com/python_crawler.pdf" },
+  { id: "mat-6", courseId: "course-4", title: "短影音爆款 10 大黃金 Hook 腳本範本 (Word)", instructor: "林雅涵 (Hannah)", course: "高轉化率數位整合行銷與短影音電商實操", fileName: "Short_Video_10_Hooks.docx", fileType: "word", fileSize: "1.4 MB", url: "https://cdn.pentaskill.com/short_video_hooks.docx" }
 ];
 
 let mockLeads = [
