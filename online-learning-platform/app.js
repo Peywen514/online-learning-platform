@@ -9495,8 +9495,89 @@ function renderInstructorPortal() {
   switchPortalTab(currentPortalTab);
 }
 
+// 刷新講師 1-on-1 排班資料與月曆（具備重新讀取資料庫、旋轉動效、平滑重載與成功提示）
+async function refreshPortalBookings(btnElement) {
+  const btn = btnElement || document.querySelector('button[onclick*="refreshPortalBookings"], button[onclick*="renderPortalBookings"]');
+  const icon = btn ? btn.querySelector('i') : null;
+  if (icon) icon.classList.add('fa-spin');
+  if (btn) btn.disabled = true;
+
+  // 1. 容器微幅降低透明度，營造重新整理載入感知
+  const container = document.getElementById('portalBookingsList');
+  const calGrid = document.getElementById('portalCalendarGrid');
+  if (container) {
+    container.style.transition = 'opacity 0.2s ease';
+    container.style.opacity = '0.35';
+  }
+  if (calGrid) {
+    calGrid.style.transition = 'opacity 0.2s ease';
+    calGrid.style.opacity = '0.35';
+  }
+
+  // 2. 從本地持久快取重新拉取最新排班
+  try {
+    const saved = localStorage.getItem('pentaskill_bookings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        mockBookings = parsed;
+      }
+    }
+  } catch (e) {}
+
+  // 3. 嘗試自 Cloudflare KV 同步最新排班
+  if (typeof fetchCloudData === 'function') {
+    try {
+      const cloudData = await fetchCloudData('bookings');
+      if (Array.isArray(cloudData) && cloudData.length > 0) {
+        mockBookings = cloudData;
+        try { localStorage.setItem('pentaskill_bookings', JSON.stringify(mockBookings)); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+
+  // 4. 動態等待 400ms 確保旋轉感與載入感知
+  setTimeout(() => {
+    // 5. 重新渲染月曆與預約列表
+    if (typeof renderPortalCalendar === 'function') renderPortalCalendar();
+    renderPortalBookings(false);
+
+    // 6. 更新 KPI 數字與徽章
+    if (currentUser) {
+      const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
+      const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
+      const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+      const kpiBookingsEl = document.getElementById('portalKpiBookings');
+      if (kpiBookingsEl) kpiBookingsEl.innerHTML = `${myBookings.length} <small>場次</small>`;
+      const badge = document.getElementById('portalBookingsCountBadge');
+      if (badge) badge.innerText = `${myBookings.length} 場預約`;
+    }
+
+    // 7. 平滑恢復透明度
+    if (container) container.style.opacity = '1';
+    if (calGrid) calGrid.style.opacity = '1';
+
+    // 8. 停止圖示旋轉並恢復按鈕
+    if (icon) icon.classList.remove('fa-spin');
+    if (btn) btn.disabled = false;
+
+    // 9. 彈出明確的即時成功通知 Toast
+    if (typeof showToast === 'function') {
+      showToast('🔄 1 對 1 專屬排班課表與月行事曆已即時同步更新！');
+    }
+  }, 400);
+}
+
 // TAB 1: 1-on-1 個教排班
-function renderPortalBookings() {
+function renderPortalBookings(autoCheckClick = true) {
+  // 防呆相容：如果使用者直接點擊了包含「刷新排班」文字的按鈕觸發此函式，自動導向完整的動態刷新
+  if (autoCheckClick && typeof window !== 'undefined' && window.event && window.event.type === 'click') {
+    const target = window.event.target;
+    const btn = target ? target.closest('button') : null;
+    if (btn && btn.textContent && btn.textContent.includes('刷新排班')) {
+      return refreshPortalBookings(btn);
+    }
+  }
   if (typeof renderPortalCalendar === 'function') renderPortalCalendar();
   const container = document.getElementById('portalBookingsList');
   if (!container || !currentUser) return;
