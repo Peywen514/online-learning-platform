@@ -28,6 +28,27 @@ function calcDynamicDateTimeOffset(offsetDays = 0, timeStr = '12:00') {
   return `${calcDynamicDateOffset(offsetDays)} ${timeStr}`;
 }
 
+// 📅 解析預約行程之確切起始毫秒時間戳 (支援 YYYY-MM-DD 與 14:00 - 15:00 格式)
+function parseBookingStartTime(booking) {
+  if (!booking || !booking.date) return 0;
+  const slot = (booking.slotTime || '').split(' - ')[0] || '00:00';
+  const [h, m] = slot.split(':').map(val => String(val || 0).padStart(2, '0'));
+  const isoStr = `${booking.date}T${h || '00'}:${m || '00'}:00`;
+  const time = new Date(isoStr).getTime();
+  return isNaN(time) ? 0 : time;
+}
+
+// 📅 將預約行程按上課時間先後順序（已先到的時間排在上方，即由近到遠 / 升冪排列）
+function sortBookingsChronologically(bookings) {
+  if (!Array.isArray(bookings)) return [];
+  return [...bookings].sort((a, b) => {
+    const timeA = parseBookingStartTime(a);
+    const timeB = parseBookingStartTime(b);
+    return timeA - timeB;
+  });
+}
+
+
 // 脫敏使用者列表：僅保留前台學員與金牌講師帳號（已徹底剔除 Wen總監、陳顧問、營運員工帳號與密碼）
 const mockUsers = [
   {

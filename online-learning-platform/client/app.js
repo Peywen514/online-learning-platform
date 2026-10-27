@@ -2869,7 +2869,7 @@ function renderBookingAdminTable() {
 
   const filterVal = filterSelect ? filterSelect.value : 'all';
 
-  const filtered = filterVal === 'all' 
+  const rawFiltered = filterVal === 'all' 
     ? mockBookings 
     : mockBookings.filter(b => b.instructor === filterVal || b.instructor.includes(filterVal.split(' ')[0]));
 
@@ -2878,6 +2878,7 @@ function renderBookingAdminTable() {
     return;
   }
 
+  const filtered = sortBookingsChronologically(rawFiltered);
   tbody.innerHTML = filtered.map(b => `
     <tr>
       <td data-label="預約編號"><code>${b.id}</code></td>
@@ -6854,7 +6855,7 @@ function renderStudentBookings() {
   const container = document.getElementById('studentUpcomingList');
   if (!container) return;
 
-  const studentBookings = mockBookings.filter(b => b.status !== '已取消');
+  const studentBookings = sortBookingsChronologically(mockBookings.filter(b => b.status !== '已取消'));
 
   // 更新手機端分頁上的預約堂數徽章
   const mobileBadge = document.getElementById('mobileUpcomingBadge');
@@ -9391,7 +9392,7 @@ function renderInstructorPortal() {
   }
 
   // 2. Calculate Personal KPIs
-  const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+  const myBookings = sortBookingsChronologically(isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName)));
   const myCourses = isAdminPreview ? mockCourses : mockCourses.filter(c => c.instructor && c.instructor.includes(cleanName));
   const targetSalaryName = isAdminPreview ? (mockInstructors[0] ? mockInstructors[0].name : currentUser.name) : currentUser.name;
   const salaryData = (typeof getInstructorPersonalSalary === 'function') ? getInstructorPersonalSalary(targetSalaryName) : null;
@@ -9466,7 +9467,7 @@ async function refreshPortalBookings(btnElement) {
     if (currentUser) {
       const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
       const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
-      const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+      const myBookings = sortBookingsChronologically(isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName)));
       myBookingsCount = myBookings.length;
       const kpiBookingsEl = document.getElementById('portalKpiBookings');
       if (kpiBookingsEl) kpiBookingsEl.innerHTML = `${myBookingsCount} <small>場次</small>`;
@@ -9508,7 +9509,7 @@ function renderPortalBookings(autoCheckClick = true) {
 
   const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
   const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
-  const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+  const myBookings = sortBookingsChronologically(isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName)));
 
   if (myBookings.length === 0) {
     container.innerHTML = `

@@ -3321,7 +3321,7 @@ function renderBookingAdminTable() {
 
   const filterVal = filterSelect ? filterSelect.value : 'all';
 
-  const filtered = filterVal === 'all' 
+  const rawFiltered = filterVal === 'all' 
     ? mockBookings 
     : mockBookings.filter(b => b.instructor === filterVal || b.instructor.includes(filterVal.split(' ')[0]));
 
@@ -3330,6 +3330,7 @@ function renderBookingAdminTable() {
     return;
   }
 
+  const filtered = sortBookingsChronologically(rawFiltered);
   tbody.innerHTML = filtered.map(b => `
     <tr>
       <td data-label="預約編號"><code>${b.id}</code></td>
@@ -7265,7 +7266,7 @@ function renderStudentBookings() {
   const container = document.getElementById('studentUpcomingList');
   if (!container) return;
 
-  const studentBookings = mockBookings.filter(b => b.status !== '已取消');
+  const studentBookings = sortBookingsChronologically(mockBookings.filter(b => b.status !== '已取消'));
 
   // 更新手機端分頁上的預約堂數徽章
   const mobileBadge = document.getElementById('mobileUpcomingBadge');
