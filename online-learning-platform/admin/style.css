@@ -2825,11 +2825,16 @@ select option {
 }
 
 .site-footer {
+  position: relative !important;
+  clear: both !important;
+  width: 100% !important;
+  margin-top: 3.5rem !important;
   border-top: 1px solid var(--bg-card-border);
-  padding: 2rem 0;
+  padding: 2.5rem 0;
   color: var(--text-muted);
   font-size: 0.85rem;
   background: rgba(0,0,0,0.4);
+  z-index: 1;
 }
 
 /* Star Portfolios Showcase Box */
