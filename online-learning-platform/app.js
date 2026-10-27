@@ -9495,12 +9495,16 @@ function renderInstructorPortal() {
   switchPortalTab(currentPortalTab);
 }
 
-// 刷新講師 1-on-1 排班資料與月曆（具備重新讀取資料庫、旋轉動效、平滑重載與成功提示）
+// 刷新講師 1-on-1 排班資料與月曆（具備重新讀取資料庫、按鈕文字切換、旋轉動效、平滑重載與成功提示）
 async function refreshPortalBookings(btnElement) {
   const btn = btnElement || document.querySelector('button[onclick*="refreshPortalBookings"], button[onclick*="renderPortalBookings"]');
-  const icon = btn ? btn.querySelector('i') : null;
-  if (icon) icon.classList.add('fa-spin');
-  if (btn) btn.disabled = true;
+  const originalHtml = '<i class="fa-solid fa-rotate"></i> 刷新排班';
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> 正在同步課表...';
+    btn.style.opacity = '0.85';
+  }
 
   // 1. 容器微幅降低透明度，營造重新整理載入感知
   const container = document.getElementById('portalBookingsList');
@@ -9536,36 +9540,41 @@ async function refreshPortalBookings(btnElement) {
     } catch (e) {}
   }
 
-  // 4. 動態等待 400ms 確保旋轉感與載入感知
+  // 4. 動態等待 450ms 確保旋轉感與載入感知
   setTimeout(() => {
     // 5. 重新渲染月曆與預約列表
     if (typeof renderPortalCalendar === 'function') renderPortalCalendar();
     renderPortalBookings(false);
 
-    // 6. 更新 KPI 數字與徽章
+    // 6. 計算當前排班數並更新 KPI 數字與徽章
+    let myBookingsCount = 0;
     if (currentUser) {
       const isAdminPreview = currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff';
       const cleanName = currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim();
       const myBookings = isAdminPreview ? mockBookings : mockBookings.filter(b => b.instructor && b.instructor.includes(cleanName));
+      myBookingsCount = myBookings.length;
       const kpiBookingsEl = document.getElementById('portalKpiBookings');
-      if (kpiBookingsEl) kpiBookingsEl.innerHTML = `${myBookings.length} <small>場次</small>`;
+      if (kpiBookingsEl) kpiBookingsEl.innerHTML = `${myBookingsCount} <small>場次</small>`;
       const badge = document.getElementById('portalBookingsCountBadge');
-      if (badge) badge.innerText = `${myBookings.length} 場預約`;
+      if (badge) badge.innerText = `${myBookingsCount} 場預約`;
     }
 
     // 7. 平滑恢復透明度
     if (container) container.style.opacity = '1';
     if (calGrid) calGrid.style.opacity = '1';
 
-    // 8. 停止圖示旋轉並恢復按鈕
-    if (icon) icon.classList.remove('fa-spin');
-    if (btn) btn.disabled = false;
+    // 8. 恢復按鈕文字與狀態
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+      btn.style.opacity = '1';
+    }
 
     // 9. 彈出明確的即時成功通知 Toast
     if (typeof showToast === 'function') {
-      showToast('🔄 1 對 1 專屬排班課表與月行事曆已即時同步更新！');
+      showToast(`🔄 1 對 1 排班課表已同步！目前共 ${myBookingsCount} 場已排定行程。`);
     }
-  }, 400);
+  }, 450);
 }
 
 // TAB 1: 1-on-1 個教排班
