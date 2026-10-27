@@ -475,3 +475,22 @@ ode -c 檢驗 0 error。
        - **學員視角**：格子內標示「上課時段 ＋ 講師姓名」（如：`14:00 張哲銘 講師`）。
        - **講師視角**：格子內標示「上課時段 ＋ 預約學員姓名」（如：`14:00 林小明 學員`），並自動過濾只呈現名下輔導行程。
        - **平台主管/員工視角**：格子內標示師生媒合資訊（如：`14:00 張哲銘 ➜ 林小明`），全站排課一覽無遺。
+
+- **🧪 RBAC 權限測試、後台頁尾遮擋修復、刷新排班有感強化 ＆ 📅 預約行程時間先到者置頂排序（2026/10/27 完工）**：
+  1. **RBAC 全角色權限自動化回歸測試**：
+     - 建立全自動化測試套件，針對平台主管 (Wen總監)、專業顧問 (陳顧問)、營運員工 (張雅涵)、金牌講師 (張哲銘)、消費者學員 (林小明) 與未登入訪客完成 **66 / 66 測試項目 100% 全數通過**。
+     - 驗證後台 Zero-Trust PIN 碼閘門 (514888 / 121000 / 888999)、講師價格欄位隱藏、學員存取後台即時轉向學員專區等資安邊界。
+  2. **管理後台右下角頁尾文字遮擋問題徹底修復**：
+     - **問題根因**：`admin/index.html` 中 `#adminPinConfigModal` (OTP 白名單彈窗) 誤嵌於右下角懸浮組件容器且有未閉合 `<div>`，導致 `<footer class="site-footer">` 繼承懸浮樣式被釘在右下角。
+     - **修復落實**：獨立抽離彈窗並清理後台不需要的行銷氣泡；於 `admin/style.css` 中強制規範 `.site-footer { position: relative !important; clear: both !important; width: 100% !important; margin-top: 3.5rem !important; }`，頁尾徹底回歸正常文檔流底端。
+  3. **講師工作台「刷新排班」按鈕強回饋與資料庫重載升級**：
+     - 升級為 `refreshPortalBookings()`：點擊瞬間按鈕文字立即切換為「`<i class="fa-solid fa-rotate fa-spin"></i> 正在同步課表...`」，並降低容器透明度營造載入體感。
+     - 重新自 `localStorage` 與 Cloudflare KV API 雙向拉取最新排班，同步更新月行事曆與 KPI，完成後彈出清晰 Toast 提示（回報當前場次數，如「目前共 1 場已排定行程」），徹底消除「看似沒反應」的疑慮。
+     - 全站前端快取版本號全面提升至 `?v=20261027_v3`，強制瀏覽器載入最新代碼。
+  4. **1 對 1 預約行程上課時間「時間先到者排在最上方」升級**：
+     - 於 `data.js` 建立 `parseBookingStartTime()` 與 `sortBookingsChronologically()` 升冪排序核心。
+     - 講師工作台 (`renderPortalBookings`)、學員端預約教室 (`renderStudentBookings`)、管理後台總表 (`renderBookingAdminTable`) 全面套用先到時間置頂排序，越接近當前的課程最優先顯示於最上方。
+  5. **當前環境狀態與明日測試接續**：
+     - 本地伺服器正常運行中：`http://localhost:8080/`、`http://localhost:8080/admin/`、`http://localhost:8080/client/`。
+     - 遠端 GitHub `main` 分支 (Commit: `268502a`) 與 Cloudflare Workers 線上端已完成發布。
+     - **明日待接續工作**：繼續執行各角色跨裝置預約、取消/改期雙向連動、月結薪資結算試算等實機流程驗證。
