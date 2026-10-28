@@ -4433,3 +4433,20 @@ select option {
     font-size: 0.65rem;
   }
 }
+
+
+/* 1-on-1 Booking Modal Positioning & Backdrop Guarantee */
+#newBookingModal { z-index: 2500 !important; }
+#newBookingModal.active { display: flex !important; }
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+.modal.active { display: flex !important; }
