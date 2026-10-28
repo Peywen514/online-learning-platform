@@ -8144,19 +8144,25 @@ function renderStudentBookings() {
   const container = document.getElementById('studentUpcomingList');
   if (!container) return;
 
+  let studentBookings = [];
 
-  const isManagerOrStaff = currentUser && (currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff');
-  const studentBookings = sortBookingsChronologically(mockBookings.filter(b => {
-    if (b.status === '已取消') return false;
-    if (isManagerOrStaff) return true;
-    if (currentUser && currentUser.role === 'student') {
-      const cleanStudentName = currentUser.name.replace(/（.*）|\(.*\)|\s*學員/g, '').trim();
+  if (!currentUser) {
+    // 訪客未登入狀態：清單為空，呈現訪客專屬引導
+    studentBookings = [];
+  } else if (currentUser.role === 'manager' || currentUser.role === 'consultant' || currentUser.role === 'staff') {
+    // 主管/員工模式：可全覽全站排課
+    studentBookings = sortBookingsChronologically(mockBookings.filter(b => b.status !== '已取消'));
+  } else if (currentUser.role === 'student') {
+    // 學員本人：嚴格過濾僅呈現該學員之行程
+    const cleanStudentName = currentUser.name.replace(/（.*）|\(.*\)|\s*學員/g, '').trim();
+    studentBookings = sortBookingsChronologically(mockBookings.filter(b => {
+      if (b.status === '已取消') return false;
       return (b.studentEmail && currentUser.email && b.studentEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
              (b.studentName && cleanStudentName && b.studentName.includes(cleanStudentName));
-    }
-    return true;
-  }));
-
+    }));
+  } else {
+    studentBookings = [];
+  }
 
   // 更新手機端分頁上的預約堂數徽章
   const mobileBadge = document.getElementById('mobileUpcomingBadge');
@@ -8169,10 +8175,35 @@ function renderStudentBookings() {
     }
   }
 
-
-    const paidInstructors = (typeof getPaidInstructorsForUser === 'function') ? getPaidInstructorsForUser(currentUser) : [];
+  const paidInstructors = (typeof getPaidInstructorsForUser === 'function') ? getPaidInstructorsForUser(currentUser) : [];
   const hasPaid1on1 = paidInstructors.length > 0;
+
   if (studentBookings.length === 0) {
+    if (!currentUser) {
+      container.innerHTML = `
+        <div class="empty-booking-card" style="text-align:center; padding: 2.2rem 1.25rem; background: rgba(15, 23, 42, 0.45); border: 1.5px dashed rgba(255, 255, 255, 0.15); border-radius: 16px;">
+          <div style="font-size: 2.4rem; color: #38bdf8; margin-bottom: 0.5rem;"><i class="fa-solid fa-user-lock"></i></div>
+          <div style="font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.35rem;">您目前為訪客未登入狀態</div>
+          <p class="text-xs text-muted" style="margin-bottom: 1.25rem; line-height: 1.7; max-width: 520px; margin-left: auto; margin-right: auto; font-size: 0.88rem;">
+            登入後即可查看您的個人 1 對 1 排班課表與上課進度。<br>
+            如尚未開通 1-on-1 正式學籍，請洽【精五門 LINE@】官方小編洽詢開通！
+          </p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="openLoginModal()" style="font-size: 0.9rem; padding: 7px 18px; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <i class="fa-solid fa-right-to-bracket"></i> 立即登入學員帳號
+            </button>
+            <a href="https://lin.ee/yq4lFuv" target="_blank" class="btn btn-outline" style="border-color: #06C755; color: #06C755; font-size: 0.9rem; padding: 7px 16px; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <i class="fa-brands fa-line" style="font-size: 1.15rem;"></i> 請洽精五門 LINE@ 洽詢
+            </a>
+          </div>
+          <div style="margin-top: 1rem; font-size: 0.78rem; color: #94a3b8;">
+            官方 LINE@ ID：<span style="color: #06C755; font-weight: 600;">@pentaskill</span> ｜ 服務時間：週一至週五 09:30 - 18:30
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     if (!hasPaid1on1) {
       container.innerHTML = `
         <div class="empty-booking-card" style="text-align:center; padding: 2rem 1.25rem; background: rgba(239, 68, 68, 0.05); border: 1.5px dashed rgba(244, 63, 94, 0.4); border-radius: 16px;">
@@ -8197,6 +8228,7 @@ function renderStudentBookings() {
       `;
       return;
     }
+
     container.innerHTML = `
       <div class="empty-booking-card" style="text-align:center; padding: 1.25rem 0.75rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: var(--radius-md);">
         <div style="font-size: 1.6rem; color: var(--accent-cyan); margin-bottom: 0.35rem;"><i class="fa-regular fa-calendar-check"></i></div>
@@ -10983,16 +11015,24 @@ function renderClassroomCalendar(year, month) {
   // 取得有效預約 (排除已取消)
   let activeBookings = (typeof mockBookings !== 'undefined' ? mockBookings : []).filter(b => b.status !== '已取消');
 
-
-  // ⭐️ 雙向角色智能感知：
+  // ⭐️ 雙向角色智能感知與未登入隱私防護：
   const isInstructor = currentUser && currentUser.role === 'instructor';
   const isStaffOrAdmin = currentUser && (currentUser.role === 'manager' || currentUser.role === 'staff' || currentUser.role === 'consultant');
-  const cleanCurrentName = currentUser ? currentUser.name.replace(/（.*）|\(.*\)|\s*講師/g, '').trim() : '';
+  const isStudent = currentUser && currentUser.role === 'student';
+  const cleanCurrentName = currentUser ? currentUser.name.replace(/（.*）|\(.*\)|\s*講師|\s*學員/g, '').trim() : '';
 
-
-  // 若以金牌講師登入，行事曆自動專注篩選其名下預約；管理者則瀏覽全體預約
   if (isInstructor) {
+    // 講師工作台：只呈現自己名下帶課預約
     activeBookings = activeBookings.filter(b => b.instructor && b.instructor.includes(cleanCurrentName));
+  } else if (isStudent) {
+    // 學員個人行事曆：只呈現本人預約之行程
+    activeBookings = activeBookings.filter(b => {
+      return (b.studentEmail && currentUser.email && b.studentEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+             (b.studentName && cleanCurrentName && b.studentName.includes(cleanCurrentName));
+    });
+  } else if (!isStaffOrAdmin) {
+    // 訪客未登入狀態：清空日曆私人預約標籤，嚴格杜絕他人預約資料外洩
+    activeBookings = [];
   }
 
 
