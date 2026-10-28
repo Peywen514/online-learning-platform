@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logos/logonew.png">
-  <link rel="stylesheet" href="style.css?v=20261028_v2">
+  <link rel="stylesheet" href="style.css?v=20261028_v4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -1185,15 +1185,18 @@
 
 
             <!-- 圖例與資訊 -->
-            <div class="calendar-legend" style="display: flex; align-items: center; gap: 1rem; font-size: 0.82rem; color: #94a3b8; flex-wrap: wrap;">
+            <div class="calendar-legend" style="display: flex; align-items: center; gap: 1rem; font-size: 0.82rem; color: #cbd5e1; flex-wrap: wrap;">
               <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; display: inline-block;"></span> 已預約個教
+                <span style="width: 12px; height: 12px; border-radius: 4px; background: linear-gradient(135deg, #a855f7, #6366f1); display: inline-block; box-shadow: 0 0 8px rgba(168,85,247,0.6);"></span> 已排定個教
               </span>
               <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> 即時可入場
+                <span style="width: 12px; height: 12px; border-radius: 4px; background: linear-gradient(135deg, #10b981, #059669); display: inline-block; box-shadow: 0 0 8px rgba(16,185,129,0.6);"></span> 即時可入場
               </span>
               <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 10px; height: 10px; border-radius: 50%; background: #a855f7; display: inline-block;"></span> 開放預約日
+                <span style="width: 12px; height: 12px; border-radius: 4px; background: #06b6d4; display: inline-block; box-shadow: 0 0 8px rgba(6,182,212,0.6);"></span> 今天日期
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                <span style="width: 12px; height: 12px; border-radius: 4px; background: rgba(168, 85, 247, 0.25); border: 1.5px solid #c084fc; display: inline-block;"></span> ➕ 預約新堂數
               </span>
             </div>
 
@@ -1448,12 +1451,15 @@
                   今天
                 </button>
               </div>
-              <div class="calendar-legend" style="display: flex; align-items: center; gap: 1rem; font-size: 0.82rem; color: #94a3b8; flex-wrap: wrap;">
+              <div class="calendar-legend" style="display: flex; align-items: center; gap: 1rem; font-size: 0.82rem; color: #cbd5e1; flex-wrap: wrap;">
                 <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; display: inline-block;"></span> 學員預約已排定
+                  <span style="width: 12px; height: 12px; border-radius: 4px; background: linear-gradient(135deg, #a855f7, #6366f1); display: inline-block; box-shadow: 0 0 8px rgba(168,85,247,0.6);"></span> 學員預約已排定
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> 課前 10 分鐘即時可入場
+                  <span style="width: 12px; height: 12px; border-radius: 4px; background: linear-gradient(135deg, #10b981, #059669); display: inline-block; box-shadow: 0 0 8px rgba(16,185,129,0.6);"></span> 課前 10 分鐘即時可入場
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <span style="width: 12px; height: 12px; border-radius: 4px; background: #06b6d4; display: inline-block; box-shadow: 0 0 8px rgba(6,182,212,0.6);"></span> 今天日期
                 </span>
               </div>
               <div>
@@ -4786,8 +4792,8 @@
 
   <script src="jszip.min.js"></script>
   <script src="pdf-lib.min.js"></script>
-  <script src="data.js?v=20261028_v2"></script>
-  <script src="app.js?v=20261028_v2"></script>
+  <script src="data.js?v=20261028_v4"></script>
+  <script src="app.js?v=20261028_v4"></script>
 
 
     <!-- MODAL: 📅 預約專屬 1-on-1 個教時段彈窗 (直觀極簡月曆連動) -->

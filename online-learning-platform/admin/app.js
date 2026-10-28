@@ -11061,11 +11061,20 @@ function renderClassroomCalendar(year, month) {
     const dayBookings = activeBookings.filter(b => b.date === dateStr);
 
 
+    const dayOfWeek = new Date(calCurrentYear, calCurrentMonth, d).getDay();
+    const weekendClass = dayOfWeek === 0 ? 'is-sunday' : (dayOfWeek === 6 ? 'is-saturday' : '');
+
     html += `
-      <div class="cal-day-cell ${isToday ? 'today' : ''} ${dayBookings.length > 0 ? 'has-booking' : ''}">
+      <div class="cal-day-cell ${weekendClass} ${isToday ? 'today' : ''} ${dayBookings.length > 0 ? 'has-booking' : ''}">
         <div class="cal-day-header">
-          <span class="cal-day-number">${d}</span>
-          ${!isInstructor ? `<button type="button" class="cal-quick-add" onclick="openNewBookingModal('${dateStr}')" title="預約 ${dateStr} 個教時段"><i class="fa-solid fa-plus"></i></button>` : ''}
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <span class="cal-day-number">${d}</span>
+            ${isToday ? '<span class="cal-today-tag">今天</span>' : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap: 4px;">
+            ${dayBookings.length > 0 ? `<span class="cal-booking-count-badge" title="本日共有 ${dayBookings.length} 堂個教排程"><i class="fa-solid fa-graduation-cap"></i> ${dayBookings.length}堂</span>` : ''}
+            ${!isInstructor ? `<button type="button" class="cal-quick-add" onclick="openNewBookingModal('${dateStr}')" title="預約 ${dateStr} 個教時段"><i class="fa-solid fa-plus"></i></button>` : ''}
+          </div>
         </div>
         <div class="cal-day-bookings">
     `;
@@ -11217,10 +11226,19 @@ function renderPortalCalendar(year, month) {
     const dayBookings = activeBookings.filter(b => b.date === dateStr);
 
 
+    const dayOfWeek = new Date(portalCalYear, portalCalMonth, d).getDay();
+    const weekendClass = dayOfWeek === 0 ? 'is-sunday' : (dayOfWeek === 6 ? 'is-saturday' : '');
+
     html += `
-      <div class="cal-day-cell ${isToday ? 'today' : ''} ${dayBookings.length > 0 ? 'has-booking' : ''}">
+      <div class="cal-day-cell ${weekendClass} ${isToday ? 'today' : ''} ${dayBookings.length > 0 ? 'has-booking' : ''}">
         <div class="cal-day-header">
-          <span class="cal-day-number">${d}</span>
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <span class="cal-day-number">${d}</span>
+            ${isToday ? '<span class="cal-today-tag">今天</span>' : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap: 4px;">
+            ${dayBookings.length > 0 ? `<span class="cal-booking-count-badge" title="本日共有 ${dayBookings.length} 堂個教排程"><i class="fa-solid fa-graduation-cap"></i> ${dayBookings.length}堂</span>` : ''}
+          </div>
         </div>
         <div class="cal-day-bookings">
     `;
