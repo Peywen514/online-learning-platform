@@ -494,3 +494,18 @@ ode -c 檢驗 0 error。
      - 本地伺服器正常運行中：`http://localhost:8080/`、`http://localhost:8080/admin/`、`http://localhost:8080/client/`。
      - 遠端 GitHub `main` 分支 (Commit: `268502a`) 與 Cloudflare Workers 線上端已完成發布。
      - **明日待接續工作**：繼續執行各角色跨裝置預約、取消/改期雙向連動、月結薪資結算試算等實機流程驗證。
+
+- **🛠️ 1 對 1 預約同步轉圈圈卡死與清單未條列問題徹底修復（2026/10/28 完工）**：
+  1. **修復 renderBookingAdminTable 之 TDZ 變數未宣告錯誤**：
+     - 先前在排序代碼中，if (filtered.length === 0) 誤置於 const filtered = sortBookingsChronologically(rawFiltered); 前方，導致學員點擊預約後觸發 ReferenceError: Cannot access 'filtered' before initialization。現已修正順序，排班表格全域安全執行。
+  2. **根除刷新排班無限轉圈圈 (Infinite Spin) 問題**：
+     - etchCloudData 增加 2000ms AbortController 逾時防禦，避免網路掛起延遲。
+     - 
+efreshPortalBookings 引入全域 
+estoreUI 與安全還原機制，350ms 內一定平滑解除旋轉動畫並彈出同步結果，不再永久卡死。
+  3. **智慧雙向排班合併 (Smart Merge)**：
+     - 雲端拉取資料時採用 Map 比對單號 ID，保留本機最新新增之預約，徹底避免遠端舊快照覆蓋剛約好的新行程導致「沒有條列出來」。
+  4. **學員專區同步新增「🔄 刷新課表」按鈕**：
+     - 前台「我的已排定 1 對 1 個教行程」卡片頂端新增一鍵刷新功能，學員端與講師端皆可零延遲手動同步。
+  5. **靜態快取升級**：
+     - 全站靜態資源版本號全面更新為 ?v=20261028_v1。
