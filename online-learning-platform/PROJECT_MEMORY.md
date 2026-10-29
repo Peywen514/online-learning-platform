@@ -548,3 +548,18 @@ estoreUI 與安全還原機制，350ms 內一定平滑解除旋轉動畫並彈�
      - 即時教室（進行中/課前10分）為鮮明翠綠霓虹發光（#10b981）+ 動態雷達綠點。
   5. **全站版本號升級**：
      - 前端資源快取版本號全面提升至 ?v=20261028_v4。
+
+- **🛠️ 1 對 1 視訊教室角色徹底解耦、時效守門員與頭像雙重持久化修復（2026/10/29 完工）**：
+  1. **1 對 1 視訊教室講師與學員徹底解耦（杜絕同一人雙胞胎）**：
+     - **問題根因**：舊版 updateLiveRoomUI 將右側學員欄位強制指定為 currentUser。當講師（如張哲銘）登入並點入教室時，左側為張哲銘，右側也被套上張哲銘，導致雙方視訊框同為一人的嚴重瑕疵。
+     - **解決方案**：右側學員視訊框改為依據該預約單（ooking.studentName）之真實學員動態渲染（如：林小明）；僅當登入者為該堂課之學員本人時才於姓名旁加註「(你)」。若登入者為授課講師，左側講師框顯示「(你)」，右側維持顯示學員，雙方角色各自獨立清晰。
+  2. **行事曆預約晶片點擊時效防呆補齊（10分鐘時效守門員）**：
+     - **修復點**：enterSpecificLiveRoom(bookingId) 補上 getBookingTimeInfo 校驗；若未達開課前 10 分鐘（且非管理人員巡堂），即時彈出溫馨提示阻擋提前誤入，防止 3 天後（如 11/01）尚未開課之排程被直接進入。
+  3. **手機換頭像重新登入不見問題徹底根治（雙重持久化與 Cloudflare 路由修復）**：
+     - **專屬本地雙重持久化備份**：於更新個人資料時寫入 localStorage.setItem('pentaskill_avatar_' + email, newAvatar)。每次重新登入或載入 session 時優先檢索此專屬鍵值，徹底防範手機瀏覽器快取刷新或預設 mockUsers 覆蓋。
+     - **講師名冊多庫同步**：若登入者身分屬講師（Instructor），修改個人資料時同步聯動更新 mockInstructors 與 instructorRoomData，並自動推播至雲端。
+     - **Cloudflare Workers 路由修復**：於 wrangler.toml 加入 
+un_worker_first = true，使 /api/cloud-sync 與 /api/cloud-sync-all 不會被 Cloudflare Static Assets 誤判 404 攔截，確保所有資料與圖片皆可直通 Worker 並安全持久化至 PENTASKILL_KV。
+  4. **全端檔案三端一致性同步與版本號升級**：
+     - 根目錄、dmin/ 與 client/ 三端代碼全量同步，快取版本號升級為 ?v=20261029_v1。
+     - GitHub Commit: 5d062c2 已推送至 origin/main。
