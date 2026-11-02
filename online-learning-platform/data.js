@@ -56,7 +56,7 @@ const mockUsers = [
     password: "admin514",
     role: "manager",
     roleLabel: "👑 平台主管 (Manager)",
-    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80812345678999999", accountLast5: "99999" },
+    bankInfo: { bankName: "玉山銀行 (808)", accountLast5: "99999" },
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
   },
   {
@@ -66,52 +66,52 @@ const mockUsers = [
     password: "liwei1210",
     role: "consultant",
     roleLabel: "💼 顧問 (Consultant)",
-    bankInfo: { bankName: "中國信託 (822)", bankAccount: "82299887766554433", accountLast5: "54433" },
+    bankInfo: { bankName: "中國信託 (822)", accountLast5: "54433" },
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
   },
   {
     id: "u-2",
     name: "張雅涵",
     email: "yahan@pentaskill.com",
-    phone: "0912-334-556",
+    phone: "0912-***-556",
     password: "staff123",
     role: "staff",
     roleLabel: "🧑‍💼 營運員工 (Staff)",
-    bankInfo: { bankName: "國泰世華 (013)", bankAccount: "01358899123419482", accountLast5: "19482" },
+    bankInfo: { bankName: "國泰世華 (013)", accountLast5: "19482" },
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
   },
   {
     id: "u-2b",
     name: "陳冠宇",
     email: "guanyu@pentaskill.com",
-    phone: "0922-111-222",
+    phone: "0922-***-222",
     password: "staff123",
     role: "staff",
     roleLabel: "🧑‍💼 營運員工 (Staff)",
-    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80866554433238104", accountLast5: "38104" },
+    bankInfo: { bankName: "玉山銀行 (808)", accountLast5: "38104" },
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
   },
   {
     id: "u-2c",
     name: "林怡均",
     email: "yijun@pentaskill.com",
-    phone: "0933-444-555",
+    phone: "0933-***-555",
     password: "staff123",
     role: "staff",
     roleLabel: "🧑‍💼 營運員工 (Staff)",
-    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81288776655462951", accountLast5: "62951" },
+    bankInfo: { bankName: "台新銀行 (812)", accountLast5: "62951" },
     avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80"
   },
   {
     id: "u-3",
     name: "林小明 (學員)",
     email: "student@pentaskill.com",
-    phone: "0912-345-678",
+    phone: "0912-***-678",
     title: "先生",
     password: "user123",
     role: "student",
     roleLabel: "🎓 消費者學員 (Student)",
-    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81200112233445566", accountLast5: "45566" },
+    bankInfo: { bankName: "台新銀行 (812)", accountLast5: "45566" },
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
     coins: 100,
     masterTokens: 2,
@@ -125,7 +125,7 @@ const mockUsers = [
     password: "ethan123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
-    bankInfo: { bankName: "玉山銀行 (808)", bankAccount: "80898765432158923", accountLast5: "58923" },
+    bankInfo: { bankName: "玉山銀行 (808)", accountLast5: "58923" },
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
   },
   {
@@ -135,7 +135,7 @@ const mockUsers = [
     password: "tina123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
-    bankInfo: { bankName: "國泰世華 (013)", bankAccount: "01377889900147281", accountLast5: "47281" },
+    bankInfo: { bankName: "國泰世華 (013)", accountLast5: "47281" },
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80"
   },
   {
@@ -145,7 +145,7 @@ const mockUsers = [
     password: "shawn123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
-    bankInfo: { bankName: "台新銀行 (812)", bankAccount: "81255667788992345", accountLast5: "92345" },
+    bankInfo: { bankName: "台新銀行 (812)", accountLast5: "92345" },
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80"
   },
   {
@@ -155,7 +155,7 @@ const mockUsers = [
     password: "hannah123",
     role: "instructor",
     roleLabel: "👨‍🏫 金牌講師 (Instructor)",
-    bankInfo: { bankName: "中國信託 (822)", bankAccount: "82233445566731980", accountLast5: "31980" },
+    bankInfo: { bankName: "中國信託 (822)", accountLast5: "31980" },
     avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80"
   }
 ];
@@ -987,7 +987,7 @@ let mockLeads = [
     id: "lead-101",
     createdAt: calcDynamicDateTimeOffset(0, '14:15'),
     name: "陳姿涵",
-    phone: "0912-345-678",
+    phone: "0912-***-678",
     email: "zihan@example.com",
     course: "UI/UX 產品設計與 Figma 設計系統實力班",
     identity: "💼 上班族 (希望職場提升/加薪)",

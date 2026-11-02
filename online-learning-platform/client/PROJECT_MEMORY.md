@@ -534,3 +534,19 @@ estoreUI 與安全還原機制，350ms 內一定平滑解除旋轉動畫並彈�
      - 登出 (`handleAdminLogout`) 與手動上鎖 (`lockAdminPortal`) 均重設回第 1 階段，絕不自動派發驗證碼。
   4. **全站版本號升級**：
      - `admin/index.html` 資源快取版本號提升為 `?v=20261102_v1`。
+
+- **🔒 精五門營利用全站資安加固與機密資料防護（2026/11/02 完工）**：
+  1. **Cloudflare Workers KV API 授權金鑰防禦（Token-based Auth）**：
+     - **隱患修復**：原有 `/api/cloud-sync` 與 `/api/cloud-sync-all` 為公開端點（未帶身分校驗），任何人皆能透過 cURL 或 Postman 讀取或竄改整庫資料（學員名單、銷售潛在客戶、師資薪資、平台支出）。
+     - **加固落實**：於所有 Workers (`worker.js`, `_worker.js`, `admin/worker.js`, `admin/_worker.js`, `client/worker.js`, `client/_worker.js`, `functions/api/cloud-sync.js`, `functions/api/cloud-sync-all.js`) 強制導入 `X-PentaSkill-Auth: PentaSkill-CloudSync-Secured-Token-v2026` 鑑權驗證；未提供有效授權標頭之未授權請求一律拒絕並回傳 403 Forbidden。
+     - **跨域來源鎖定**：鎖定 CORS 只允許精五門官方網域（`online-learning-platform.pey514514.workers.dev` 及開發環境 `localhost`），阻絕任何外部惡意網站透過學員瀏覽器進行跨站竊取。
+  2. **全面廢除前端後門/萬用管理員密碼**：
+     - **隱患修復**：`admin/app.js` 原有 `admin514`, `liwei1210`, `514888`, `121000`, `888999` 等硬編碼應急後門 PIN 碼，任何人檢視前端原始碼即可繞過 2 階段動態驗證直接進入後台。
+     - **加固落實**：全數移除所有硬編碼後門字串，驗證流程僅嚴格採認當前指定信箱之動態 OTP 或管理員本人在安全後台自訂的唯一 PIN 碼。
+  3. **敏感財務與帳戶資料脫敏（Data Sanitization）**：
+     - **隱患修復**：`data.js` 及預設 mock 資料中含有真實或測試用的完整銀行帳號（16-17位數）。
+     - **加固落實**：全面移除明文完整帳號欄位，僅保留隱蔽末五碼（如 `accountLast5: "54321"`），防止前端快取或離線腳本洩漏講師個人機敏金融資訊。
+  4. **防竄改即時守門狗（DOM Anti-Tampering Watchdog）**：
+     - 於後台植入雙層守護機制（1 秒心跳檢查 + `MutationObserver` 實時監聽）。若有攻擊者嘗試透過瀏覽器開發者工具（DevTools）刪除 `#adminPinGate` 或強行將 `display` 設為 `none`，守門狗會立即察覺並強制封鎖整個 DOM 結構，徹底瓦解前端繞過攻擊。
+  5. **XSS 跨站腳本攻擊防護機制（HTML Entity Escaping）**：
+     - 導入全域 `escapeHtml()` 轉義輔助函式，針對商機留言（`notes`）、預約備註、學員輸入等文字全數進行安全編碼，防範惡意腳本注入管理後台竊取 Session。

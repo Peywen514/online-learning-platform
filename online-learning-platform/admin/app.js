@@ -325,7 +325,7 @@ function handleAdminPinUnlock(e) {
 
   // 2. 應急備援通道 (自訂靜態備援 PIN、總監萬用密碼 admin514、顧問萬用密碼 liwei1210、測試 PIN)
   const currentStaticPin = getAdminPin();
-  const isEmergencyBackup = (val === currentStaticPin || val === "admin514" || val === "liwei1210" || val === "514888" || val === "121000" || val === "888999");
+  const isEmergencyBackup = (val === currentStaticPin);
 
   if (isDynamicValid || isEmergencyBackup) {
     // 驗證成功後立即銷毀動態碼 (單次使用即失效，杜絕重放攻擊)
@@ -559,7 +559,7 @@ async function handleSaveAdminPin(e) {
     try {
       await fetch('/api/cloud-sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
         body: JSON.stringify({ key: 'admin_pin', data: newPin })
       });
     } catch (err) {}
@@ -574,6 +574,7 @@ async function handleSaveAdminPin(e) {
 
 
 // Cloudflare KV Cloud Sync Engine (跨裝置全域資料庫同步)
+const PENTASKILL_SYNC_TOKEN = 'PentaSkill-CloudSync-Secured-Token-v2026';
 const CLOUD_SYNC_API = '/api/cloud-sync';
 
 
@@ -588,7 +589,7 @@ async function fetchCloudData(key, timeoutMs = 2000) {
     }
     const res = await fetch(`${CLOUD_SYNC_API}?key=${encodeURIComponent(key)}`, {
       method: 'GET',
-      headers: { 'Cache-Control': 'no-cache' },
+      headers: { 'Cache-Control': 'no-cache', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
       signal
     });
     if (timer) clearTimeout(timer);
@@ -605,7 +606,7 @@ async function saveCloudData(key, data) {
   try {
     const res = await fetch(CLOUD_SYNC_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
       body: JSON.stringify({ key, data })
     });
     return res.ok;
@@ -649,7 +650,7 @@ async function syncAllDataToCloudflareKV() {
     try {
       const batchRes = await fetch('/api/cloud-sync-all', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
         body: JSON.stringify(payload)
       });
       if (batchRes.ok) {
@@ -11673,3 +11674,47 @@ async function refreshStudentBookings(btnElement) {
     }
   }
 }
+
+// ==================== 資安加固輔助函式 (XSS 防禦 & DOM 防竄改防護) ====================
+function escapeHtml(str) {
+  if (typeof str !== 'string') return str === null || str === undefined ? '' : String(str);
+  return str.replace(/[&<>"']/g, function(match) {
+    switch (match) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#039;';
+      default: return match;
+    }
+  });
+}
+
+// 防竄改即時守門狗：監控管理員 PIN 碼驗證遮罩，若遭 DevTools 惡意刪除或修改 style，強制重新鎖定並遮蔽畫面
+(function initAdminGateWatchdog() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const isVerified = () => sessionStorage.getItem('pentaskill_admin_pin_verified') === 'true';
+  
+  const checkGateIntegrity = () => {
+    if (isVerified()) return;
+    const gate = document.getElementById('adminPinGate');
+    const mainApp = document.getElementById('adminApp') || document.body;
+    if (!gate) {
+      console.warn('[Security Watchdog] 偵測到管理門禁 DOM 遭移除，啟動主動防護鎖定！');
+      document.body.innerHTML = '<div style="background:#0f172a;color:#f87171;height:100vh;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:sans-serif;">⛔ 偵測到未授權的 DOM 竄改，存取已中斷。請重新整理頁面。</div>';
+      return;
+    }
+    if (gate.style.display === 'none' || gate.style.visibility === 'hidden' || gate.hidden) {
+      console.warn('[Security Watchdog] 偵測到未驗證狀態下嘗試隱藏門禁，強制恢復鎖定！');
+      gate.style.display = 'flex';
+      gate.hidden = false;
+    }
+  };
+
+  // 每秒定期檢驗 + MutationObserver 雙層守護
+  setInterval(checkGateIntegrity, 1000);
+  if (window.MutationObserver) {
+    const observer = new MutationObserver(() => checkGateIntegrity());
+    observer.observe(document.documentElement, { attributes: true, childList: true, subtree: true });
+  }
+})();

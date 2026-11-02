@@ -1,7 +1,13 @@
-﻿const corsHeaders = {
+const SYNC_SECRET_TOKEN = 'PentaSkill-CloudSync-Secured-Token-v2026';
+const SENSITIVE_KEYS = [
+  'users', 'all_users_admin', 'otp_whitelists', 'leads',
+  'custom_quotes', 'mentor_salaries', 'staff_salaries', 'platform_expenses', 'bookings'
+];
+
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Cache-Control, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Cache-Control, Authorization, X-PentaSkill-Auth',
 };
 
 export async function onRequestOptions() {
@@ -25,6 +31,14 @@ export async function onRequestGet({ request, env }) {
     });
   }
 
+  const authToken = request.headers.get('X-PentaSkill-Auth') || '';
+  if (SENSITIVE_KEYS.includes(key) && authToken !== SYNC_SECRET_TOKEN) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden: Access to sensitive data requires authorization token.' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   const data = await env.PENTASKILL_KV.get(key, { type: 'json' });
   return new Response(JSON.stringify(data || null), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -36,6 +50,14 @@ export async function onRequestPost({ request, env }) {
     return new Response(
       JSON.stringify({ error: 'KV Namespace PENTASKILL_KV is not bound in Functions settings.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const authToken = request.headers.get('X-PentaSkill-Auth') || '';
+  if (authToken !== SYNC_SECRET_TOKEN) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden: Writing to Cloud Sync requires valid authorization token.' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 

@@ -1,4 +1,5 @@
 // Cloudflare KV Cloud Sync Engine (跨裝置全域資料庫同步)
+const PENTASKILL_SYNC_TOKEN = 'PentaSkill-CloudSync-Secured-Token-v2026';
 const CLOUD_SYNC_API = '/api/cloud-sync';
 
 
@@ -13,7 +14,7 @@ async function fetchCloudData(key, timeoutMs = 2000) {
     }
     const res = await fetch(`${CLOUD_SYNC_API}?key=${encodeURIComponent(key)}`, {
       method: 'GET',
-      headers: { 'Cache-Control': 'no-cache' },
+      headers: { 'Cache-Control': 'no-cache', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
       signal
     });
     if (timer) clearTimeout(timer);
@@ -30,7 +31,7 @@ async function saveCloudData(key, data) {
   try {
     const res = await fetch(CLOUD_SYNC_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
       body: JSON.stringify({ key, data })
     });
     return res.ok;
@@ -74,7 +75,7 @@ async function syncAllDataToCloudflareKV() {
     try {
       const batchRes = await fetch('/api/cloud-sync-all', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-PentaSkill-Auth': PENTASKILL_SYNC_TOKEN },
         body: JSON.stringify(payload)
       });
       if (batchRes.ok) {
