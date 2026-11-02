@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logos/logonew.png">
-  <link rel="stylesheet" href="style.css?v=20261029_v1">
+  <link rel="stylesheet" href="style.css?v=20261102_v1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -34,53 +34,77 @@
 
       <div class="cf-header-info">
         <h2>PentaSkill 核心管理後台</h2>
-        <p class="cf-desc">已啟動邊緣安全防護。請選擇授權登入身分，系統將透過 Cloudflare 邊緣隧道自動派發<strong>一次性動態 PIN 碼 (One-Time PIN)</strong>。</p>
+        <p class="cf-desc" id="cfGateDesc">已啟動邊緣安全防護。請先輸入指定授權管理員 Email 進行身分驗證。</p>
       </div>
 
-
-      <!-- 選擇授權管理者身分 (接收 OTP 信箱) -->
-      <div class="cf-selector-group">
-        <label for="cfAdminSelect" class="cf-label">
-          <i class="fa-solid fa-user-shield text-cyan"></i> 選擇授權管理者 (接收信箱)：
-        </label>
-        <select id="cfAdminSelect" class="cf-select" onchange="onAdminSelectChange()">
-          <!-- 由 JS 動態依白名單載入 -->
-        </select>
-      </div>
-
-
-      <!-- 自動發信狀態反饋卡 -->
-      <div class="cf-auth-status-card">
-        <div class="cf-email-line">
-          <i class="fa-solid fa-envelope-shield text-cyan"></i>
-          <span>目標信箱：<strong id="cfTargetEmail">pey514514@gmail.com</strong></span>
+      <!-- 階段進度指示器 (第 1 階段 -> 第 2 階段) -->
+      <div class="cf-steps">
+        <div class="cf-step-item active" id="cfStep1Indicator">
+          <i class="fa-solid fa-envelope"></i> <span>第 1 階段：輸入管理員信箱</span>
         </div>
-        <div class="cf-otp-status" id="cfOtpStatus">
-          <i class="fa-solid fa-circle-notch fa-spin text-orange" id="cfStatusIcon"></i>
-          <span id="cfStatusText">系統正在連線 Cloudflare 邊緣並自動寄發動態 PIN 碼...</span>
+        <i class="fa-solid fa-chevron-right cf-step-arrow"></i>
+        <div class="cf-step-item" id="cfStep2Indicator">
+          <i class="fa-solid fa-key"></i> <span>第 2 階段：動態 PIN 碼解鎖</span>
         </div>
       </div>
 
-
-      <form onsubmit="handleAdminPinUnlock(event)" autocomplete="off">
-        <div class="cf-input-group">
-          <label for="adminPinInput">請輸入信箱收到的 6 位數動態 PIN 碼：</label>
-          <div class="cf-input-wrapper">
-            <input type="text" id="adminPinInput" class="cf-pin-input" maxlength="12" placeholder="••••••" autofocus required>
+      <!-- 第 1 階段：輸入管理者 Email，比對指定授權白名單後才發送驗證碼 -->
+      <div id="cfStageEmail" class="cf-stage-panel">
+        <form onsubmit="handleRequestOtp(event)" autocomplete="on">
+          <div class="cf-input-group">
+            <label for="adminEmailInput" class="cf-label">
+              <i class="fa-solid fa-user-shield text-cyan"></i> 請輸入管理者授權 Email：
+            </label>
+            <div class="cf-input-wrapper">
+              <input type="email" id="adminEmailInput" class="cf-email-input" placeholder="例如：pey514514@gmail.com" required autocomplete="email" autofocus>
+            </div>
+            <p class="text-xs text-muted" style="margin-top: 0.4rem; line-height: 1.45;">
+              <i class="fa-solid fa-circle-info text-cyan"></i> 僅限指定授權名單之管理員接收驗證碼，非指定信箱系統將直接予以阻擋。
+            </p>
+            <div id="cfEmailError" class="cf-error-tip" style="display:none;"></div>
           </div>
-          <div class="cf-input-hints">
-            <span class="text-xs text-muted"><i class="fa-solid fa-clock"></i> 動態碼有效時間 10 分鐘</span>
-            <button type="button" class="btn-text-link" id="btnResendOtp" onclick="sendAdminDynamicOtp(true)">
-              <i class="fa-solid fa-rotate-right"></i> <span id="resendText">重新發送動態碼</span>
+
+          <button type="submit" id="btnRequestOtp" class="cf-submit-btn" style="margin-top: 1.25rem;">
+            <i class="fa-solid fa-paper-plane"></i> 驗證信箱身分並寄送動態碼
+          </button>
+        </form>
+      </div>
+
+      <!-- 第 2 階段：輸入信箱收到的 6 位數一次性動態 PIN 碼 -->
+      <div id="cfStagePin" class="cf-stage-panel" style="display:none;">
+        <div class="cf-auth-status-card">
+          <div class="cf-email-line">
+            <i class="fa-solid fa-envelope-circle-check text-green"></i>
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">目標信箱：<strong id="cfTargetEmail"></strong></span>
+            <button type="button" class="btn-text-link" onclick="switchGateStep(1)" style="margin-left: auto; font-size: 0.78rem; flex-shrink: 0;" title="返回更換信箱">
+              <i class="fa-solid fa-pen-to-square"></i> 更換信箱
             </button>
           </div>
+          <div class="cf-otp-status" id="cfOtpStatus">
+            <i class="fa-solid fa-circle-notch fa-spin text-orange" id="cfStatusIcon"></i>
+            <span id="cfStatusText">系統正在連線 Cloudflare 邊緣並寄發動態 PIN 碼...</span>
+          </div>
         </div>
 
+        <form onsubmit="handleAdminPinUnlock(event)" autocomplete="off">
+          <div class="cf-input-group">
+            <label for="adminPinInput">請輸入信箱收到的 6 位數動態 PIN 碼：</label>
+            <div class="cf-input-wrapper">
+              <input type="text" id="adminPinInput" class="cf-pin-input" maxlength="12" placeholder="••••••" required>
+            </div>
+            <div class="cf-input-hints">
+              <span class="text-xs text-muted"><i class="fa-solid fa-clock"></i> 動態碼有效時間 10 分鐘</span>
+              <button type="button" class="btn-text-link" id="btnResendOtp" onclick="sendAdminDynamicOtp(true)">
+                <i class="fa-solid fa-rotate-right"></i> <span id="resendText">重新發送動態碼</span>
+              </button>
+            </div>
+          </div>
 
-        <button type="submit" class="cf-submit-btn">
-          <i class="fa-solid fa-shield-halved"></i> 驗證身分並解鎖後台
-        </button>
-      </form>
+          <button type="submit" class="cf-submit-btn">
+            <i class="fa-solid fa-shield-halved"></i> 驗證身分並解鎖後台
+          </button>
+        </form>
+      </div>
 
 
       <div class="cf-footer-bar">
@@ -4527,75 +4551,96 @@
 
   <!-- MODAL: Admin PIN Configuration Modal -->
   <div id="adminPinConfigModal" class="modal-backdrop">
-    <div class="modal-box" style="max-width: 540px;">
+    <div class="modal-box" style="max-width: 560px;">
       <button class="modal-close" onclick="closeAdminPinConfigModal()">&times;</button>
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <span class="badge-tag bg-cyan"><i class="fa-solid fa-shield-halved"></i> 邊緣資安保護</span>
+          <span class="badge-tag" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-size:0.72rem;">
+            <i class="fa-solid fa-circle-check"></i> 異動即時自動儲存
+          </span>
         </div>
-        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-shield text-cyan"></i> 後台安全防護與 OTP 白名單管理</h3>
-        <p class="text-xs text-muted margin-top-xs">自訂具備後台解鎖權限之管理者信箱白名單與緊急備援 PIN 碼，設定即時生效並同步 Cloudflare KV。</p>
+        <h3 style="margin-top:0.4rem;"><i class="fa-solid fa-user-shield text-cyan"></i> 後台授權管理信箱名單</h3>
+        <p class="text-xs text-muted margin-top-xs">
+          只有在此名單中的 Email 才能在第一階段通過驗證並接收登入動態碼。點擊「移除」或「新增」會<strong>即時自動存檔</strong>。
+        </p>
       </div>
+
       <div class="modal-body">
         <!-- 區塊 1: 授權 Email 白名單清單 -->
-        <div style="margin-bottom:1.25rem; background:rgba(15,23,42,0.6); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:1rem;">
+        <div style="background:rgba(15,23,42,0.75); border:1px solid rgba(56,189,248,0.25); border-radius:12px; padding:1.1rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
             <h4 style="font-size:0.92rem; margin:0; color:#38bdf8;">
-              <i class="fa-solid fa-envelope-circle-check"></i> 授權接收 OTP PIN 碼主管信箱清單
+              <i class="fa-solid fa-envelope-circle-check"></i> 目前授權之管理者信箱名單
             </h4>
             <span class="badge-tag bg-cyan text-xs" id="whitelistCountBadge">3 組已授權</span>
           </div>
 
-
-          <div id="whitelistEmailsContainer" style="display:flex; flex-direction:column; gap:0.45rem; max-height:160px; overflow-y:auto; margin-bottom:0.85rem; padding-right:4px;">
+          <div id="whitelistEmailsContainer" style="display:flex; flex-direction:column; gap:0.45rem; max-height:180px; overflow-y:auto; margin-bottom:0.85rem; padding-right:4px;">
             <!-- 由 renderAdminWhitelistInModal() 動態渲染 -->
           </div>
 
-
           <!-- 新增授權信箱小表單 -->
-          <div style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.75rem;">
-            <div style="font-size:0.78rem; color:#94a3b8; margin-bottom:0.4rem; font-weight:600;">➕ 新增授權信箱：</div>
+          <div style="border-top:1px dashed rgba(255,255,255,0.12); padding-top:0.85rem;">
+            <div style="font-size:0.78rem; color:#94a3b8; margin-bottom:0.4rem; font-weight:600;">➕ 新增指定授權主管信箱：</div>
             <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
-              <input type="text" id="newAdminNameInput" class="form-control" placeholder="姓名 (例: 王特助)" style="flex:1; min-width:100px; font-size:0.82rem; padding:0.4rem 0.6rem;">
+              <input type="text" id="newAdminNameInput" class="form-control" placeholder="姓名 (例: 王專員)" style="flex:1; min-width:100px; font-size:0.82rem; padding:0.4rem 0.6rem;">
               <input type="email" id="newAdminEmailInput" class="form-control" placeholder="Email (例: user@gmail.com)" style="flex:2; min-width:160px; font-size:0.82rem; padding:0.4rem 0.6rem;">
               <button type="button" class="btn btn-outline btn-sm" onclick="addNewAdminToWhitelist()" style="border-color:#38bdf8; color:#38bdf8; white-space:nowrap; padding:0.4rem 0.75rem;">
-                <i class="fa-solid fa-plus"></i> 新增
+                <i class="fa-solid fa-plus"></i> 新增信箱
               </button>
             </div>
+          </div>
+
+          <!-- 即時完成按鈕 -->
+          <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+            <span class="text-xs text-muted"><i class="fa-solid fa-cloud-arrow-up text-cyan"></i> 移除或新增均已即時寫入雲端</span>
+            <button type="button" class="btn btn-primary btn-sm" onclick="closeAdminPinConfigModal()" style="background:linear-gradient(135deg, #06b6d4, #3b82f6); border:none; padding:0.45rem 1.25rem; font-weight:600;">
+              <i class="fa-solid fa-check"></i> 完成並關閉視窗
+            </button>
           </div>
         </div>
 
+        <!-- 區塊 2: 設定萬用備援 6 位數 PIN 碼 (選填折疊進階設定) -->
+        <details style="margin-top:1rem; background:rgba(15,23,42,0.45); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.75rem 1rem;">
+          <summary style="cursor:pointer; color:#94a3b8; font-size:0.8rem; font-weight:600; user-select:none; display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-gear text-yellow"></i>
+            <span>進階選項：修改萬用備援 6 位數 PIN 碼（選填，若無須變更請忽略）</span>
+            <i class="fa-solid fa-chevron-down" style="font-size:0.7rem; margin-left:auto;"></i>
+          </summary>
 
-        <!-- 區塊 2: 設定萬用備援 6 位數 PIN 碼 -->
-        <form onsubmit="handleSaveAdminPin(event)">
-          <div class="form-group">
-            <label style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">
-              <i class="fa-solid fa-key text-yellow"></i> 萬用備援 6 位數 PIN 碼
-            </label>
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.3rem;">
-              <input type="password" id="currentPinDisplay" class="form-control" readonly style="background:rgba(255,255,255,0.05); color:#38bdf8; font-weight:700; letter-spacing:4px;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="toggleCurrentPinVisibility()" title="顯示/隱藏當前 PIN 碼">
-                <i class="fa-solid fa-eye" id="toggleCurrentPinIcon"></i>
+          <form onsubmit="handleSaveAdminPin(event)" style="margin-top:0.85rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.75rem;">
+            <p class="text-xs text-muted" style="margin-bottom:0.75rem; line-height:1.4;">
+              此 PIN 碼僅用於信箱收不到驗證碼時的緊急應急備用（預設值：<code>514888</code>），若無特殊需求維持預設即可。
+            </p>
+            <div class="form-group">
+              <label style="font-size:0.82rem; color:#e2e8f0; font-weight:600;">
+                <i class="fa-solid fa-key text-yellow"></i> 當前萬用備援 PIN 碼：
+              </label>
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.3rem;">
+                <input type="password" id="currentPinDisplay" class="form-control" readonly style="background:rgba(255,255,255,0.05); color:#38bdf8; font-weight:700; letter-spacing:4px; max-width:200px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="toggleCurrentPinVisibility()" title="顯示/隱藏當前 PIN 碼">
+                  <i class="fa-solid fa-eye" id="toggleCurrentPinIcon"></i>
+                </button>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; margin-top:0.6rem;">
+              <div class="form-group">
+                <label style="font-size:0.78rem;">輸入新 6 位數 PIN 碼</label>
+                <input type="password" id="newAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="6位半形數字" style="letter-spacing:4px; font-weight:700; font-size:0.88rem;">
+              </div>
+              <div class="form-group">
+                <label style="font-size:0.78rem;">再次確認新 PIN 碼</label>
+                <input type="password" id="confirmAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="再次輸入" style="letter-spacing:4px; font-weight:700; font-size:0.88rem;">
+              </div>
+            </div>
+            <div class="margin-top-sm" style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); border:none;">
+                <i class="fa-solid fa-floppy-disk"></i> 儲存新備援 PIN 碼
               </button>
             </div>
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem; margin-top:0.6rem;">
-            <div class="form-group">
-              <label style="font-size:0.78rem;">全新 6 位數 PIN 碼 <span class="text-pink">*</span></label>
-              <input type="password" id="newAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="例: 514888" style="letter-spacing:4px; font-weight:700; font-size:0.88rem;">
-            </div>
-            <div class="form-group">
-              <label style="font-size:0.78rem;">再次確認 PIN 碼 <span class="text-pink">*</span></label>
-              <input type="password" id="confirmAdminPinInput" class="form-control" maxlength="6" pattern="[0-9]{6}" placeholder="再次輸入" style="letter-spacing:4px; font-weight:700; font-size:0.88rem;">
-            </div>
-          </div>
-          <div class="margin-top-md" style="display:flex; justify-content:flex-end; gap:0.5rem;">
-            <button type="button" class="btn btn-outline btn-sm" onclick="closeAdminPinConfigModal()">關閉</button>
-            <button type="submit" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); border:none;">
-              <i class="fa-solid fa-floppy-disk"></i> 儲存備援 PIN 碼
-            </button>
-          </div>
-        </form>
+          </form>
+        </details>
       </div>
     </div>
   </div>
@@ -4628,8 +4673,8 @@
 
   <script src="jszip.min.js"></script>
   <script src="pdf-lib.min.js"></script>
-  <script src="data.js?v=20261029_v1"></script>
-  <script src="app.js?v=20261029_v1"></script>
+  <script src="data.js?v=20261102_v1"></script>
+  <script src="app.js?v=20261102_v1"></script>
 
 
     <!-- MODAL: 📅 預約專屬 1-on-1 個教時段彈窗 (直觀極簡月曆連動) -->

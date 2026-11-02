@@ -3875,6 +3875,91 @@ select option {
   margin-bottom: 1.1rem;
 }
 
+/* 🛡️ 兩階段登入閘門樣式 */
+.cf-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.cf-step-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748b;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s ease;
+}
+
+.cf-step-item.active {
+  color: #f58220;
+  background: rgba(245, 130, 32, 0.12);
+  border-color: rgba(245, 130, 32, 0.45);
+  font-weight: 700;
+}
+
+.cf-step-item.completed {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+  font-weight: 600;
+}
+
+.cf-step-arrow {
+  color: #475569;
+  font-size: 0.65rem;
+}
+
+.cf-stage-panel {
+  animation: cfFadeIn 0.25s ease-out;
+}
+
+@keyframes cfFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cf-email-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  border-radius: 12px;
+  background: rgba(11, 17, 32, 0.95);
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  color: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.cf-email-input:focus {
+  border-color: #f58220;
+  box-shadow: 0 0 16px rgba(245, 130, 32, 0.35);
+}
+
+.cf-error-tip {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #fca5a5;
+  line-height: 1.5;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
 .cf-selector-group {
   margin-bottom: 1rem;
   text-align: left;
