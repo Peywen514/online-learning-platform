@@ -4792,8 +4792,8 @@
 
   <script src="jszip.min.js"></script>
   <script src="pdf-lib.min.js"></script>
-  <script src="data.js?v=20261103_v1"></script>
-  <script src="app.js?v=20261103_v1"></script>
+  <script src="data.js?v=20261103_ecpay1"></script>
+  <script src="app.js?v=20261103_ecpay1"></script>
 
 
     <!-- MODAL: 📅 預約專屬 1-on-1 個教時段彈窗 (直觀極簡月曆連動) -->
@@ -4861,6 +4861,17 @@
       </div>
     </div>
 
+
+
+  <!-- MODAL: 綠界科技 ECPay 官方安全收銀收費台 -->
+  <div id="ecpayCheckoutModal" class="modal-backdrop" style="z-index: 2900;">
+    <div class="modal-box" style="max-width: 540px; border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2); background: #0f172a;">
+      <button class="modal-close" onclick="closeECPayModal()">&times;</button>
+      <div id="ecpayModalBody">
+        <!-- Dynamically rendered by openECPayGatewayModal -->
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

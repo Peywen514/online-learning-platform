@@ -830,3 +830,18 @@ let googleSheetConfig = {
   sheetName: "潛在學員諮詢紀錄",
   autoSync: true
 };
+
+
+// 💳 綠界科技 (ECPay) 官方金流串接設定
+let ecpayConfig = {
+  enabled: true,
+  isProduction: (typeof localStorage !== 'undefined' && localStorage.getItem('pentaskill_ecpay_env') === 'production'),
+  merchantId: (typeof localStorage !== 'undefined' && localStorage.getItem('pentaskill_ecpay_merchant_id')) || '2000132',
+  hashKey: (typeof localStorage !== 'undefined' && localStorage.getItem('pentaskill_ecpay_hash_key')) || '5294y06JbISpM5x9',
+  hashIv: (typeof localStorage !== 'undefined' && localStorage.getItem('pentaskill_ecpay_hash_iv')) || 'v77hoKGq4kWxNNIS',
+  stageGatewayUrl: 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
+  prodGatewayUrl: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
+  returnUrl: 'https://online-learning-platform.pey514514.workers.dev/api/ecpay-callback',
+  clientBackUrl: 'https://online-learning-platform.pey514514.workers.dev/#member-center',
+  supportedMethods: ['Credit', 'ATM', 'CVS', 'LINEPay']
+};

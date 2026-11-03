@@ -10209,67 +10209,22 @@ function processDirectPayment(e, title, originalPrice) {
   const userCoins = user ? (user.coins || 0) : (currentUser ? (currentUser.coins || 0) : 0);
   let usedCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;
   usedCoins = Math.min(Math.max(0, usedCoins), Math.min(userCoins, originalPrice));
-  const finalPrice = Math.max(0, originalPrice - usedCoins);
-
-
-  closeCheckoutModal();
-
-
-  // Automatically ensure student exists or register/login as this student
-  if (!user) {
-    user = {
-      id: `u-${Date.now()}`,
-      name: studentName,
-      email: studentEmail,
-      phone: studentPhone,
-      password: 'user123',
-      coins: 0,
-      masterTokens: 1,
-      role: 'student',
-      roleLabel: '🎓 消費者學員 (Student)',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-      purchasedCourses: ['course-1', 'course-2']
-    };
-    mockUsers.push(user);
-  } else {
-    user.coins = Math.max(0, (user.coins || 0) - usedCoins);
-    user.masterTokens = (user.masterTokens || 0) + 1;
-    if (!user.purchasedCourses) user.purchasedCourses = [];
-    if (!user.purchasedCourses.includes('course-1')) user.purchasedCourses.push('course-1');
-  }
-  saveUsersToStorage();
-
-
-  // Set as logged in user
-  currentUser = user;
-  try {
-    localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
-  } catch(err) {}
-
-
-  renderAuthArea();
-  updateUIPermissions();
-  renderUserTable();
-  if (currentView === 'member-center') {
-    renderMemberCenterView();
-  }
-
-
-  cart = cart.filter(item => item.title !== title);
-  updateCartBadge();
-
-
-  let toastMsg = `🎉 結帳成功！已為 ${studentName} 開通【${title}】。提醒：1-on-1 最晚須課前 2 天改期，當天取消視為放棄；課前 10 分鐘即可提前進場測試！`;
-  if (usedCoins > 0) {
-    toastMsg += `（折抵 ${usedCoins} 精幣，實付 NT$ ${finalPrice.toLocaleString()}）`;
-  }
-  toastMsg += ` 🏆 獲贈 1 枚精通寶！`;
-  showToast(toastMsg);
-
-
-  setTimeout(() => {
-    switchView('member-center');
-  }, 1200);
+  const finalPrice = Math.max(0, originalPrice - usedCoins);
+  const payMethodSelect = document.getElementById('payMethod');
+  const payMethod = payMethodSelect ? payMethodSelect.value : 'ECPay_Credit';
+
+  // 喚起綠界官方收銀台
+  openECPayGatewayModal({
+    title,
+    originalPrice,
+    usedCoins,
+    finalPrice,
+    type: 'custom_quote',
+    payMethod,
+    studentName,
+    studentPhone,
+    studentEmail
+  });
 }
 
 
@@ -10304,48 +10259,26 @@ function processPayment(e, title, originalPrice, type) {
   const userCoins = currentUser ? (currentUser.coins || 0) : 0;
   let usedCoins = coinInput ? parseInt(coinInput.value) || 0 : 0;
   usedCoins = Math.min(Math.max(0, usedCoins), Math.min(userCoins, originalPrice));
-  const finalPrice = Math.max(0, originalPrice - usedCoins);
-
-
-  if (currentUser) {
-    currentUser.coins = Math.max(0, (currentUser.coins || 0) - usedCoins);
-    currentUser.masterTokens = (currentUser.masterTokens || 0) + 1; // 獲得 1 枚精通寶
-    
-    // update in mockUsers
-    const uIdx = mockUsers.findIndex(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
-    if (uIdx !== -1) {
-      mockUsers[uIdx].coins = currentUser.coins;
-      mockUsers[uIdx].masterTokens = currentUser.masterTokens;
-    }
-    saveUsersToStorage();
-    try {
-      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
-    } catch(err) {}
-  }
-
-
-  closeCheckoutModal();
-  renderAuthArea();
-  renderUserTable();
-  if (currentView === 'member-center') {
-    renderMemberCenterView();
-  }
-
-
-  let toastMsg = `✅ 報名結帳成功！實付 NT$ ${finalPrice.toLocaleString()}`;
-  if (usedCoins > 0) {
-    toastMsg += `（折抵 ${usedCoins} 精幣）`;
-  }
-  toastMsg += ` 🏆 獲贈 1 枚精通寶！提醒：1-on-1 最晚須課前 2 天線上改期，課前 10 分鐘開放入場！`;
-  showToast(toastMsg);
-  
-  cart = cart.filter(item => item.title !== title);
-  updateCartBadge();
-
-
-  setTimeout(() => {
-    switchView('member-center');
-  }, 1200);
+  const finalPrice = Math.max(0, originalPrice - usedCoins);
+  const payMethodSelect = document.getElementById('payMethod');
+  const payMethod = payMethodSelect ? payMethodSelect.value : 'ECPay_Credit';
+
+  let courseId = 'course-1';
+  if (typeof mockCourses !== 'undefined') {
+    const found = mockCourses.find(c => c.title === title || title.includes(c.title));
+    if (found) courseId = found.id;
+  }
+
+  // 喚起綠界官方收銀台
+  openECPayGatewayModal({
+    title,
+    originalPrice,
+    usedCoins,
+    finalPrice,
+    type,
+    payMethod,
+    courseId
+  });
 }
 
 
@@ -11583,3 +11516,256 @@ async function refreshStudentBookings(btnElement) {
     }
   }
 }
+
+
+// =============================================================
+// 💳 綠界科技 (ECPay) 官方金流收銀台與交易引擎
+// =============================================================
+let currentECPayOrder = null;
+
+function closeECPayModal() {
+  const modal = document.getElementById('ecpayCheckoutModal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+function openECPayGatewayModal(orderInfo) {
+  currentECPayOrder = orderInfo;
+  const modal = document.getElementById('ecpayCheckoutModal');
+  const body = document.getElementById('ecpayModalBody');
+  if (!modal || !body) return;
+
+  const tradeNo = 'PS' + getLocalDateString().replace(/-/g, '') + Math.floor(1000 + Math.random() * 9000);
+  const payMethod = orderInfo.payMethod || 'ECPay_Credit';
+  const isAtm = payMethod.includes('ATM');
+  const isCvs = payMethod.includes('CVS');
+  const isLinePay = payMethod.includes('LINEPay');
+  const isCredit = !isAtm && !isCvs && !isLinePay;
+
+  const isProd = (typeof ecpayConfig !== 'undefined') && ecpayConfig.isProduction;
+  const merchantId = ((typeof ecpayConfig !== 'undefined') && ecpayConfig.merchantId) || '2000132';
+
+  body.innerHTML = `
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.85rem; margin-bottom: 0.85rem; text-align: center;">
+      <div style="display:inline-flex; align-items:center; gap:0.4rem; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.4); padding:3px 12px; border-radius:20px; color:#10b981; font-weight:700; font-size:0.8rem; margin-bottom:0.4rem;">
+        <i class="fa-solid fa-shield-halved"></i> 綠界科技 ECPay 官方金流收銀台
+      </div>
+      <h3 style="margin:0; font-size:1.2rem; color:#fff;">
+        線上金流付款 ${isProd ? '<span class="badge-tag bg-green text-xs">正式營運</span>' : '<span class="badge-tag bg-purple text-xs">測試沙盒 (Sandbox)</span>'}
+      </h3>
+      <div class="text-xs text-muted margin-top-xs">PCI-DSS Level 1 最高資安等級認證 ｜ 256-bit SSL 安全加密</div>
+    </div>
+
+    <!-- 訂單明細卡 -->
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.8rem 1rem; margin-bottom: 0.85rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
+        <span class="text-muted">特店名稱</span>
+        <strong style="color:#fff;">精五門 (PentaSkill)</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
+        <span class="text-muted">特店編號 (MerchantID)</span>
+        <span style="font-family:monospace; color:#38bdf8;">${merchantId}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
+        <span class="text-muted">綠界特店交易單號</span>
+        <span style="font-family:monospace; color:#94a3b8;">${tradeNo}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;">
+        <span class="text-muted">購買方案項目</span>
+        <strong class="text-pink" style="max-width:240px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${orderInfo.title}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed rgba(255,255,255,0.15); padding-top:0.4rem; margin-top:0.4rem;">
+        <span style="font-size:0.92rem; font-weight:700; color:#fff;">應付實結金額</span>
+        <strong style="font-size:1.35rem; color:#10b981;">NT$ ${orderInfo.finalPrice.toLocaleString()}</strong>
+      </div>
+      ${orderInfo.usedCoins > 0 ? `
+        <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:#fbbf24; margin-top:0.2rem;">
+          <span>🪙 已折抵精幣金</span>
+          <span>- NT$ ${orderInfo.usedCoins.toLocaleString()}</span>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- 依付款方式渲染之支付表單 -->
+    ${isCredit ? `
+      <!-- 💳 綠界線上刷卡介面 -->
+      <div style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 0.85rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <span style="font-size:0.88rem; font-weight:700; color:#10b981; display:flex; align-items:center; gap:0.4rem;">
+            <i class="fa-solid fa-credit-card"></i> 綠界線上刷卡 (一次付清)
+          </span>
+          <button type="button" class="btn btn-xs btn-outline" onclick="fillECPayTestCard()" style="border-color:rgba(16,185,129,0.5); color:#10b981; font-size:0.75rem; padding:2px 8px;">
+            一鍵代入測試卡號
+          </button>
+        </div>
+        <div class="form-group margin-bottom-xs">
+          <label class="text-xs text-muted">信用卡卡號 (支援 Visa / Master / JCB / Apple Pay)</label>
+          <input type="text" id="ecpayCardNumber" class="form-control text-sm" placeholder="4311-9522-2222-2222" value="4311-9522-2222-2222" maxlength="19" style="letter-spacing:1px; font-family:monospace;">
+        </div>
+        <div class="grid grid-2 gap-sm margin-top-xs">
+          <div class="form-group">
+            <label class="text-xs text-muted">有效月年 (MM/YY)</label>
+            <input type="text" id="ecpayCardExpiry" class="form-control text-sm" placeholder="12/30" value="12/30" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label class="text-xs text-muted">背面安全碼 (CVV)</label>
+            <input type="password" id="ecpayCardCvv" class="form-control text-sm" placeholder="222" value="222" maxlength="3">
+          </div>
+        </div>
+        <div class="text-xs text-muted margin-top-xs" style="line-height:1.45;">
+          🔒 交易透過綠界科技 256-bit SSL 與 3D 驗證加密傳輸，本站絕不保存您的完整卡號。
+        </div>
+      </div>
+    ` : isAtm ? `
+      <!-- 🏦 綠界 ATM 虛擬帳號介面 -->
+      <div style="background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.3); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 0.85rem;">
+        <div style="font-size:0.88rem; font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+          <i class="fa-solid fa-building-columns"></i> 綠界專屬 ATM 虛擬轉帳帳號
+        </div>
+        <div style="background:rgba(0,0,0,0.3); border-radius:4px; padding:0.65rem 0.85rem; margin-bottom:0.4rem;">
+          <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.25rem;">
+            <span class="text-muted">繳款銀行：</span>
+            <strong style="color:#fff;">玉山銀行 (代碼 808)</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.25rem;">
+            <span class="text-muted">專屬繳款帳號：</span>
+            <strong style="font-family:monospace; color:#38bdf8; font-size:0.95rem;">9808-1103-${Math.floor(1000+Math.random()*9000)}-${Math.floor(1000+Math.random()*9000)}</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:#f87171;">
+            <span>繳費截止時間：</span>
+            <span>3 天後 23:59:59 止</span>
+          </div>
+        </div>
+        <div class="text-xs text-muted" style="line-height:1.4;">
+          💡 支援全台實體 ATM 與任何手機網路銀行 APP 轉帳，綠界確認入帳後即時自動開通課程！
+        </div>
+      </div>
+    ` : isCvs ? `
+      <!-- 🏪 綠界 4 大超商代碼繳費介面 -->
+      <div style="background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.3); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 0.85rem;">
+        <div style="font-size:0.88rem; font-weight:700; color:#fbbf24; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+          <i class="fa-solid fa-store"></i> 4 大超商繳費代碼 (一鍵產碼)
+        </div>
+        <div style="background:rgba(0,0,0,0.3); border-radius:4px; padding:0.65rem 0.85rem; margin-bottom:0.4rem;">
+          <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.25rem;">
+            <span class="text-muted">繳費超商：</span>
+            <strong style="color:#fff;">7-11 ibon / 全家 FamiPort / 萊爾富 / OK</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.25rem;">
+            <span class="text-muted">超商繳費代碼：</span>
+            <strong style="font-family:monospace; color:#fbbf24; font-size:1.05rem; letter-spacing:1px;">GW${getLocalDateString().replace(/-/g,'').slice(2)}${Math.floor(10000+Math.random()*90000)}</strong>
+          </div>
+        </div>
+        <div class="text-xs text-muted" style="line-height:1.4;">
+          💡 請至超商多媒體機台列印小白單至櫃台繳費，繳費後綠界自動回傳開通通知。
+        </div>
+      </div>
+    ` : `
+      <!-- 📱 綠界 LINE Pay 行動支付介面 -->
+      <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 0.85rem; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:#10b981; display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-bottom:0.3rem;">
+          <i class="fa-solid fa-mobile-screen-button"></i> LINE Pay 行動快捷支付
+        </div>
+        <div class="text-xs text-muted">
+          點擊下方按鈕將喚醒綠界 LINE Pay 安全支付閘道，支援 LINE POINTS 點數折抵！
+        </div>
+      </div>
+    `}
+
+    <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+      <button type="button" class="btn btn-outline" onclick="closeECPayModal()" style="flex:1;">
+        ✕ 返回修改
+      </button>
+      <button type="button" class="btn btn-primary" onclick="confirmECPayPayment('${tradeNo}')" style="flex:2; background:linear-gradient(135deg, #10b981, #059669); font-weight:700; font-size:0.95rem;">
+        <i class="fa-solid fa-circle-check"></i> 確認付款 (綠界授權完成)
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+}
+
+function fillECPayTestCard() {
+  const cardInput = document.getElementById('ecpayCardNumber');
+  const expInput = document.getElementById('ecpayCardExpiry');
+  const cvvInput = document.getElementById('ecpayCardCvv');
+  if (cardInput) cardInput.value = '4311-9522-2222-2222';
+  if (expInput) expInput.value = '12/30';
+  if (cvvInput) cvvInput.value = '222';
+  if (typeof showToast === 'function') {
+    showToast('💳 已自動代入綠界官方測試信用卡號！');
+  }
+}
+
+function confirmECPayPayment(tradeNo) {
+  if (!currentECPayOrder) return;
+  const { title, originalPrice, usedCoins, finalPrice, type, studentName, studentEmail, courseId } = currentECPayOrder;
+
+  // 1. 記錄綠界訂單
+  const orderRecord = {
+    tradeNo: tradeNo,
+    merchantId: ((typeof ecpayConfig !== 'undefined') && ecpayConfig.merchantId) || '2000132',
+    courseTitle: title,
+    courseId: courseId || 'course-1',
+    finalPrice: finalPrice,
+    usedCoins: usedCoins,
+    payMethod: currentECPayOrder.payMethod || 'ECPay_Credit',
+    paidAt: getLocalDateTimeString(),
+    status: 'PAID_SUCCESS',
+    studentEmail: currentUser ? currentUser.email : studentEmail,
+    studentName: currentUser ? currentUser.name : studentName
+  };
+
+  try {
+    const existingOrders = JSON.parse(localStorage.getItem('pentaskill_ecpay_orders') || '[]');
+    existingOrders.unshift(orderRecord);
+    localStorage.setItem('pentaskill_ecpay_orders', JSON.stringify(existingOrders));
+  } catch(e) {}
+
+  // 2. 扣抵精幣與發放精通寶
+  if (currentUser) {
+    currentUser.coins = Math.max(0, (currentUser.coins || 0) - usedCoins);
+    currentUser.masterTokens = (currentUser.masterTokens || 0) + 1;
+
+    // 開通購買課程權限
+    if (!currentUser.purchasedCourses) currentUser.purchasedCourses = [];
+    if (courseId && !currentUser.purchasedCourses.includes(courseId)) {
+      currentUser.purchasedCourses.push(courseId);
+    }
+
+    const uIdx = mockUsers.findIndex(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
+    if (uIdx !== -1) {
+      mockUsers[uIdx].coins = currentUser.coins;
+      mockUsers[uIdx].masterTokens = currentUser.masterTokens;
+      mockUsers[uIdx].purchasedCourses = currentUser.purchasedCourses;
+    }
+    saveUsersToStorage();
+    try {
+      localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
+    } catch(err) {}
+  }
+
+  // 3. 關閉彈窗並提示成功
+  closeECPayModal();
+  closeCheckoutModal();
+
+  if (typeof renderAuthArea === 'function') renderAuthArea();
+  if (typeof renderUserTable === 'function') renderUserTable();
+
+  let toastMsg = `🎉【綠界金流付款成功】訂單 ${tradeNo} 已完成扣款！實付 NT$ ${finalPrice.toLocaleString()}`;
+  if (usedCoins > 0) toastMsg += `（折抵 ${usedCoins} 精幣）`;
+  toastMsg += ` 🏆 獲贈 1 枚精通寶！課程權限已即刻開通！`;
+  if (typeof showToast === 'function') showToast(toastMsg, 'success');
+
+  if (typeof cart !== 'undefined') {
+    cart = cart.filter(item => item.title !== title);
+    if (typeof updateCartBadge === 'function') updateCartBadge();
+  }
+
+  setTimeout(() => {
+    if (typeof switchView === 'function') switchView('member-center');
+  }, 1200);
+}

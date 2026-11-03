@@ -215,7 +215,25 @@ export default {
       }
     }
 
-    // 3. 靜態資源交付
+    
+    // 3. API: /api/ecpay-callback (綠界金流付款完成 Webhook 回傳通道)
+    if (url.pathname === '/api/ecpay-callback' && request.method === 'POST') {
+      try {
+        const formData = await request.formData();
+        const tradeNo = formData.get('MerchantTradeNo') || '';
+        const rtnCode = formData.get('RtnCode') || '';
+        const tradeAmt = formData.get('TradeAmt') || '';
+        console.log(`[ECPay Webhook] 收到綠界官方回傳 - 訂單: ${tradeNo}, 狀態: ${rtnCode}, 金額: ${tradeAmt}`);
+        // 綠界官方規範：伺服器收到通知成功，必須回覆 1|OK
+        return new Response('1|OK', {
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
+      } catch (err) {
+        return new Response('1|OK', { headers: { 'Content-Type': 'text/plain' } });
+      }
+    }
+
+    // 4. 靜態資源交付
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }

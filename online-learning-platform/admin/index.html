@@ -1400,6 +1400,9 @@
           <button class="admin-tab manager-only-tab" data-atab="sheets" onclick="switchAdminTab('sheets')">
             <i class="fa-solid fa-table text-green"></i> 📊 Google Sheet 試算表串接 (主管/顧問專屬)
           </button>
+          <button class="admin-tab manager-only-tab" data-atab="ecpay" onclick="switchAdminTab('ecpay')">
+            <i class="fa-solid fa-credit-card text-green"></i> 綠界金流 (ECPay)
+          </button>
         </div>
 
 
@@ -2012,6 +2015,103 @@
                     </div>
                   </div>
                 </div>
+
+      <!-- 💳 PANE 10: 綠界金流 (ECPay) 串接管理中心 -->
+      <div class="admin-content-pane" id="atab-ecpay">
+        <div class="dashboard-card" style="border: 1px solid rgba(16,185,129,0.3); background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(15,23,42,0.95));">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+            <div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="badge-tag bg-green"><i class="fa-solid fa-shield-halved"></i> 官方合作夥伴</span>
+                <h3 style="margin:0; font-size:1.35rem; color:#fff;">💳 綠界科技 (ECPay) 全方位金流串接中心</h3>
+              </div>
+              <div class="text-xs text-muted margin-top-xs">
+                支援全台各大銀行信用卡 (Visa/Master/JCB/Apple Pay)、ATM 虛擬帳號、4 大超商繳費代碼與 LINE Pay 行動支付。
+              </div>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              <a href="https://vendor.ecpay.com.tw/" target="_blank" class="btn btn-sm btn-outline" style="border-color:rgba(16,185,129,0.5); color:#10b981;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 登入綠界廠商後台
+              </a>
+              <button class="btn btn-sm btn-primary" onclick="testECPayOrder()" style="background:linear-gradient(135deg, #10b981, #059669);">
+                <i class="fa-solid fa-vial"></i> 建立測試金流訂單
+              </button>
+            </div>
+          </div>
+
+          <!-- 綠界配置狀態卡 -->
+          <div class="grid grid-3 gap-md margin-bottom-md">
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:1rem;">
+              <div class="text-xs text-muted">目前運作環境</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#10b981; margin-top:0.35rem;" id="ecpayEnvDisplay">
+                ⚡ 官方測試沙盒 (Sandbox)
+              </div>
+              <div class="text-xs text-muted margin-top-xs">通過綠界審核後可一鍵切換正式</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:1rem;">
+              <div class="text-xs text-muted">特店編號 (MerchantID)</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#38bdf8; margin-top:0.35rem;" id="ecpayMerchantIdDisplay">
+                2000132
+              </div>
+              <div class="text-xs text-muted margin-top-xs">綠界官方核發之商戶專屬代碼</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:1rem;">
+              <div class="text-xs text-muted">安全加密機制</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#a855f7; margin-top:0.35rem;">
+                SHA-256 + 256-bit SSL
+              </div>
+              <div class="text-xs text-muted margin-top-xs">CheckMacValue 防偽驗證通過</div>
+            </div>
+          </div>
+
+          <!-- 綠界設定表單 -->
+          <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-sm); padding:1.25rem;">
+            <h4 style="font-size:1rem; color:#fff; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+              <i class="fa-solid fa-sliders text-cyan"></i> 綠界 API 介接參數設定
+            </h4>
+
+            <div class="grid grid-2 gap-md">
+              <div class="form-group">
+                <label>營運環境切換 (Environment)</label>
+                <select id="inputEcpayEnv" class="form-control">
+                  <option value="stage">⚡ 測試沙盒環境 (Sandbox - 供功能驗證與測試)</option>
+                  <option value="production">🟢 正式營運環境 (Production - 串接實際營業金流)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>特店編號 (MerchantID) <span class="text-pink">*</span></label>
+                <input type="text" id="inputEcpayMerchantId" class="form-control" value="2000132" placeholder="綠界特店代號，如 2000132 或 300xxxx">
+              </div>
+              <div class="form-group">
+                <label>HashKey <span class="text-pink">*</span></label>
+                <input type="text" id="inputEcpayHashKey" class="form-control" value="5294y06JbISpM5x9" placeholder="介接 HashKey">
+              </div>
+              <div class="form-group">
+                <label>HashIV <span class="text-pink">*</span></label>
+                <input type="text" id="inputEcpayHashIv" class="form-control" value="v77hoKGq4kWxNNIS" placeholder="介接 HashIV">
+              </div>
+              <div class="form-group">
+                <label>付款結果回傳網址 (ReturnURL)</label>
+                <input type="text" id="inputEcpayReturnUrl" class="form-control" value="https://online-learning-platform.pey514514.workers.dev/api/ecpay-callback" readonly style="opacity:0.8;">
+              </div>
+              <div class="form-group">
+                <label>學員付款完成導回網址 (ClientBackURL)</label>
+                <input type="text" id="inputEcpayBackUrl" class="form-control" value="https://online-learning-platform.pey514514.workers.dev/#member-center" readonly style="opacity:0.8;">
+              </div>
+            </div>
+
+            <div class="margin-top-md" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+              <div class="text-xs text-muted">
+                💡 提示：更換為綠界公司正式發放的 MerchantID、HashKey、HashIV 後，點擊「儲存設定」即可立即生效並持久保存！
+              </div>
+              <button type="button" class="btn btn-primary" onclick="saveECPayConfig()" style="background:linear-gradient(135deg, #10b981, #059669); font-weight:700;">
+                <i class="fa-solid fa-floppy-disk"></i> 儲存綠界設定並同步至 Cloudflare KV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
               </div>
 
 
@@ -4673,8 +4773,8 @@
 
   <script src="jszip.min.js"></script>
   <script src="pdf-lib.min.js"></script>
-  <script src="data.js?v=20261103_v1"></script>
-  <script src="app.js?v=20261103_v1"></script>
+  <script src="data.js?v=20261103_ecpay1"></script>
+  <script src="app.js?v=20261103_ecpay1"></script>
 
 
     <!-- MODAL: 📅 預約專屬 1-on-1 個教時段彈窗 (直觀極簡月曆連動) -->
@@ -4742,6 +4842,17 @@
       </div>
     </div>
 
+
+
+  <!-- MODAL: 綠界科技 ECPay 官方安全收銀收費台 -->
+  <div id="ecpayCheckoutModal" class="modal-backdrop" style="z-index: 2900;">
+    <div class="modal-box" style="max-width: 540px; border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2); background: #0f172a;">
+      <button class="modal-close" onclick="closeECPayModal()">&times;</button>
+      <div id="ecpayModalBody">
+        <!-- Dynamically rendered by openECPayGatewayModal -->
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

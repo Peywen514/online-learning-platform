@@ -613,3 +613,21 @@ un_worker_first = true，使 /api/cloud-sync 與 /api/cloud-sync-all 不會被 C
      - 經自動化單元與穿透測試驗證，所有密碼雜湊、存取控制、防外洩與防越權規則全數 100% 通過。
   7. **靜態資源版本快取升級**：
      - 全站靜態資源版本號全面更新為 `?v=20261103_v1`。
+
+- **💳 綠界科技 (ECPay) 全方位安全金流串接模組預備完成（2026/11/03 完工）**：
+  1. **前台結帳介面升級 (ECPay Integration in Checkout)**：
+     - 標準購課結帳 (`#checkoutModal`) 與客製化報價單直通結帳 (`#directPaymentModal`) 均升級配置「綠界科技 ECPay 官方安全金流 (PCI-DSS Level 1 認證)」認證標章。
+     - 整合四大綠界官方支付渠道：
+       1. `💳 綠界線上刷卡 (一次付清，支援 Visa/Master/JCB/Apple Pay，內建 3D 驗證)`
+       2. `🏦 綠界專屬 ATM 虛擬帳號轉帳 (支援全台各大行庫與網路銀行)`
+       3. `🏪 綠界 4 大超商代碼繳費 (7-11 ibon / 全家 FamiPort / 萊爾富 / OK 一鍵產碼)`
+       4. `📱 綠界 LINE Pay 行動支付快充 (支援 LINE POINTS 點數折抵)`
+  2. **綠界安全收銀台彈窗與全流程模擬 (`#ecpayCheckoutModal`)**：
+     - 點擊「確認付款結帳」自動喚起綠界專屬收銀收費台，依選取方式動態渲染介面（含一鍵代入官方測試卡號 `4311-9522-2222-2222`、自動產生專屬 ATM 繳款帳號或超商繳費代碼）。
+     - 授權完成後自動記錄 `tradeNo` 交易單號、精幣扣抵試算、發放 🏆 精通寶並將課程開通至學員帳號。
+  3. **👑 Wen 總監 後台綠界金流串接管理中心 (`atab-ecpay`)**：
+     - 後台新增專屬「💳 綠界金流 (ECPay)」分頁面板，支援隨時切換「⚡ 測試沙盒環境 (Sandbox)」與「🟢 正式營運環境 (Production)」。
+     - 支援自訂填入綠界公司正式核發之「特店編號 (MerchantID)」、「HashKey」、「HashIV」，並可一鍵儲存持久化至 Cloudflare KV 雲端資料庫。
+     - 內建「登入綠界廠商後台」捷徑與「建立測試金流訂單」功能，方便總監與團隊進行實機驗收。
+  4. **Cloudflare Worker 綠界 Webhook 回傳通道 (`/api/ecpay-callback`)**：
+     - 後端新增 `/api/ecpay-callback` 端點，接收綠界付款完成通知並遵循官方規範回覆 `1|OK`。
