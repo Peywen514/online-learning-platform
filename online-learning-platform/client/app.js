@@ -128,179 +128,62 @@ function saveBookingsToStorage(syncCloud = true) {
 
 
 // 雲端開機自動同步載入
-async function initCloudSync() {
-  try {
-    const [cloudUsers, cloudQuotes, cloudLeads, cloudBookings, cloudSalaries, cloudStaff, cloudExpenses, cloudCourses, cloudChapters, cloudMaterials] = await Promise.all([
-      fetchCloudData('users'),
-      fetchCloudData('custom_quotes'),
-      fetchCloudData('leads'),
-      fetchCloudData('bookings'),
-      fetchCloudData('mentor_salaries'),
-      fetchCloudData('staff_salaries'),
-      fetchCloudData('platform_expenses'),
-      fetchCloudData('courses'),
-      fetchCloudData('chapters'),
-      fetchCloudData('course_materials')
-    ]);
-
-
-    let updated = false;
-
-
-    // 1. 同步全域使用者名單與點數
-    if (Array.isArray(cloudUsers) && cloudUsers.length > 0) {
-      cloudUsers.forEach(cu => {
-        const idx = mockUsers.findIndex(u => u.id === cu.id || (u.email && cu.email && u.email.toLowerCase() === cu.email.toLowerCase()));
-        if (idx !== -1) {
-          mockUsers[idx] = { ...mockUsers[idx], ...cu };
-        } else {
-          mockUsers.push(cu);
-        }
-      });
-      saveUsersToStorage(false); // save to local only
-      updated = true;
-    }
-
-
-    // 2. 同步報價單
-    if (Array.isArray(cloudQuotes) && cloudQuotes.length > 0) {
-      mockCustomQuotes = cloudQuotes;
-      try {
-        localStorage.setItem('pentaskill_custom_quotes', JSON.stringify(mockCustomQuotes));
-      } catch(err) {}
-      updated = true;
-    }
-
-
-    // 3. 同步諮詢需求紀錄
-    if (Array.isArray(cloudLeads) && cloudLeads.length > 0) {
-      mockLeads = cloudLeads;
-      try {
-        localStorage.setItem('pentaskill_leads', JSON.stringify(mockLeads));
-      } catch(err) {}
-      updated = true;
-    }
-
-
-    // 4. 同步 1-on-1 個教排班與預約資料庫
-    if (Array.isArray(cloudBookings) && cloudBookings.length > 0) {
-      mockBookings = cloudBookings;
-      try {
-        localStorage.setItem('pentaskill_bookings', JSON.stringify(mockBookings));
-      } catch(err) {}
-      renderBookingAdminTable();
-      renderStudentBookings();
-      updateAvailableSlots();
-      updated = true;
-    }
-
-
-    // 5. 同步講師月結薪資資料庫
-    if (Array.isArray(cloudSalaries) && cloudSalaries.length > 0) {
-      mockMentorSalaries = cloudSalaries;
-      try {
-        localStorage.setItem('pentaskill_mentor_salaries', JSON.stringify(mockMentorSalaries));
-      } catch(err) {}
-      renderMentorSalaryTable();
-      updated = true;
-    }
-
-
-    // 6. 同步員工薪資資料庫
-    if (Array.isArray(cloudStaff) && cloudStaff.length > 0) {
-      mockStaffSalaries = cloudStaff;
-      try {
-        localStorage.setItem('pentaskill_staff_salaries', JSON.stringify(mockStaffSalaries));
-      } catch(err) {}
-      renderStaffSalaryTable();
-      updated = true;
-    }
-
-
-    // 7. 同步平台固定運營花費資料庫
-    if (Array.isArray(cloudExpenses) && cloudExpenses.length > 0) {
-      mockPlatformExpenses = cloudExpenses;
-      try {
-        localStorage.setItem('pentaskill_platform_expenses', JSON.stringify(mockPlatformExpenses));
-      } catch(err) {}
-      renderPlatformExpensesTable();
-      updated = true;
-    }
-
-
-    // 8. 同步線上課程資料庫 (包含自訂價格與內容)
-    if (Array.isArray(cloudCourses) && cloudCourses.length > 0) {
-      mockCourses = cloudCourses;
-      try {
-        localStorage.setItem('pentaskill_courses', JSON.stringify(mockCourses));
-      } catch(err) {}
-      renderCourseGrid('all');
-      renderHomeFeaturedCourses();
-      renderCourseAdminTable();
-      updated = true;
-    }
-
-
-    // 9. 同步錄播單元與章節影片資料庫
-    if (Array.isArray(cloudChapters) && cloudChapters.length > 0) {
-      mockChapters = cloudChapters;
-      try {
-        localStorage.setItem('pentaskill_chapters', JSON.stringify(mockChapters));
-      } catch(err) {}
-      if (typeof renderChapterAdminList === 'function') renderChapterAdminList();
-      if (typeof renderChapters === 'function') renderChapters();
-    if (currentUser && currentUser.email && typeof loadStudentVideoProgressFromCloud === 'function') {
-      loadStudentVideoProgressFromCloud(currentUser.email);
-    }
-      updated = true;
-    }
-
-
-    // 10. 同步隨課講義與教材清單
-    if (Array.isArray(cloudMaterials) && cloudMaterials.length > 0) {
-      try {
-        localStorage.setItem('pentaskill_course_materials', JSON.stringify(cloudMaterials));
-      } catch(err) {}
-      if (typeof renderStudentCourseHandouts === 'function') renderStudentCourseHandouts('course-1');
-      updated = true;
-    }
-
-
-    if (updated) {
-      renderFinanceDashboardKPIs();
-    }
-
-
-    // 6. 若當前登入者有最新雲端點數，即時刷新
-    if (currentUser) {
-      const refreshed = mockUsers.find(u => u.id === currentUser.id || (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()));
-      if (refreshed) {
-        currentUser = refreshed;
-        try {
-          localStorage.setItem('pentaskill_user', JSON.stringify(currentUser));
-        } catch(err) {}
-      }
-    }
-
-
-    if (updated) {
-      renderAuthArea();
-      updateUIPermissions();
-    if (typeof loadStudentVideoProgressFromCloud === 'function' && currentUser.email) {
-      loadStudentVideoProgressFromCloud(currentUser.email).then(() => {
-        if (typeof renderMemberCenter === 'function') renderMemberCenter();
-      });
-    }
-      renderUserTable();
-      renderCustomQuotesAdminTable();
-      renderLeadAdminTable();
-      if (currentView === 'member-center') {
-        renderMemberCenterView();
-      }
-    }
-  } catch (err) {
-    console.warn('[Cloud Sync] 同步初始化提醒:', err);
-  }
+// 🛡️ 遵循 WordPress / Shopline 個資保護原則之開機同步引擎
+// 前台一般訪客與學員端嚴格僅拉取公開課程、章節與教材，絕不下載全站客戶名冊、密碼與薪資表！
+async function initCloudSync() {
+  try {
+    const [cloudCourses, cloudChapters, cloudMaterials] = await Promise.all([
+      fetchCloudData('courses'),
+      fetchCloudData('chapters'),
+      fetchCloudData('course_materials')
+    ]);
+
+    let updated = false;
+
+    // 1. 同步公開線上課程
+    if (Array.isArray(cloudCourses) && cloudCourses.length > 0) {
+      mockCourses = cloudCourses;
+      try { localStorage.setItem('pentaskill_courses', JSON.stringify(mockCourses)); } catch(e) {}
+      if (typeof renderCourseGrid === 'function') renderCourseGrid('all');
+      if (typeof renderHomeFeaturedCourses === 'function') renderHomeFeaturedCourses();
+      updated = true;
+    }
+
+    // 2. 同步公開章節
+    if (Array.isArray(cloudChapters) && cloudChapters.length > 0) {
+      mockChapters = cloudChapters;
+      try { localStorage.setItem('pentaskill_chapters', JSON.stringify(mockChapters)); } catch(e) {}
+      if (typeof renderChapters === 'function') renderChapters();
+      updated = true;
+    }
+
+    // 3. 同步隨課教材清單
+    if (Array.isArray(cloudMaterials) && cloudMaterials.length > 0) {
+      mockMaterials = cloudMaterials;
+      try { localStorage.setItem('pentaskill_course_materials', JSON.stringify(mockMaterials)); } catch(e) {}
+      if (typeof renderStudentCourseHandouts === 'function') renderStudentCourseHandouts('course-1');
+      updated = true;
+    }
+
+    // 4. 若當前已有登入學員，個別同步其本人的播放進度
+    if (currentUser && currentUser.email) {
+      if (typeof loadStudentVideoProgressFromCloud === 'function') {
+        loadStudentVideoProgressFromCloud(currentUser.email).then(() => {
+          if (typeof renderMemberCenter === 'function') renderMemberCenter();
+        });
+      }
+    }
+
+    if (updated) {
+      if (typeof renderAuthArea === 'function') renderAuthArea();
+      if (typeof updateUIPermissions === 'function') updateUIPermissions();
+      if (currentView === 'member-center' && typeof renderMemberCenterView === 'function') {
+        renderMemberCenterView();
+      }
+    }
+  } catch (err) {
+    console.log('[Cloud Sync] 前台公開資源同步完成');
+  }
 }
 
 
@@ -1256,7 +1139,7 @@ function togglePasswordVisibility(inputId, iconIdOrEl) {
 
 
 // Login Authentication Verification Logic
-function handleLoginSubmit(e) {
+async function handleLoginSubmit(e) {
   e.preventDefault();
   const emailInput = document.getElementById('loginEmail');
   const passwordInput = document.getElementById('loginPassword');
@@ -1268,7 +1151,20 @@ function handleLoginSubmit(e) {
 
 
   // Search accounts in mockUsers (case-insensitive email matching)
-  const matchedUser = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+  // 🔒 遵循 WordPress / Shopline 密碼雜湊校驗規範
+  const candidate = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+  let matchedUser = null;
+  if (candidate) {
+    const isPwValid = await verifyPassword(password, candidate.password);
+    if (isPwValid) {
+      matchedUser = candidate;
+      // 自動將舊版明文密碼無痛升級為 SHA-256 雜湊
+      if (candidate.password === password) {
+        candidate.password = await hashPassword(password);
+        try { localStorage.setItem('pentaskill_users', JSON.stringify(mockUsers)); } catch(e) {}
+      }
+    }
+  }
 
 
   if (matchedUser) {
@@ -1337,7 +1233,7 @@ function handleRegisterBirthdayChange() {
 
 
 // Student Registration & Member Joining (簡化表單：姓名、稱呼、手機、Email、密碼、生日 + 當月壽星 100 精幣)
-function handleRegisterSubmit(e) {
+async function handleRegisterSubmit(e) {
   e.preventDefault();
 
 
@@ -1390,6 +1286,7 @@ function handleRegisterSubmit(e) {
 
 
   // 1. Create Student User Account
+  const hashedPassword = await hashPassword(password);
   const newStudent = {
     id: `u-${Date.now()}`,
     name: name,
@@ -1397,7 +1294,7 @@ function handleRegisterSubmit(e) {
     displayName: `${name} (${title})`,
     email: email,
     phone: phone,
-    password: password,
+    password: hashedPassword,
     birthday: birthday,
     coins: startingCoins,
     role: 'student',
@@ -1618,7 +1515,11 @@ function updateUIPermissions() {
 
 
 // Navigation View Switcher with Permission Guards & Browser History Support
-function switchView(viewId, pushHistory = true) {
+function switchView(viewId, pushHistory = true) {
+  if (viewId === 'admin-dashboard') {
+    window.location.href = '../admin/';
+    return;
+  }
   const role = currentUser ? currentUser.role : 'guest';
   const isManagerOrConsultant = (role === 'manager' || role === 'consultant');
   const isInstructorOrAbove = (role === 'manager' || role === 'consultant' || role === 'staff' || role === 'instructor');
@@ -2038,8 +1939,8 @@ async function handleSaveProfile(e) {
   currentUser.birthday = newBirthday;
   currentUser.email = newEmail;
   currentUser.avatar = newAvatar;
-  if (newPassword) {
-    currentUser.password = newPassword;
+  if (newPassword) {
+    currentUser.password = await hashPassword(newPassword);
   }
 
 

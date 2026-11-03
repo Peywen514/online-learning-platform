@@ -1,4 +1,5 @@
 const SYNC_SECRET_TOKEN = 'PentaSkill-CloudSync-Secured-Token-v2026';
+const PUBLIC_READ_KEYS = ['courses', 'chapters', 'course_materials'];
 const SENSITIVE_KEYS = [
   'users', 'all_users_admin', 'otp_whitelists', 'leads',
   'custom_quotes', 'mentor_salaries', 'staff_salaries', 'platform_expenses', 'bookings'
@@ -54,31 +55,41 @@ export async function onRequestPost({ request, env }) {
   }
 
   const authToken = request.headers.get('X-PentaSkill-Auth') || '';
-  if (authToken !== SYNC_SECRET_TOKEN) {
+  const body = await request.json();
+  const { key, data } = body;
+
+  if (!key) {
+    return new Response(JSON.stringify({ error: 'Missing key parameter' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Allow append-only for leads without admin token
+  if (key === 'leads' && authToken !== SYNC_SECRET_TOKEN) {
+    let existingLeads = [];
+    try {
+      const raw = await env.PENTASKILL_KV.get('leads');
+      if (raw) existingLeads = JSON.parse(raw);
+    } catch(e) {}
+    const newItems = Array.isArray(data) ? data : [data];
+    const updated = [...newItems, ...existingLeads].slice(0, 1000);
+    await env.PENTASKILL_KV.put('leads', JSON.stringify(updated));
+    return new Response(JSON.stringify({ success: true, message: 'Inquiry received securely.' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (authToken !== SYNC_SECRET_TOKEN && !key.startsWith('video_progress_')) {
     return new Response(
       JSON.stringify({ error: 'Forbidden: Writing to Cloud Sync requires valid authorization token.' }),
       { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
-  try {
-    const body = await request.json();
-    const { key, data } = body;
-    if (!key) {
-      return new Response(JSON.stringify({ error: 'Missing key parameter' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    await env.PENTASKILL_KV.put(key, JSON.stringify(data));
-    return new Response(JSON.stringify({ success: true, key }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+  const valToStore = typeof data === 'string' ? data : JSON.stringify(data);
+  await env.PENTASKILL_KV.put(key, valToStore);
+  return new Response(JSON.stringify({ success: true, key }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }

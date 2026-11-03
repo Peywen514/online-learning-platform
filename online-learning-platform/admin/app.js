@@ -1848,7 +1848,7 @@ function togglePasswordVisibility(inputId, iconIdOrEl) {
 
 
 // Login Authentication Verification Logic
-function handleLoginSubmit(e) {
+async function handleLoginSubmit(e) {
   e.preventDefault();
   const emailInput = document.getElementById('loginEmail');
   const passwordInput = document.getElementById('loginPassword');
@@ -1860,7 +1860,20 @@ function handleLoginSubmit(e) {
 
 
   // Search accounts in mockUsers (case-insensitive email matching)
-  const matchedUser = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+  // 🔒 遵循 WordPress / Shopline 密碼雜湊校驗規範
+  const candidate = mockUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+  let matchedUser = null;
+  if (candidate) {
+    const isPwValid = await verifyPassword(password, candidate.password);
+    if (isPwValid) {
+      matchedUser = candidate;
+      // 自動將舊版明文密碼無痛升級為 SHA-256 雜湊
+      if (candidate.password === password) {
+        candidate.password = await hashPassword(password);
+        try { localStorage.setItem('pentaskill_users', JSON.stringify(mockUsers)); } catch(e) {}
+      }
+    }
+  }
 
 
   if (matchedUser) {
@@ -1938,7 +1951,7 @@ function handleRegisterBirthdayChange() {
 
 
 // Student Registration & Member Joining (簡化表單：姓名、稱呼、手機、Email、密碼、生日 + 當月壽星 100 精幣)
-function handleRegisterSubmit(e) {
+async function handleRegisterSubmit(e) {
   e.preventDefault();
 
 
@@ -1991,6 +2004,7 @@ function handleRegisterSubmit(e) {
 
 
   // 1. Create Student User Account
+  const hashedPassword = await hashPassword(password);
   const newStudent = {
     id: `u-${Date.now()}`,
     name: name,
@@ -1998,7 +2012,7 @@ function handleRegisterSubmit(e) {
     displayName: `${name} (${title})`,
     email: email,
     phone: phone,
-    password: password,
+    password: hashedPassword,
     birthday: birthday,
     coins: startingCoins,
     role: 'student',
@@ -2612,8 +2626,8 @@ async function handleSaveProfile(e) {
   currentUser.birthday = newBirthday;
   currentUser.email = newEmail;
   currentUser.avatar = newAvatar;
-  if (newPassword) {
-    currentUser.password = newPassword;
+  if (newPassword) {
+    currentUser.password = await hashPassword(newPassword);
   }
 
 
